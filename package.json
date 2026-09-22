@@ -1,0 +1,12 @@
+{
+  "name": "watchlab-cebu",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WatchLab Cebu - Luxury Watch Catalog & Customer Inquiry System",
+  "scripts": {
+    "start:backend": "npm --prefix backend start",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend install && npm --prefix frontend install && npm --prefix frontend run build"
+  }
+}
