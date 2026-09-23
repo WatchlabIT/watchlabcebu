@@ -3,25 +3,20 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Award, MessageSquare, Sparkles, Clock } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
-import { fetchNewArrivals, fetchTransactions } from '../utils/api';
+import { fetchNewArrivals } from '../utils/api';
 import { getWhatsAppUrl, getImageUrl } from '../utils/format';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
-  const [featuredTx, setFeaturedTx] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const [arrivalsData, txData] = await Promise.all([
-          fetchNewArrivals(4).catch(() => ({ watches: [] })),
-          fetchTransactions().catch(() => ({ transactions: [] }))
-        ]);
-        setNewArrivals(arrivalsData.watches || []);
-        setFeaturedTx(txData.transactions || []);
+        const data = await fetchNewArrivals(4);
+        setNewArrivals(data.watches || []);
       } catch (err) {
-        console.error('Error fetching homepage data:', err);
+        console.error('Error fetching new arrivals:', err);
       } finally {
         setLoading(false);
       }
@@ -228,100 +223,12 @@ export default function HomePage() {
         borderBottom: '1px solid var(--border-subtle)'
       }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
               WHY CHOOSE WATCH LAB CEBU
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            gap: '20px',
-            marginBottom: '36px'
-          }}>
-            <div>
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
-                CLIENT HANDOVERS
-              </div>
-              <div style={{
-                display: 'inline-block',
-                background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
-                color: '#FFFFFF',
-                padding: '8px 24px',
-                borderRadius: '4px',
-                fontFamily: 'var(--font-serif)',
-                fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)',
-                fontWeight: 900,
-                letterSpacing: '1px'
-              }}>
-                FEATURED TRANSACTIONS
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Link to="/transactions" style={{
-                background: '#F3F4F6',
-                border: '1px solid var(--border-glass)',
-                borderRadius: '30px',
-                padding: '8px 20px',
-                fontSize: '0.88rem',
-                fontWeight: 700,
-                color: 'var(--text-primary)',
-                textDecoration: 'none',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                {featuredTx.length} transactions <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Dynamic Featured Transactions Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '20px'
-          }}>
-            {featuredTx.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
-                No featured transactions added yet. Post your first handover story via Admin Dashboard!
-              </div>
-            ) : (
-              featuredTx.slice(0, 4).map((tx) => (
-                <Link key={tx.id} to="/transactions" style={{ textDecoration: 'none' }}>
-                  <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-                    <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
-                      <ProtectedImage
-                        src={getImageUrl(tx.image_url || tx.image)}
-                        alt={tx.title}
-                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
-                        padding: '16px 14px',
-                        color: '#FFFFFF'
-                      }}>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
-                          {tx.title}
-                        </h3>
-                        <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
-                          {tx.subtitle}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))
-            )}
-          </div>
           {/* 3 Value Pillars */}
           <div style={{
             display: 'grid',
