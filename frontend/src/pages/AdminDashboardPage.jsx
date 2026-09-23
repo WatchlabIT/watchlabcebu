@@ -244,7 +244,7 @@ export default function AdminDashboardPage() {
         </div>
 
         <Link
-          to="/admin/watches/new"
+          to="/admin/watches/add"
           className="btn btn-maroon"
           style={{ padding: '12px 24px', fontSize: '0.95rem' }}
         >

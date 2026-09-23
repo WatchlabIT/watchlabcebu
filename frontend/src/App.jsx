@@ -80,6 +80,14 @@ export default function App() {
               }
             />
             <Route
+              path="/admin/watches/new"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminWatchFormPage />
+                </ProtectedAdminRoute>
+              }
+            />
+            <Route
               path="/admin/watches/edit/:id"
               element={
                 <ProtectedAdminRoute>
