@@ -22,6 +22,30 @@ function ProtectedAdminRoute({ children }) {
 }
 
 export default function App() {
+  React.useEffect(() => {
+    const handleContextMenu = (e) => {
+      if (e.target.tagName === 'IMG' || e.target.closest('.protected-image-container') || e.target.closest('img')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const handleDragStart = (e) => {
+      if (e.target.tagName === 'IMG' || e.target.closest('.protected-image-container')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('dragstart', handleDragStart);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('dragstart', handleDragStart);
+    };
+  }, []);
+
   return (
     <AuthProvider>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

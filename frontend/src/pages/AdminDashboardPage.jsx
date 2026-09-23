@@ -4,6 +4,7 @@ import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarS
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
+import ProtectedImage from '../components/ProtectedImage';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -244,7 +245,7 @@ export default function AdminDashboardPage() {
                     <tr key={w.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
                       <td style={{ padding: '12px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <img
+                          <ProtectedImage
                             src={getImageUrl(w.image_url)}
                             alt={w.name}
                             style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', background: '#000' }}

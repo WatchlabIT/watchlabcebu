@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Eye } from 'lucide-react';
 import { formatPrice, getWhatsAppUrl, getImageUrl } from '../utils/format';
+import ProtectedImage from './ProtectedImage';
 
 export default function WatchCard({ watch }) {
   const isAvailable = watch.stock > 0;
@@ -23,7 +24,7 @@ export default function WatchCard({ watch }) {
         background: '#F9FAFB',
         overflow: 'hidden'
       }}>
-        <img
+        <ProtectedImage
           src={getImageUrl(watch.image_url)}
           alt={watch.name}
           style={{
@@ -32,14 +33,7 @@ export default function WatchCard({ watch }) {
             left: 0,
             width: '100%',
             height: '100%',
-            objectFit: 'cover',
-            transition: 'transform 0.5s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'scale(1.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'scale(1)';
+            objectFit: 'cover'
           }}
         />
 

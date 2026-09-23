@@ -252,3 +252,27 @@ body {
   background: #FFFFFF;
   color: var(--text-primary);
 }
+
+/* ==========================================================================
+   Image Copyright & Anti-Inspection Protection Rules
+   ========================================================================== */
+img, .protected-image {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+  -khtml-user-drag: none !important;
+  -moz-user-drag: none !important;
+  -o-user-drag: none !important;
+  user-drag: none !important;
+}
+
+.protected-image-container {
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+

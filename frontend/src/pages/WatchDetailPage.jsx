@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, ShieldCheck, AlertCircle } from 'lucide-react';
 import { fetchWatchById } from '../utils/api';
 import { formatPrice, getWhatsAppUrl, getImageUrl } from '../utils/format';
+import ProtectedImage from '../components/ProtectedImage';
 
 export default function WatchDetailPage() {
   const { id } = useParams();
@@ -96,7 +97,7 @@ export default function WatchDetailPage() {
               overflow: 'hidden',
               background: '#F3F4F6'
             }}>
-              <img
+              <ProtectedImage
                 src={getImageUrl(watch.image_url)}
                 alt={watch.name}
                 style={{

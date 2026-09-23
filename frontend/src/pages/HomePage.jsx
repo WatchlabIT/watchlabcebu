@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Award, MessageSquare, Sparkles, Clock } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
+import ProtectedImage from '../components/ProtectedImage';
 import { fetchNewArrivals } from '../utils/api';
 import { getWhatsAppUrl } from '../utils/format';
 
@@ -117,7 +118,7 @@ export default function HomePage() {
                 borderRadius: '24px',
                 overflow: 'hidden'
               }}>
-                <img
+                <ProtectedImage
                   src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop"
                   alt="Watch Lab Cebu Featured Rolex Submariner"
                   style={{
