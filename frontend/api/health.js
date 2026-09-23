@@ -1,3 +1,3 @@
-const app = require('../../backend/src/server.js');
-
-module.exports = (req, res) => app(req, res);
+module.exports = (req, res) => {
+  res.status(200).json({ status: 'ok', business: 'Watch Lab Cebu' });
+};
