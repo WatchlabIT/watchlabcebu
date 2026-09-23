@@ -190,12 +190,18 @@ async function postToWebhook(url, payload) {
   }
 }
 
-async function syncAllToSheets(customUrl = null) {
+function getWebhookUrl() {
+  const envUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+  if (envUrl && envUrl.trim()) return envUrl.trim();
   const config = dbOps.getGoogleSheetsConfig();
-  const url = customUrl || config.webhook_url;
+  return (config && config.webhook_url) ? config.webhook_url.trim() : '';
+}
+
+async function syncAllToSheets(customUrl = null) {
+  const url = customUrl || getWebhookUrl();
 
   if (!url) {
-    throw new Error('Google Sheets Webhook URL is not configured.');
+    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
   }
 
   const watches = dbOps.getAllWatches();
@@ -214,18 +220,21 @@ async function syncAllToSheets(customUrl = null) {
 
 async function triggerAutoSync(action, data) {
   try {
+    const url = getWebhookUrl();
     const config = dbOps.getGoogleSheetsConfig();
-    if (!config || !config.webhook_url || !config.auto_sync) {
+    const autoSync = config ? (config.auto_sync ?? true) : true;
+
+    if (!url || !autoSync) {
       return;
     }
 
     if (action === 'upsert') {
-      await postToWebhook(config.webhook_url, {
+      await postToWebhook(url, {
         action: 'upsert_watch',
         watch: data
       });
     } else if (action === 'delete') {
-      await postToWebhook(config.webhook_url, {
+      await postToWebhook(url, {
         action: 'delete_watch',
         id: data
       });
@@ -236,11 +245,10 @@ async function triggerAutoSync(action, data) {
 }
 
 async function pullFromSheets(customUrl = null) {
-  const config = dbOps.getGoogleSheetsConfig();
-  const url = customUrl || config.webhook_url;
+  const url = customUrl || getWebhookUrl();
 
   if (!url) {
-    throw new Error('Google Sheets Webhook URL is not configured.');
+    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
   }
 
   const response = await fetch(url, {

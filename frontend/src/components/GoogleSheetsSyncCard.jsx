@@ -9,11 +9,10 @@ import {
 } from '../utils/api';
 
 export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
-  const [webhookUrl, setWebhookUrl] = useState('');
+  const [isConfigured, setIsConfigured] = useState(false);
   const [autoSync, setAutoSync] = useState(true);
   const [lastSynced, setLastSynced] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [pulling, setPulling] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
@@ -33,7 +32,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
     try {
       const data = await fetchGoogleSheetsConfig();
       if (data && data.config) {
-        setWebhookUrl(data.config.webhook_url || '');
+        setIsConfigured(Boolean(data.config.is_configured));
         setAutoSync(data.config.auto_sync ?? true);
         setLastSynced(data.config.last_synced || null);
       }
@@ -53,65 +52,51 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
     }
   };
 
-  const handleSaveConfig = async (e) => {
-    if (e) e.preventDefault();
-    setSaving(true);
+  const handleToggleAutoSync = async (checked) => {
+    setAutoSync(checked);
     setStatusMessage(null);
     setErrorMessage(null);
 
     try {
-      const res = await saveGoogleSheetsConfig({ webhook_url: webhookUrl, auto_sync: autoSync });
-      setStatusMessage('Google Sheets configuration saved successfully!');
+      const res = await saveGoogleSheetsConfig({ auto_sync: checked });
+      setStatusMessage('Auto-sync setting updated.');
       if (res.config) {
-        setWebhookUrl(res.config.webhook_url);
-        setAutoSync(res.config.auto_sync);
+        setIsConfigured(Boolean(res.config.is_configured));
       }
     } catch (err) {
-      setErrorMessage(err.message || 'Failed to save configuration.');
-    } finally {
-      setSaving(false);
+      setErrorMessage(err.message || 'Failed to update auto-sync setting.');
     }
   };
 
   const handleSyncToSheets = async () => {
-    if (!webhookUrl.trim()) {
-      setErrorMessage('Please enter and save a valid Google Apps Script Web App URL first.');
-      return;
-    }
-
     setSyncing(true);
     setStatusMessage(null);
     setErrorMessage(null);
 
     try {
-      const res = await syncToGoogleSheets(webhookUrl.trim());
+      const res = await syncToGoogleSheets();
       setStatusMessage(res.message || 'Successfully synced watch inventory to Google Sheets!');
       setLastSynced(new Date().toISOString());
       if (onSyncSuccess) onSyncSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Sync failed. Verify your Web App URL is published with access set to "Anyone".');
+      setErrorMessage(err.message || 'Sync failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Vercel Environment Variables.');
     } finally {
       setSyncing(false);
     }
   };
 
   const handlePullFromSheets = async () => {
-    if (!webhookUrl.trim()) {
-      setErrorMessage('Please enter and save a valid Google Apps Script Web App URL first.');
-      return;
-    }
-
     setPulling(true);
     setStatusMessage(null);
     setErrorMessage(null);
 
     try {
-      const res = await pullFromGoogleSheets(webhookUrl.trim());
+      const res = await pullFromGoogleSheets();
       setStatusMessage(`Import successful! Updated database with ${res.result?.importedCount || 0} items from Google Sheets.`);
       setLastSynced(new Date().toISOString());
       if (onSyncSuccess) onSyncSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Import failed. Ensure doGet is supported by your Google Apps Script.');
+      setErrorMessage(err.message || 'Import failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Vercel Environment Variables.');
     } finally {
       setPulling(false);
     }
@@ -122,8 +107,6 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };
-
-  const isConnected = Boolean(webhookUrl && webhookUrl.startsWith('http'));
 
   if (loading) {
     return (
@@ -150,16 +133,16 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
               borderRadius: '20px',
               fontSize: '0.75rem',
               fontWeight: 600,
-              background: isConnected ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-              color: isConnected ? '#10B981' : '#EF4444',
-              border: `1px solid ${isConnected ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+              background: isConfigured ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+              color: isConfigured ? '#10B981' : '#EF4444',
+              border: `1px solid ${isConfigured ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
             }}>
-              {isConnected ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-              {isConnected ? 'Connected' : 'Not Configured'}
+              {isConfigured ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
+              {isConfigured ? 'Connected via Vercel ENV' : 'GOOGLE_SHEET_WEBHOOK_URL Not Set'}
             </span>
           </div>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px', marginBottom: 0 }}>
-            Automatically push inventory changes or export/import watch data directly with your Google Spreadsheet.
+            Automatically sync watch inventory to Google Sheets securely using Vercel Environment Variables.
           </p>
         </div>
 
@@ -170,7 +153,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
           style={{ fontSize: '0.82rem', padding: '8px 14px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
           <FileCode size={16} />
-          {showGuide ? 'Hide Setup Guide' : 'Setup Guide & Code'}
+          {showGuide ? 'Hide Apps Script Code' : 'Apps Script Code & Guide'}
         </button>
       </div>
 
@@ -219,23 +202,18 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
           marginBottom: '24px'
         }}>
           <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--gold-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Info size={18} /> How to connect Google Sheets (Step-by-Step)
+            <Info size={18} /> Google Apps Script Setup Code
           </h3>
 
-          <ol style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', paddingLeft: '20px', lineHeight: 1.7, marginBottom: '16px' }}>
-            <li>Open a new or existing spreadsheet in <strong>Google Sheets</strong>.</li>
-            <li>In the top menu, click <strong>Extensions &gt; Apps Script</strong>.</li>
-            <li>Delete all code in the Apps Script editor, copy the script below, and paste it into the editor.</li>
-            <li>Click the blue <strong>Deploy &gt; New deployment</strong> button in the top right.</li>
-            <li>Select <strong>Web App</strong> as the deployment type.</li>
-            <li>Set <strong>Execute as</strong>: <code>Me</code> and <strong>Who has access</strong>: <code>Anyone</code>.</li>
-            <li>Click <strong>Deploy</strong>, authorize the permissions, and copy the generated <strong>Web App URL</strong>.</li>
-            <li>Paste the copied URL in the field below and click <strong>Save Settings</strong>!</li>
-          </ol>
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
+            1. Paste this code into <strong>Google Sheets &gt; Extensions &gt; Apps Script</strong>.<br />
+            2. Click <strong>Deploy &gt; New deployment &gt; Web App</strong> (Execute as: <i>Me</i>, Access: <i>Anyone</i>).<br />
+            3. Copy the generated Web App URL and add it to Vercel project environment variables as <code>GOOGLE_SHEET_WEBHOOK_URL</code>.
+          </p>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--gold-light)' }}>
-              Google Apps Script Code (Copy &amp; Paste into Apps Script):
+              Google Apps Script Source Code:
             </span>
             <button
               onClick={handleCopyCode}
@@ -243,7 +221,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
               style={{ fontSize: '0.78rem', padding: '4px 10px', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
             >
               {copied ? <Check size={14} color="#10B981" /> : <Copy size={14} />}
-              {copied ? 'Copied to Clipboard!' : 'Copy Script Code'}
+              {copied ? 'Copied!' : 'Copy Script Code'}
             </button>
           </div>
 
@@ -253,7 +231,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
             padding: '16px',
             borderRadius: '8px',
             fontSize: '0.78rem',
-            maxHeight: '260px',
+            maxHeight: '240px',
             overflowY: 'auto',
             border: '1px solid rgba(255, 255, 255, 0.1)',
             fontFamily: 'monospace'
@@ -263,76 +241,50 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
         </div>
       )}
 
-      {/* Config Form & Controls */}
-      <form onSubmit={handleSaveConfig} style={{ display: 'grid', gap: '16px' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
-            Google Apps Script Web App URL
-          </label>
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+      {/* Sync Controls */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', paddingTop: '10px', borderTop: '1px solid var(--border-glass)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
             <input
-              type="url"
-              placeholder="https://script.google.com/macros/s/AKfycb.../exec"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              className="form-input"
-              style={{ flex: 1, minWidth: '280px', fontSize: '0.88rem' }}
+              type="checkbox"
+              checked={autoSync}
+              onChange={(e) => handleToggleAutoSync(e.target.checked)}
+              style={{ accentColor: 'var(--gold-primary)', width: '16px', height: '16px' }}
             />
-            <button
-              type="submit"
-              disabled={saving}
-              className="btn btn-gold"
-              style={{ padding: '10px 18px', fontSize: '0.88rem' }}
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-            </button>
-          </div>
+            Auto-sync changes (Add / Edit / Delete) in real-time
+          </label>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '16px', paddingTop: '10px', borderTop: '1px solid var(--border-glass)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
-              <input
-                type="checkbox"
-                checked={autoSync}
-                onChange={(e) => setAutoSync(e.target.checked)}
-                style={{ accentColor: 'var(--gold-primary)', width: '16px', height: '16px' }}
-              />
-              Auto-sync changes (Add / Edit / Delete) in real-time
-            </label>
-          </div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleSyncToSheets}
+            disabled={syncing}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            {syncing ? <RefreshCw className="spin" size={14} /> : <Upload size={14} color="#10B981" />}
+            {syncing ? 'Pushing Data...' : 'Export to Google Sheet'}
+          </button>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-            <button
-              type="button"
-              onClick={handleSyncToSheets}
-              disabled={syncing || !webhookUrl}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              {syncing ? <RefreshCw className="spin" size={14} /> : <Upload size={14} color="#10B981" />}
-              {syncing ? 'Pushing Data...' : 'Export to Google Sheet'}
-            </button>
-
-            <button
-              type="button"
-              onClick={handlePullFromSheets}
-              disabled={pulling || !webhookUrl}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-            >
-              {pulling ? <RefreshCw className="spin" size={14} /> : <Download size={14} color="var(--gold-primary)" />}
-              {pulling ? 'Pulling Data...' : 'Import from Google Sheet'}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handlePullFromSheets}
+            disabled={pulling}
+            className="btn btn-secondary"
+            style={{ fontSize: '0.85rem', padding: '8px 16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          >
+            {pulling ? <RefreshCw className="spin" size={14} /> : <Download size={14} color="var(--gold-primary)" />}
+            {pulling ? 'Pulling Data...' : 'Import from Google Sheet'}
+          </button>
         </div>
+      </div>
 
-        {lastSynced && (
-          <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right' }}>
-            Last Synced: {new Date(lastSynced).toLocaleString()}
-          </div>
-        )}
-      </form>
+      {lastSynced && (
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textAlign: 'right', marginTop: '12px' }}>
+          Last Synced: {new Date(lastSynced).toLocaleString()}
+        </div>
+      )}
     </div>
   );
 }

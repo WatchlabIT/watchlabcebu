@@ -13,21 +13,40 @@ const router = express.Router();
 router.get('/google-sheets/config', requireAdminAuth, (req, res) => {
   try {
     const config = dbOps.getGoogleSheetsConfig();
-    res.json({ config });
+    const envUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    const effectiveUrl = envUrl || config.webhook_url || '';
+    const is_configured = Boolean(effectiveUrl && effectiveUrl.startsWith('http'));
+    
+    res.json({
+      config: {
+        is_configured,
+        auto_sync: config.auto_sync ?? true,
+        last_synced: config.last_synced || null
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to retrieve Google Sheets configuration.' });
   }
 });
 
-// POST /api/google-sheets/config - Save Google Sheets Webhook URL & Settings (Protected)
+// POST /api/google-sheets/config - Save Google Sheets Settings (Protected)
 router.post('/google-sheets/config', requireAdminAuth, (req, res) => {
   try {
-    const { webhook_url, auto_sync } = req.body;
+    const { auto_sync } = req.body;
     const updated = dbOps.updateGoogleSheetsConfig({
-      webhook_url: webhook_url !== undefined ? webhook_url.trim() : undefined,
       auto_sync: auto_sync !== undefined ? Boolean(auto_sync) : undefined
     });
-    res.json({ message: 'Google Sheets configuration updated.', config: updated });
+    const envUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+    const effectiveUrl = envUrl || updated.webhook_url || '';
+
+    res.json({
+      message: 'Google Sheets configuration updated.',
+      config: {
+        is_configured: Boolean(effectiveUrl && effectiveUrl.startsWith('http')),
+        auto_sync: updated.auto_sync,
+        last_synced: updated.last_synced
+      }
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to save Google Sheets configuration.' });
   }

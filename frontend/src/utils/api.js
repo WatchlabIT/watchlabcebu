@@ -141,26 +141,26 @@ export async function saveGoogleSheetsConfig(config) {
   return await parseJsonResponse(res, 'Failed to save Google Sheets config.');
 }
 
-export async function syncToGoogleSheets(webhook_url) {
+export async function syncToGoogleSheets(webhook_url = null) {
   const res = await fetch(`${API_BASE}/google-sheets/sync`, {
     method: 'POST',
     headers: {
       ...getAuthHeaders(),
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ webhook_url })
+    body: JSON.stringify(webhook_url ? { webhook_url } : {})
   });
   return await parseJsonResponse(res, 'Failed to sync with Google Sheets.');
 }
 
-export async function pullFromGoogleSheets(webhook_url) {
+export async function pullFromGoogleSheets(webhook_url = null) {
   const res = await fetch(`${API_BASE}/google-sheets/pull`, {
     method: 'POST',
     headers: {
       ...getAuthHeaders(),
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ webhook_url })
+    body: JSON.stringify(webhook_url ? { webhook_url } : {})
   });
   return await parseJsonResponse(res, 'Failed to import from Google Sheets.');
 }
