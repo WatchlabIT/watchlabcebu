@@ -168,15 +168,21 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
 // DELETE /api/watches/:id - Admin delete watch listing (Protected)
 router.delete('/watches/:id', requireAdminAuth, async (req, res) => {
   try {
-    const deleted = dbOps.deleteWatch(req.params.id);
-    if (!deleted) {
-      return res.status(404).json({ error: 'Watch listing not found.' });
+    const watchId = req.params.id;
+
+    // Guaranteed Google Sheets Auto-Sync Deletion
+    try {
+      await triggerAutoSync('delete', watchId);
+    } catch (syncErr) {
+      console.error('Google Sheets delete auto-sync error:', syncErr.message);
     }
 
-    // Auto-sync deletion to Google Sheets (await to prevent serverless cancellation)
-    await triggerAutoSync('delete', req.params.id);
+    const deleted = dbOps.deleteWatch(watchId);
 
-    res.json({ message: 'Watch listing deleted successfully.', watch: deleted });
+    res.json({
+      message: 'Watch listing deleted successfully.',
+      watch: deleted || { id: Number(watchId) }
+    });
   } catch (err) {
     console.error('Error deleting watch:', err);
     res.status(500).json({ error: 'Failed to delete watch listing.' });

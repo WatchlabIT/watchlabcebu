@@ -142,6 +142,14 @@ function loadDatabase() {
       memoryDb = JSON.parse(raw);
       return memoryDb;
     }
+    // Check seed JSON file if /tmp/watchlab.json does not exist yet on Vercel
+    const seedPath = path.join(__dirname, '..', 'watchlab.json');
+    if (fs.existsSync(seedPath)) {
+      const raw = fs.readFileSync(seedPath, 'utf8');
+      memoryDb = JSON.parse(raw);
+      saveDatabase(memoryDb);
+      return memoryDb;
+    }
   } catch (err) {
     console.error('File read failed, using memory DB:', err.message);
   }
@@ -263,7 +271,8 @@ const dbOps = {
 
   deleteWatch: (id) => {
     const db = loadDatabase();
-    const index = db.watches.findIndex(w => w.id === Number(id));
+    const targetId = Number(id);
+    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
     if (index === -1) return false;
 
     const removed = db.watches.splice(index, 1);
