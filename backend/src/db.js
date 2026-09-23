@@ -2,55 +2,32 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-const dbPath = path.join(__dirname, '..', 'watchlab.json');
-
-const initialData = {
-  admins: [],
-  watches: []
-};
-
-// Seed default data if database does not exist
-function loadDatabase() {
-  if (!fs.existsSync(dbPath)) {
-    saveDatabase(initialData);
-  }
-  try {
-    const raw = fs.readFileSync(dbPath, 'utf8');
-    return JSON.parse(raw);
-  } catch (err) {
-    console.error('Error reading database file, resetting to initial state:', err);
-    saveDatabase(initialData);
-    return initialData;
-  }
+// Determine writable DB path (support Vercel read-only filesystem via /tmp)
+let dbPath = path.join(__dirname, '..', 'watchlab.json');
+const isVercel = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+if (isVercel) {
+  dbPath = path.join('/tmp', 'watchlab.json');
 }
 
-function saveDatabase(data) {
-  fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+// In-memory fallback cache for serverless environments
+let memoryDb = null;
+
+function getDefaultAdminHash() {
+  const salt = bcrypt.genSaltSync(10);
+  return bcrypt.hashSync('watchlab2026!', salt);
 }
 
-function seedIfEmpty() {
-  const db = loadDatabase();
-
-  // Seed Admin Account if none exists
-  if (!db.admins || db.admins.length === 0) {
-    const defaultPassword = 'watchlab2026!';
-    const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(defaultPassword, salt);
-
-    db.admins = [
+function getInitialState() {
+  return {
+    admins: [
       {
         id: 1,
         email: 'admin@watchlabcebu.com',
-        password_hash: hash,
+        password_hash: getDefaultAdminHash(),
         created_at: new Date().toISOString()
       }
-    ];
-    console.log('Seeded default admin account: admin@watchlabcebu.com / watchlab2026!');
-  }
-
-  // Seed Watch Catalog if empty
-  if (!db.watches || db.watches.length === 0) {
-    const sampleWatches = [
+    ],
+    watches: [
       {
         id: 1,
         name: 'Rolex Submariner Date 41mm',
@@ -147,16 +124,37 @@ function seedIfEmpty() {
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
         updated_at: new Date().toISOString()
       }
-    ];
-
-    db.watches = sampleWatches;
-    console.log('Seeded sample watch collection into database.');
-  }
-
-  saveDatabase(db);
+    ]
+  };
 }
 
-seedIfEmpty();
+function loadDatabase() {
+  if (memoryDb) return memoryDb;
+
+  try {
+    if (fs.existsSync(dbPath)) {
+      const raw = fs.readFileSync(dbPath, 'utf8');
+      memoryDb = JSON.parse(raw);
+      return memoryDb;
+    }
+  } catch (err) {
+    console.error('File read failed, using memory DB:', err.message);
+  }
+
+  memoryDb = getInitialState();
+  saveDatabase(memoryDb);
+  return memoryDb;
+}
+
+function saveDatabase(data) {
+  memoryDb = data;
+  try {
+    fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (err) {
+    // Read-only environment (e.g. Vercel serverless), keep in-memory cache
+    console.warn('Read-only filesystem detected, maintaining state in memory.');
+  }
+}
 
 // Database Operations Wrapper
 const dbOps = {
@@ -192,7 +190,6 @@ const dbOps = {
       );
     }
 
-    // Sort by created_at descending by default
     result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     return result;
   },
