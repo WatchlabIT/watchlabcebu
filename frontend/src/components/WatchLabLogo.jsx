@@ -3,7 +3,7 @@ import React from 'react';
 export default function WatchLabLogo({ size = 42, className = '' }) {
   return (
     <img
-      src="/watchlab-logo.svg"
+      src="/watchlab-logo.png"
       alt="WatchLab Cebu Logo"
       className={className}
       style={{
