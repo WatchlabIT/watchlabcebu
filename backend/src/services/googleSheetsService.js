@@ -190,11 +190,14 @@ async function postToWebhook(url, payload) {
   }
 }
 
+const DEFAULT_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyXdt8GP2HZ0KAaPLfVDaQD1YiPym949VTCyTmTVqbVOXy8d40tsaw6rGbp2ylnDdjnAg/exec';
+
 function getWebhookUrl() {
   const envUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
   if (envUrl && envUrl.trim()) return envUrl.trim();
   const config = dbOps.getGoogleSheetsConfig();
-  return (config && config.webhook_url) ? config.webhook_url.trim() : '';
+  if (config && config.webhook_url && config.webhook_url.trim()) return config.webhook_url.trim();
+  return DEFAULT_WEBHOOK_URL;
 }
 
 async function syncAllToSheets(customUrl = null) {

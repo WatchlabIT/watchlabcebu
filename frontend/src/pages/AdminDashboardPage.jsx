@@ -4,7 +4,6 @@ import { Plus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Se
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
-import GoogleSheetsSyncCard from '../components/GoogleSheetsSyncCard';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -151,9 +150,6 @@ export default function AdminDashboardPage() {
             </div>
           </div>
         </div>
-
-        {/* Google Sheets Real-Time Sync Section */}
-        <GoogleSheetsSyncCard onSyncSuccess={loadData} />
 
         {/* Inventory List Header & Search */}
         <div className="glass-card" style={{ padding: '24px' }}>
