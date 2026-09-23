@@ -19,9 +19,12 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static watch image uploads
+// Serve static watch image uploads if exists
+const fs = require('fs');
 const uploadsPath = path.join(__dirname, '..', 'uploads');
-app.use('/uploads', express.static(uploadsPath));
+if (fs.existsSync(uploadsPath)) {
+  app.use('/uploads', express.static(uploadsPath));
+}
 
 // Middleware to normalize Vercel serverless request URLs
 app.use((req, res, next) => {
