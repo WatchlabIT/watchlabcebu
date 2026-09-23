@@ -11,19 +11,94 @@ const GOOGLE_APPS_SCRIPT_CODE = `/**
  * 2. Click Extensions > Apps Script.
  * 3. Replace all existing code with this script.
  * 4. Click 'Save' (disk icon).
- * 5. Click 'Deploy' > 'New deployment'.
- * 6. Select Type: 'Web app'.
- * 7. Set 'Execute as': 'Me'.
- * 8. Set 'Who has access': 'Anyone'.
- * 9. Click 'Deploy', authorize permissions, and copy the Web App URL.
- * 10. Paste the URL into WatchLab Admin Dashboard > Google Sheets Sync settings!
+ * 5. Click 'Deploy' > 'New deployment' (or Manage Deployments > Edit > New Version).
+ * 6. Select Type: 'Web app', Execute as: 'Me', Access: 'Anyone'.
+ * 7. Click 'Deploy', authorize permissions, and copy the Web App URL.
+ * 8. Paste the URL into WatchLab Admin Dashboard > Google Sheets Sync settings!
+ * 
+ * FEATURES:
+ * - Automatically routes Watch Inventory to main sheet ("Sheet1" / "Watches").
+ * - Automatically routes Featured Transactions to a separate sheet tab named "Transactions".
+ * - Creates tabs and headers automatically if they don't exist!
  */
 
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // 1. FEATURED TRANSACTIONS ACTIONS
+    if (data.action === "upsert_transaction" || data.action === "delete_transaction" || data.sheet_name === "Transactions") {
+      var txSheet = ss.getSheetByName("Transactions");
+      if (!txSheet) {
+        txSheet = ss.insertSheet("Transactions");
+      }
+      if (txSheet.getLastRow() === 0) {
+        setupTxHeader(txSheet);
+      }
+
+      if (data.action === "upsert_transaction" && data.transaction) {
+        var tx = data.transaction;
+        var lastRow = txSheet.getLastRow();
+        var foundRow = -1;
+
+        if (lastRow > 1) {
+          var ids = txSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+          for (var i = 0; i < ids.length; i++) {
+            var cellVal = ids[i][0];
+            if (String(cellVal).trim() === String(tx.id).trim() || Number(cellVal) === Number(tx.id)) {
+              foundRow = i + 2;
+              break;
+            }
+          }
+        }
+
+        var rowData = [
+          tx.id,
+          tx.title || '',
+          tx.subtitle || '',
+          tx.location || '',
+          tx.category || '',
+          tx.badge || '',
+          tx.note || '',
+          tx.image_url || tx.image || '',
+          tx.updated_at || new Date().toISOString()
+        ];
+
+        if (foundRow > 0) {
+          txSheet.getRange(foundRow, 1, 1, 9).setValues([rowData]);
+        } else {
+          txSheet.appendRow(rowData);
+        }
+
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          message: "Transaction #" + tx.id + " updated."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      if (data.action === "delete_transaction" && (data.id !== undefined && data.id !== null)) {
+        var lastRow = txSheet.getLastRow();
+        var deletedCount = 0;
+        if (lastRow > 1) {
+          var ids = txSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+          for (var i = ids.length - 1; i >= 0; i--) {
+            var cellVal = ids[i][0];
+            if (String(cellVal).trim() == String(data.id).trim() || Number(cellVal) == Number(data.id)) {
+              txSheet.deleteRow(i + 2);
+              deletedCount++;
+            }
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          message: "Deleted " + deletedCount + " transaction row(s) for ID #" + data.id
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    // 2. WATCH INVENTORY ACTIONS (Default Sheet)
+    var sheet = ss.getSheetByName("Watches") || ss.getActiveSheet();
     if (sheet.getLastRow() === 0) {
       setupHeader(sheet);
     }
@@ -100,7 +175,7 @@ function doPost(e) {
     }
     
     if (data.action === "delete_watch" && (data.id !== undefined && data.id !== null)) {
-      var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+      var sheets = ss.getSheets();
       var deletedCount = 0;
 
       for (var s = 0; s < sheets.length; s++) {
@@ -137,7 +212,8 @@ function doPost(e) {
 }
 
 function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Watches") || ss.getActiveSheet();
   var data = sheet.getDataRange().getValues();
   
   if (data.length <= 1) {
@@ -178,7 +254,18 @@ function setupHeader(sheet) {
   headerRange.setBackground("#1E293B");
   headerRange.setFontColor("#FFFFFF");
   sheet.setFrozenRows(1);
-}`;
+}
+
+function setupTxHeader(sheet) {
+  var headers = [["ID", "Title", "Subtitle / Model", "Location", "Category", "Badge", "Client Note", "Image URL", "Last Updated"]];
+  var headerRange = sheet.getRange(1, 1, 1, 9);
+  headerRange.setValues(headers);
+  headerRange.setFontWeight("bold");
+  headerRange.setBackground("#4C1D95");
+  headerRange.setFontColor("#FFFFFF");
+  sheet.setFrozenRows(1);
+}
+`;
 
 async function postToWebhook(url, payload) {
   const response = await fetch(url, {
@@ -246,6 +333,18 @@ async function triggerAutoSync(action, data) {
       await postToWebhook(url, {
         action: 'delete_watch',
         id: data
+      });
+    } else if (action === 'upsert_transaction') {
+      await postToWebhook(url, {
+        action: 'upsert_transaction',
+        transaction: data,
+        sheet_name: 'Transactions'
+      });
+    } else if (action === 'delete_transaction') {
+      await postToWebhook(url, {
+        action: 'delete_transaction',
+        id: data,
+        sheet_name: 'Transactions'
       });
     }
   } catch (err) {
