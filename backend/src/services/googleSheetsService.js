@@ -99,21 +99,27 @@ function doPost(e) {
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
-    if (data.action === "delete_watch" && data.id !== undefined) {
-      var lastRow = sheet.getLastRow();
-      if (lastRow > 1) {
-        var ids = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-        for (var i = 0; i < ids.length; i++) {
-          var cellVal = ids[i][0];
-          if (String(cellVal).trim() === String(data.id).trim() || Number(cellVal) === Number(data.id)) {
-            sheet.deleteRow(i + 2);
-            break;
+    if (data.action === "delete_watch" && (data.id !== undefined && data.id !== null)) {
+      var sheets = SpreadsheetApp.getActiveSpreadsheet().getSheets();
+      var deletedCount = 0;
+
+      for (var s = 0; s < sheets.length; s++) {
+        var curSheet = sheets[s];
+        var lastRow = curSheet.getLastRow();
+        if (lastRow > 1) {
+          var ids = curSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+          for (var i = ids.length - 1; i >= 0; i--) {
+            var cellVal = ids[i][0];
+            if (String(cellVal).trim() == String(data.id).trim() || Number(cellVal) == Number(data.id)) {
+              curSheet.deleteRow(i + 2);
+              deletedCount++;
+            }
           }
         }
       }
       return ContentService.createTextOutput(JSON.stringify({
         status: "success",
-        message: "Watch #" + data.id + " deleted."
+        message: "Deleted " + deletedCount + " row(s) for Watch #" + data.id
       })).setMimeType(ContentService.MimeType.JSON);
     }
 
@@ -177,7 +183,7 @@ function setupHeader(sheet) {
 async function postToWebhook(url, payload) {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload),
     redirect: 'follow'
   });
