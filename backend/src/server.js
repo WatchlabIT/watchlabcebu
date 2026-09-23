@@ -28,7 +28,7 @@ app.use('/api', watchRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', business: 'WatchLab Cebu', time: new Date().toISOString() });
+  res.json({ status: 'ok', business: 'Watch Lab Cebu', time: new Date().toISOString() });
 });
 
 // Global 404 handler for API routes
@@ -36,10 +36,14 @@ app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found.' });
 });
 
-// Start Express HTTP Server
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(` WatchLab Cebu API Server running on port ${PORT}`);
-  console.log(` Health Check: http://localhost:${PORT}/api/health`);
-  console.log(`====================================================`);
-});
+// Start Express HTTP Server locally if not required as a module
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(` Watch Lab Cebu API Server running on port ${PORT}`);
+    console.log(` Health Check: http://localhost:${PORT}/api/health`);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = app;

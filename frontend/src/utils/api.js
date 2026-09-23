@@ -5,6 +5,19 @@ function getAuthHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+async function parseJsonResponse(res, fallbackErrorMsg = 'Request failed.') {
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || fallbackErrorMsg);
+    return data;
+  }
+  if (!res.ok) {
+    throw new Error(`API Connection Error (${res.status}). Please verify API deployment.`);
+  }
+  return {};
+}
+
 export async function fetchWatches(params = {}) {
   const query = new URLSearchParams();
   if (params.brand && params.brand !== 'All') query.append('brand', params.brand);
@@ -12,26 +25,22 @@ export async function fetchWatches(params = {}) {
   if (params.search) query.append('search', params.search);
 
   const res = await fetch(`${API_BASE}/watches?${query.toString()}`);
-  if (!res.ok) throw new Error('Failed to fetch watches catalog.');
-  return await res.json();
+  return await parseJsonResponse(res, 'Failed to fetch watches catalog.');
 }
 
 export async function fetchNewArrivals(limit = 4) {
   const res = await fetch(`${API_BASE}/watches/new-arrivals?limit=${limit}`);
-  if (!res.ok) throw new Error('Failed to fetch new arrivals.');
-  return await res.json();
+  return await parseJsonResponse(res, 'Failed to fetch new arrivals.');
 }
 
 export async function fetchBrands() {
   const res = await fetch(`${API_BASE}/watches/brands`);
-  if (!res.ok) throw new Error('Failed to fetch watch brands.');
-  return await res.json();
+  return await parseJsonResponse(res, 'Failed to fetch watch brands.');
 }
 
 export async function fetchWatchById(id) {
   const res = await fetch(`${API_BASE}/watches/${id}`);
-  if (!res.ok) throw new Error('Failed to fetch watch details.');
-  return await res.json();
+  return await parseJsonResponse(res, 'Failed to fetch watch details.');
 }
 
 export async function loginAdmin(email, password) {
@@ -41,25 +50,26 @@ export async function loginAdmin(email, password) {
     body: JSON.stringify({ email, password })
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Login failed.');
-  return data;
+  return await parseJsonResponse(res, 'Invalid email or password.');
 }
 
 export async function checkAdminSession() {
-  const res = await fetch(`${API_BASE}/auth/me`, {
-    headers: getAuthHeaders()
-  });
-  if (!res.ok) return null;
-  return await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: getAuthHeaders()
+    });
+    if (!res.ok) return null;
+    return await parseJsonResponse(res);
+  } catch (err) {
+    return null;
+  }
 }
 
 export async function fetchAdminStats() {
   const res = await fetch(`${API_BASE}/admin/stats`, {
     headers: getAuthHeaders()
   });
-  if (!res.ok) throw new Error('Failed to fetch admin stats.');
-  return await res.json();
+  return await parseJsonResponse(res, 'Failed to fetch admin stats.');
 }
 
 export async function createWatch(formData) {
@@ -79,9 +89,7 @@ export async function createWatch(formData) {
     body
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to create watch listing.');
-  return data;
+  return await parseJsonResponse(res, 'Failed to create watch listing.');
 }
 
 export async function updateWatch(id, formData) {
@@ -101,9 +109,7 @@ export async function updateWatch(id, formData) {
     body
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to update watch listing.');
-  return data;
+  return await parseJsonResponse(res, 'Failed to update watch listing.');
 }
 
 export async function deleteWatch(id) {
@@ -112,7 +118,5 @@ export async function deleteWatch(id) {
     headers: getAuthHeaders()
   });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Failed to delete watch listing.');
-  return data;
+  return await parseJsonResponse(res, 'Failed to delete watch listing.');
 }
