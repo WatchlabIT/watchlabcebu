@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 // Default Admin Credentials Hash
 const defaultPasswordHash = bcrypt.hashSync('watchlab2026!', 10);
 
-// Sample Watches Catalog
+// Verified Luxury Watch Image Catalog
 const sampleWatches = [
   {
     id: 1,
@@ -83,7 +83,7 @@ const sampleWatches = [
     stock: 4,
     condition: 'Brand New',
     description: 'Integrated bracelet stainless steel watch with waffle pattern ice blue dial and 80-hour power reserve Powermatic 80 movement.',
-    image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=1000&auto=format&fit=crop',
+    image_url: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1000&auto=format&fit=crop',
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
     updated_at: new Date().toISOString()
   },
@@ -225,7 +225,7 @@ app.post(['/api/watches', '/watches'], requireAdmin, (req, res) => {
     stock: Number(stock),
     condition,
     description,
-    image_url: image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000',
+    image_url: image_url || 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1000',
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   };

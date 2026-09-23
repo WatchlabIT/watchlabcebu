@@ -96,7 +96,7 @@ function getInitialState() {
         stock: 4,
         condition: 'Brand New',
         description: 'Integrated bracelet stainless steel watch with waffle pattern ice blue dial and 80-hour power reserve Powermatic 80 movement.',
-        image_url: 'https://images.unsplash.com/photo-1539185441755-769473a23570?q=80&w=1000&auto=format&fit=crop',
+        image_url: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1000&auto=format&fit=crop',
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
         updated_at: new Date().toISOString()
       },
@@ -151,7 +151,6 @@ function saveDatabase(data) {
   try {
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    // Read-only environment (e.g. Vercel serverless), keep in-memory cache
     console.warn('Read-only filesystem detected, maintaining state in memory.');
   }
 }
