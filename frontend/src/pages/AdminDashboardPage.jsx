@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw } from 'lucide-react';
-import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch } from '../utils/api';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw } from 'lucide-react';
+import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
 
@@ -60,6 +60,45 @@ export default function AdminDashboardPage() {
       alert(err.message || 'Failed to delete watch.');
     } finally {
       setDeleting(false);
+    }
+  };
+
+  // Quick Stock Adjustment Handler (+ / - buttons)
+  const [updatingStockId, setUpdatingStockId] = useState(null);
+
+  const handleStockChange = async (watch, delta) => {
+    const currentStock = Number(watch.stock || 0);
+    const newStock = Math.max(0, currentStock + delta);
+    if (newStock === currentStock) return;
+
+    setUpdatingStockId(watch.id);
+
+    // Optimistic UI update for instant feedback
+    setWatches(prevWatches =>
+      prevWatches.map(w => (w.id === watch.id ? { ...w, stock: newStock } : w))
+    );
+
+    // Recalculate stats optimistically
+    setStats(prev => {
+      const stockDelta = newStock - currentStock;
+      const isNowSoldOut = newStock === 0 && currentStock > 0;
+      const wasSoldOut = currentStock === 0 && newStock > 0;
+      return {
+        ...prev,
+        availableStock: Math.max(0, prev.availableStock + stockDelta),
+        soldOutCount: Math.max(0, prev.soldOutCount + (isNowSoldOut ? 1 : 0) - (wasSoldOut ? 1 : 0)),
+        totalValue: Math.max(0, prev.totalValue + (Number(watch.price || 0) * stockDelta))
+      };
+    });
+
+    try {
+      await updateWatch(watch.id, { stock: newStock });
+    } catch (err) {
+      console.error('Failed to update stock:', err);
+      await loadData();
+      alert('Failed to update stock: ' + (err.message || 'Server error'));
+    } finally {
+      setUpdatingStockId(null);
     }
   };
 
@@ -228,11 +267,60 @@ export default function AdminDashboardPage() {
                       </td>
 
                       <td style={{ padding: '12px' }}>
-                        {w.stock > 0 ? (
-                          <span className="badge badge-available">{w.stock} Units</span>
-                        ) : (
-                          <span className="badge badge-sold-out">Sold Out</span>
-                        )}
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleStockChange(w, -1)}
+                            disabled={w.stock <= 0 || updatingStockId === w.id}
+                            title={w.stock > 0 ? "Mark 1 Sold (-1 Stock)" : "Out of Stock"}
+                            style={{
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: w.stock > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                              color: w.stock > 0 ? '#EF4444' : 'var(--text-muted)',
+                              border: '1px solid ' + (w.stock > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.1)'),
+                              cursor: w.stock > 0 ? 'pointer' : 'not-allowed',
+                              opacity: w.stock > 0 ? 1 : 0.4,
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <Minus size={13} />
+                          </button>
+
+                          <div style={{ minWidth: '72px', textAlign: 'center' }}>
+                            {w.stock > 0 ? (
+                              <span className="badge badge-available" style={{ display: 'inline-block', minWidth: '65px' }}>{w.stock} Units</span>
+                            ) : (
+                              <span className="badge badge-sold-out" style={{ display: 'inline-block', minWidth: '65px' }}>Sold Out</span>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStockChange(w, 1)}
+                            disabled={updatingStockId === w.id}
+                            title="Add Stock (+1)"
+                            style={{
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: '#10B981',
+                              border: '1px solid rgba(16, 185, 129, 0.3)',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <Plus size={13} />
+                          </button>
+                        </div>
                       </td>
 
                       <td style={{ padding: '12px' }}>
