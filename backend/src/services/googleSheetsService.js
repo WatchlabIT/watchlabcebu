@@ -293,9 +293,44 @@ async function pullFromSheets(customUrl = null) {
   return { importedCount: json.watches ? json.watches.length : 0 };
 }
 
+async function fetchLiveWatchesFromSheets() {
+  try {
+    const url = getWebhookUrl();
+    if (!url) return null;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+
+    const text = await response.text();
+    let json;
+    try { json = JSON.parse(text); } catch (e) { return null; }
+
+    if (json && json.status === 'success' && Array.isArray(json.watches)) {
+      return json.watches.map(w => ({
+        id: Number(w.id),
+        name: String(w.name || ''),
+        brand: String(w.brand || ''),
+        price: Number(w.price) || 0,
+        stock: Number(w.stock) || 0,
+        condition: String(w.condition || 'Brand New'),
+        description: String(w.description || ''),
+        image_url: String(w.image_url || ''),
+        created_at: w.created_at || w.updated_at || new Date().toISOString(),
+        updated_at: w.updated_at || new Date().toISOString()
+      }));
+    }
+  } catch (err) {
+    console.error('Failed to fetch live watches from Google Sheets:', err.message);
+  }
+  return null;
+}
+
 module.exports = {
   GOOGLE_APPS_SCRIPT_CODE,
   syncAllToSheets,
   triggerAutoSync,
-  pullFromSheets
+  pullFromSheets,
+  fetchLiveWatchesFromSheets
 };

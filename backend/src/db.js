@@ -182,10 +182,28 @@ const dbOps = {
     return db.admins.find(a => a.id === Number(id));
   },
 
-  // Watches
-  getAllWatches: ({ brand, condition, search } = {}) => {
+  // Watches (Google Sheets as primary live database with local fallback)
+  getRawWatchesList: async () => {
+    try {
+      const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
+      const liveWatches = await fetchLiveWatchesFromSheets();
+      if (liveWatches && Array.isArray(liveWatches) && liveWatches.length >= 0) {
+        // Update local DB cache in background
+        const db = loadDatabase();
+        db.watches = liveWatches;
+        saveDatabase(db);
+        return liveWatches;
+      }
+    } catch (err) {
+      console.warn('Google Sheets live fetch fallback to local DB:', err.message);
+    }
     const db = loadDatabase();
-    let result = [...db.watches];
+    return db.watches;
+  },
+
+  getAllWatches: async ({ brand, condition, search } = {}) => {
+    const watches = await dbOps.getRawWatchesList();
+    let result = [...watches];
 
     if (brand && brand !== 'All') {
       result = result.filter(w => w.brand.toLowerCase() === brand.toLowerCase());
@@ -204,31 +222,32 @@ const dbOps = {
       );
     }
 
-    result.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    result.sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0));
     return result;
   },
 
-  getNewArrivals: (limit = 4) => {
-    const db = loadDatabase();
-    return [...db.watches]
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+  getNewArrivals: async (limit = 4) => {
+    const watches = await dbOps.getRawWatchesList();
+    return [...watches]
+      .sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0))
       .slice(0, limit);
   },
 
-  getWatchById: (id) => {
-    const db = loadDatabase();
-    return db.watches.find(w => w.id === Number(id));
+  getWatchById: async (id) => {
+    const watches = await dbOps.getRawWatchesList();
+    const targetId = Number(id);
+    return watches.find(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
   },
 
-  getUniqueBrands: () => {
-    const db = loadDatabase();
-    const brandsSet = new Set(db.watches.map(w => w.brand));
+  getUniqueBrands: async () => {
+    const watches = await dbOps.getRawWatchesList();
+    const brandsSet = new Set(watches.map(w => w.brand).filter(Boolean));
     return Array.from(brandsSet).sort();
   },
 
   createWatch: (watchData) => {
     const db = loadDatabase();
-    const maxId = db.watches.reduce((max, w) => (w.id > max ? w.id : max), 0);
+    const maxId = db.watches.reduce((max, w) => (Number(w.id) > max ? Number(w.id) : max), 0);
     const newWatch = {
       id: maxId + 1,
       name: watchData.name,
@@ -248,7 +267,8 @@ const dbOps = {
 
   updateWatch: (id, watchData) => {
     const db = loadDatabase();
-    const index = db.watches.findIndex(w => w.id === Number(id));
+    const targetId = Number(id);
+    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
     if (index === -1) return null;
 
     const existing = db.watches[index];
@@ -280,12 +300,12 @@ const dbOps = {
     return removed[0];
   },
 
-  getInventoryStats: () => {
-    const db = loadDatabase();
-    const totalWatches = db.watches.length;
-    const availableStock = db.watches.reduce((sum, w) => sum + (w.stock > 0 ? w.stock : 0), 0);
-    const soldOutCount = db.watches.filter(w => w.stock === 0).length;
-    const totalValue = db.watches.reduce((sum, w) => sum + (w.price * w.stock), 0);
+  getInventoryStats: async () => {
+    const watches = await dbOps.getRawWatchesList();
+    const totalWatches = watches.length;
+    const availableStock = watches.reduce((sum, w) => sum + (w.stock > 0 ? w.stock : 0), 0);
+    const soldOutCount = watches.filter(w => w.stock === 0).length;
+    const totalValue = watches.reduce((sum, w) => sum + (w.price * w.stock), 0);
 
     return {
       totalWatches,

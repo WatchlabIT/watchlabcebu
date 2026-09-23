@@ -41,38 +41,58 @@ const upload = multer({
 });
 
 // GET /api/watches - Public watch catalog listing with brand, condition, and search filters
-router.get('/watches', (req, res) => {
-  const { brand, condition, search } = req.query;
-  const watches = dbOps.getAllWatches({ brand, condition, search });
-  res.json({ count: watches.length, watches });
+router.get('/watches', async (req, res) => {
+  try {
+    const { brand, condition, search } = req.query;
+    const watches = await dbOps.getAllWatches({ brand, condition, search });
+    res.json({ count: watches.length, watches });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch watch catalog.' });
+  }
 });
 
 // GET /api/watches/new-arrivals - Public endpoint for newest watch listings
-router.get('/watches/new-arrivals', (req, res) => {
-  const limit = req.query.limit ? Number(req.query.limit) : 4;
-  const watches = dbOps.getNewArrivals(limit);
-  res.json({ count: watches.length, watches });
+router.get('/watches/new-arrivals', async (req, res) => {
+  try {
+    const limit = req.query.limit ? Number(req.query.limit) : 4;
+    const watches = await dbOps.getNewArrivals(limit);
+    res.json({ count: watches.length, watches });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch new arrivals.' });
+  }
 });
 
 // GET /api/watches/brands - Public endpoint for dynamically generated brand filter list
-router.get('/watches/brands', (req, res) => {
-  const brands = dbOps.getUniqueBrands();
-  res.json({ brands });
+router.get('/watches/brands', async (req, res) => {
+  try {
+    const brands = await dbOps.getUniqueBrands();
+    res.json({ brands });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch watch brands.' });
+  }
 });
 
 // GET /api/watches/:id - Public single watch detail page data
-router.get('/watches/:id', (req, res) => {
-  const watch = dbOps.getWatchById(req.params.id);
-  if (!watch) {
-    return res.status(404).json({ error: 'Watch listing not found.' });
+router.get('/watches/:id', async (req, res) => {
+  try {
+    const watch = await dbOps.getWatchById(req.params.id);
+    if (!watch) {
+      return res.status(404).json({ error: 'Watch listing not found.' });
+    }
+    res.json({ watch });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch watch details.' });
   }
-  res.json({ watch });
 });
 
 // GET /api/admin/stats - Admin dashboard metrics (Protected)
-router.get('/admin/stats', requireAdminAuth, (req, res) => {
-  const stats = dbOps.getInventoryStats();
-  res.json({ stats });
+router.get('/admin/stats', requireAdminAuth, async (req, res) => {
+  try {
+    const stats = await dbOps.getInventoryStats();
+    res.json({ stats });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch admin stats.' });
+  }
 });
 
 // POST /api/upload - Admin image upload endpoint (Protected)
