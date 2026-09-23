@@ -1,3 +1,28 @@
-const app = require('../../backend/src/server.js');
+let app;
+let initError = null;
 
-module.exports = app;
+try {
+  app = require('../../backend/src/server.js');
+} catch (err) {
+  initError = err;
+}
+
+module.exports = (req, res) => {
+  if (initError) {
+    return res.status(500).json({
+      error: 'Vercel Initialization Error (Frontend API)',
+      message: initError.message,
+      stack: initError.stack
+    });
+  }
+
+  try {
+    return app(req, res);
+  } catch (err) {
+    return res.status(500).json({
+      error: 'Vercel Runtime Execution Error (Frontend API)',
+      message: err.message,
+      stack: err.stack
+    });
+  }
+};

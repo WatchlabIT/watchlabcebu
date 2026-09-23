@@ -9,7 +9,7 @@ async function parseJsonResponse(res, fallbackErrorMsg = 'Request failed.') {
   const contentType = res.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error || fallbackErrorMsg);
+    if (!res.ok) throw new Error(data.message || data.error || fallbackErrorMsg);
     return data;
   }
   if (!res.ok) {
