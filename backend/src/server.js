@@ -22,21 +22,19 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsPath = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api', watchRoutes);
-
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check endpoint (supports both /api/health and /health)
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: 'ok', business: 'Watch Lab Cebu', time: new Date().toISOString() });
 });
 
-// Global 404 handler for API routes
-app.use('/api/*', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found.' });
-});
+// API Routes (supports both /api/auth and /auth for Vercel Serverless Function compatibility)
+app.use('/api/auth', authRoutes);
+app.use('/auth', authRoutes);
 
-// Start Express HTTP Server locally if not required as a module
+app.use('/api', watchRoutes);
+app.use('/', watchRoutes);
+
+// Start Express HTTP Server locally if run directly
 if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`====================================================`);
