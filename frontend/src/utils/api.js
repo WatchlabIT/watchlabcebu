@@ -170,3 +170,56 @@ export async function fetchGoogleAppsScriptCode() {
   return await parseJsonResponse(res, 'Failed to fetch Google Apps Script code.');
 }
 
+// Transactions API Helpers
+export async function fetchTransactions() {
+  const res = await fetch(`${API_BASE}/transactions`);
+  return await parseJsonResponse(res, 'Failed to fetch featured transactions.');
+}
+
+export async function createTransaction(formData) {
+  const headers = getAuthHeaders();
+  let body = formData;
+  let isMultipart = formData instanceof FormData;
+
+  if (!isMultipart) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(formData);
+  }
+
+  const res = await fetch(`${API_BASE}/transactions`, {
+    method: 'POST',
+    headers,
+    body
+  });
+
+  return await parseJsonResponse(res, 'Failed to create transaction.');
+}
+
+export async function updateTransaction(id, formData) {
+  const headers = getAuthHeaders();
+  let body = formData;
+  let isMultipart = formData instanceof FormData;
+
+  if (!isMultipart) {
+    headers['Content-Type'] = 'application/json';
+    body = JSON.stringify(formData);
+  }
+
+  const res = await fetch(`${API_BASE}/transactions/${id}`, {
+    method: 'PUT',
+    headers,
+    body
+  });
+
+  return await parseJsonResponse(res, 'Failed to update transaction.');
+}
+
+export async function deleteTransaction(id) {
+  const res = await fetch(`${API_BASE}/transactions/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders()
+  });
+
+  return await parseJsonResponse(res, 'Failed to delete transaction.');
+}
+

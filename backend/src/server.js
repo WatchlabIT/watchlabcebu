@@ -7,6 +7,7 @@ dotenv.config();
 
 const authRoutes = require('./routes/auth');
 const watchRoutes = require('./routes/watches');
+const transactionRoutes = require('./routes/transactions');
 const googleSheetsRoutes = require('./routes/googleSheets');
 
 const app = express();
@@ -50,6 +51,9 @@ app.use('/', googleSheetsRoutes);
 
 app.use('/api', watchRoutes);
 app.use('/', watchRoutes);
+
+app.use('/api', transactionRoutes);
+app.use('/', transactionRoutes);
 
 // Catch-all 404 handler for unmatched Express routes
 app.use('*', (req, res) => {

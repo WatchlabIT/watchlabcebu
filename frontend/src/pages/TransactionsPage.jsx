@@ -1,23 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ChevronLeft, ChevronRight, CheckCircle2, MessageSquare, MapPin, Sparkles, Filter, X, Eye } from 'lucide-react';
+import { ShieldCheck, ChevronLeft, ChevronRight, CheckCircle2, MessageSquare, MapPin, Sparkles, Filter, X, Eye, RefreshCw } from 'lucide-react';
 import ProtectedImage from '../components/ProtectedImage';
+import { fetchTransactions } from '../utils/api';
+import { getImageUrl } from '../utils/format';
 
 export default function TransactionsPage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [selectedTx, setSelectedTx] = useState(null);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const transactionsData = [
+  const initialFallback = [
     {
       id: 1,
       title: 'Meetup in Bohol',
       subtitle: '6 units Sold! Thank you Maam Mafel.',
       location: 'Bohol, Philippines',
       category: 'Out of Town',
-      date: 'Recent Handover',
-      image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop',
       badge: 'Bohol Handover',
-      note: 'Successful inter-island client handover of 6 luxury Seiko & Tissot timepieces with full box and warranty papers.'
+      note: 'Successful inter-island client handover of 6 luxury timepieces.',
+      image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop'
     },
     {
       id: 2,
@@ -25,10 +28,9 @@ export default function TransactionsPage() {
       subtitle: 'Sold! Thank you Sir Felix.',
       location: 'Cebu City',
       category: 'Meetups',
-      date: 'Recent Handover',
-      image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop',
       badge: 'In-Person Meetup',
-      note: 'Seiko 5 Sports Emerald SRPD61 handed over in person with fullWatch Lab Cebu packaging.'
+      note: 'Seiko 5 Sports Emerald SRPD61 handed over in person.',
+      image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop'
     },
     {
       id: 3,
@@ -36,10 +38,9 @@ export default function TransactionsPage() {
       subtitle: '6 units Sold! Thank you Maam Eyay.',
       location: 'Metro Cebu',
       category: 'Express Deliveries',
-      date: 'Same-Day Dispatch',
-      image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop',
       badge: 'Maxim Express',
-      note: '6 units securely packed and dispatched via Maxim courier for immediate same-day delivery.'
+      note: '6 units dispatched via Maxim courier for same-day delivery.',
+      image_url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop'
     },
     {
       id: 4,
@@ -47,36 +48,33 @@ export default function TransactionsPage() {
       subtitle: 'Brandnew Unit Sold! Thank you Sir.',
       location: 'Cebu Mall Meetup',
       category: 'Meetups',
-      date: 'Recent Handover',
-      image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop',
       badge: 'Brand New Unit',
-      note: 'Seiko 5 GMT SSK001 brand new unit inspected and delivered to client in Cebu.'
-    },
-    {
-      id: 5,
-      title: 'Rolex Submariner Date',
-      subtitle: 'Pre-owned Unit Sold! Thank you Sir Mark.',
-      location: 'IT Park, Cebu',
-      category: 'Meetups',
-      date: 'Recent Handover',
-      image: 'https://images.unsplash.com/photo-1547996160-81dfa63595aa?q=80&w=800&auto=format&fit=crop',
-      badge: 'Luxury Handover',
-      note: 'Verified pre-owned Rolex Submariner Date handed over with complete authentication certificate.'
-    },
-    {
-      id: 6,
-      title: 'Seiko Presage Cocktail Time',
-      subtitle: 'Brandnew Unit Sold! Thank you Maam Grace.',
-      location: 'Mandaue City',
-      category: 'Express Deliveries',
-      date: 'Same-Day Dispatch',
-      image: 'https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?q=80&w=800&auto=format&fit=crop',
-      badge: 'Courier Express',
-      note: 'Brand new Seiko Presage Cocktail Time delivered safely to client in Mandaue.'
+      note: 'Seiko 5 GMT SSK001 brand new unit inspected and delivered.',
+      image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop'
     }
   ];
 
-  const filteredTransactions = transactionsData.filter(tx => {
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      try {
+        const res = await fetchTransactions();
+        if (res && res.transactions && res.transactions.length > 0) {
+          setTransactions(res.transactions);
+        } else {
+          setTransactions(initialFallback);
+        }
+      } catch (err) {
+        console.error('Error fetching transactions:', err);
+        setTransactions(initialFallback);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  const filteredTransactions = transactions.filter(tx => {
     if (activeFilter === 'All') return true;
     return tx.category === activeFilter;
   });
@@ -135,7 +133,7 @@ export default function TransactionsPage() {
                 alignItems: 'center',
                 gap: '8px'
               }}>
-                <Sparkles size={16} color="var(--maroon-primary)" /> {transactionsData.length} Verified Transactions
+                <Sparkles size={16} color="var(--maroon-primary)" /> {transactions.length} Verified Transactions
               </div>
             </div>
           </div>
@@ -170,46 +168,52 @@ export default function TransactionsPage() {
         </div>
 
         {/* Transactions Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '24px'
-        }}>
-          {filteredTransactions.map((tx) => (
-            <div
-              key={tx.id}
-              className="glass-card"
-              onClick={() => setSelectedTx(tx)}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                cursor: 'pointer',
-                position: 'relative',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-              }}
-            >
-              {/* Image Container with Dark Green / Maroon Banner at Bottom */}
-              <div style={{
-                position: 'relative',
-                width: '100%',
-                paddingTop: '125%', // Tall aspect ratio as shown in user photo
-                background: '#000',
-                overflow: 'hidden'
-              }}>
-                <ProtectedImage
-                  src={tx.image}
-                  alt={tx.title}
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover'
-                  }}
-                />
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '80px 0', color: 'var(--text-muted)' }}>
+            <RefreshCw size={28} className="spin" style={{ marginBottom: '12px' }} />
+            <div>Loading client transactions...</div>
+          </div>
+        ) : (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: '24px'
+          }}>
+            {filteredTransactions.map((tx) => (
+              <div
+                key={tx.id}
+                className="glass-card"
+                onClick={() => setSelectedTx(tx)}
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                }}
+              >
+                {/* Image Container */}
+                <div style={{
+                  position: 'relative',
+                  width: '100%',
+                  paddingTop: '125%',
+                  background: '#000',
+                  overflow: 'hidden'
+                }}>
+                  <ProtectedImage
+                    src={getImageUrl(tx.image_url || tx.image)}
+                    alt={tx.title}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover'
+                    }}
+                  />
 
                 {/* Top Category Badge */}
                 <div style={{
@@ -266,6 +270,7 @@ export default function TransactionsPage() {
             </div>
           ))}
         </div>
+      )}
 
         {/* Modal Detail View */}
         {selectedTx && (
@@ -322,7 +327,7 @@ export default function TransactionsPage() {
 
               <div style={{ position: 'relative', width: '100%', height: '360px', background: '#000' }}>
                 <ProtectedImage
-                  src={selectedTx.image}
+                  src={getImageUrl(selectedTx.image_url || selectedTx.image)}
                   alt={selectedTx.title}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
