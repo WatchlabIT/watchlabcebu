@@ -274,6 +274,106 @@ const dbOps = {
     };
     saveDatabase(db);
     return db.settings.google_sheets;
+  },
+
+  // Transactions CRUD Operations
+  getAllTransactions: () => {
+    const db = loadDatabase();
+    if (!db.transactions || !Array.isArray(db.transactions)) {
+      db.transactions = [
+        {
+          id: 1,
+          title: 'Handover in Bohol',
+          subtitle: 'Ref. SRPD61 • Seiko Sports',
+          location: 'Bohol',
+          category: 'Meetups',
+          badge: 'Bohol Handover',
+          note: 'Handed over in-person to our client in Bohol with complete tags & box.',
+          image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          title: 'Maxim Express Delivery',
+          subtitle: 'Ref. SSK001 • Seiko GMT',
+          location: 'Cebu City',
+          category: 'Deliveries',
+          badge: 'Maxim Delivery',
+          note: 'Same-day express delivery within Cebu City.',
+          image_url: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      saveDatabase(db);
+    }
+    return db.transactions;
+  },
+
+  getTransactionById: (id) => {
+    const transactions = dbOps.getAllTransactions();
+    const targetId = Number(id);
+    return transactions.find(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
+  },
+
+  createTransaction: (data) => {
+    const db = loadDatabase();
+    if (!db.transactions || !Array.isArray(db.transactions)) {
+      db.transactions = [];
+    }
+
+    const maxId = db.transactions.reduce((max, t) => Math.max(max, Number(t.id) || 0), 0);
+    const newTx = {
+      id: maxId + 1,
+      title: data.title,
+      subtitle: data.subtitle,
+      location: data.location || 'Cebu',
+      category: data.category || 'Handover',
+      badge: data.badge || 'Handover',
+      note: data.note || '',
+      image_url: data.image_url,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    db.transactions.unshift(newTx);
+    saveDatabase(db);
+    return newTx;
+  },
+
+  updateTransaction: (id, updates) => {
+    const db = loadDatabase();
+    if (!db.transactions) db.transactions = [];
+
+    const targetId = Number(id);
+    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
+    if (index === -1) return null;
+
+    const existing = db.transactions[index];
+    const updated = {
+      ...existing,
+      ...updates,
+      id: existing.id,
+      updated_at: new Date().toISOString()
+    };
+
+    db.transactions[index] = updated;
+    saveDatabase(db);
+    return updated;
+  },
+
+  deleteTransaction: (id) => {
+    const db = loadDatabase();
+    if (!db.transactions) db.transactions = [];
+
+    const targetId = Number(id);
+    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
+    if (index === -1) return null;
+
+    const removed = db.transactions.splice(index, 1);
+    saveDatabase(db);
+    return removed[0];
   }
 };
 
