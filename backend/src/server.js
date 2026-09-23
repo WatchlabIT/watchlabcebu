@@ -58,6 +58,15 @@ app.use('*', (req, res) => {
   });
 });
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  console.error('WatchLab Express Runtime Error:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message || 'An unexpected runtime error occurred.'
+  });
+});
+
 // Start Express HTTP Server locally if run directly
 if (require.main === module) {
   app.listen(PORT, () => {

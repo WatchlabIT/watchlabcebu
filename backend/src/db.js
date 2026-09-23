@@ -12,12 +12,33 @@ if (isVercel) {
 // In-memory fallback cache for serverless environments
 let memoryDb = null;
 
+let seedData = null;
+try {
+  seedData = require('../watchlab.json');
+} catch (e) {
+  seedData = null;
+}
+
 function getDefaultAdminHash() {
   const salt = bcrypt.genSaltSync(10);
   return bcrypt.hashSync('watchlab2026!', salt);
 }
 
 function getInitialState() {
+  if (seedData && Array.isArray(seedData.admins) && seedData.admins.length > 0) {
+    return {
+      admins: seedData.admins,
+      watches: Array.isArray(seedData.watches) ? seedData.watches : [],
+      settings: seedData.settings || {
+        google_sheets: {
+          webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyXdt8GP2HZ0KAaPLfVDaQD1YiPym949VTCyTmTVqbVOXy8d40tsaw6rGbp2ylnDdjnAg/exec',
+          auto_sync: true,
+          last_synced: null
+        }
+      }
+    };
+  }
+
   return {
     admins: [
       {
@@ -39,25 +60,33 @@ function getInitialState() {
 }
 
 function loadDatabase() {
+  if (memoryDb && Array.isArray(memoryDb.admins) && Array.isArray(memoryDb.watches)) {
+    return memoryDb;
+  }
+
   try {
     if (fs.existsSync(dbPath)) {
       const raw = fs.readFileSync(dbPath, 'utf8');
       memoryDb = JSON.parse(raw);
-      return memoryDb;
+      if (memoryDb && Array.isArray(memoryDb.admins)) {
+        if (!Array.isArray(memoryDb.watches)) memoryDb.watches = [];
+        return memoryDb;
+      }
     }
     // Check seed JSON file if /tmp/watchlab.json does not exist yet on Vercel
     const seedPath = path.join(__dirname, '..', 'watchlab.json');
     if (fs.existsSync(seedPath)) {
       const raw = fs.readFileSync(seedPath, 'utf8');
       memoryDb = JSON.parse(raw);
-      saveDatabase(memoryDb);
-      return memoryDb;
+      if (memoryDb && Array.isArray(memoryDb.admins)) {
+        if (!Array.isArray(memoryDb.watches)) memoryDb.watches = [];
+        saveDatabase(memoryDb);
+        return memoryDb;
+      }
     }
   } catch (err) {
     console.error('File read failed, using memory DB:', err.message);
   }
-
-  if (memoryDb) return memoryDb;
 
   memoryDb = getInitialState();
   saveDatabase(memoryDb);
@@ -78,11 +107,13 @@ const dbOps = {
   // Admins
   getAdminByEmail: (email) => {
     const db = loadDatabase();
-    return db.admins.find(a => a.email.toLowerCase() === email.toLowerCase());
+    const admins = (db && Array.isArray(db.admins)) ? db.admins : [];
+    return admins.find(a => a && a.email && a.email.toLowerCase() === email.toLowerCase());
   },
   getAdminById: (id) => {
     const db = loadDatabase();
-    return db.admins.find(a => a.id === Number(id));
+    const admins = (db && Array.isArray(db.admins)) ? db.admins : [];
+    return admins.find(a => a && a.id === Number(id));
   },
 
   // Watches (Google Sheets as primary live database with local fallback)
@@ -90,8 +121,7 @@ const dbOps = {
     try {
       const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
       const liveWatches = await fetchLiveWatchesFromSheets();
-      if (liveWatches && Array.isArray(liveWatches) && liveWatches.length >= 0) {
-        // Update local DB cache in background
+      if (liveWatches && Array.isArray(liveWatches)) {
         const db = loadDatabase();
         db.watches = liveWatches;
         saveDatabase(db);
@@ -101,27 +131,29 @@ const dbOps = {
       console.warn('Google Sheets live fetch fallback to local DB:', err.message);
     }
     const db = loadDatabase();
-    return db.watches;
+    return (db && Array.isArray(db.watches)) ? db.watches : [];
   },
 
   getAllWatches: async ({ brand, condition, search } = {}) => {
     const watches = await dbOps.getRawWatchesList();
-    let result = [...watches];
+    let result = Array.isArray(watches) ? [...watches] : [];
 
     if (brand && brand !== 'All') {
-      result = result.filter(w => w.brand.toLowerCase() === brand.toLowerCase());
+      result = result.filter(w => w && w.brand && w.brand.toLowerCase() === brand.toLowerCase());
     }
 
     if (condition && condition !== 'All') {
-      result = result.filter(w => w.condition === condition);
+      result = result.filter(w => w && w.condition === condition);
     }
 
     if (search) {
       const q = search.toLowerCase();
       result = result.filter(w =>
-        w.name.toLowerCase().includes(q) ||
-        w.brand.toLowerCase().includes(q) ||
-        w.description.toLowerCase().includes(q)
+        w && (
+          (w.name && w.name.toLowerCase().includes(q)) ||
+          (w.brand && w.brand.toLowerCase().includes(q)) ||
+          (w.description && w.description.toLowerCase().includes(q))
+        )
       );
     }
 
@@ -131,7 +163,8 @@ const dbOps = {
 
   getNewArrivals: async (limit = 4) => {
     const watches = await dbOps.getRawWatchesList();
-    return [...watches]
+    const list = Array.isArray(watches) ? [...watches] : [];
+    return list
       .sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0))
       .slice(0, limit);
   },
