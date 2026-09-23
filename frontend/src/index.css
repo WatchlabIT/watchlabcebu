@@ -30,8 +30,8 @@
   --badge-available: #7F1D1D;
   --badge-sold-out: #6B7280;
 
-  --font-serif: 'Playfair Display', Georgia, serif;
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-serif: 'Plus Jakarta Sans', 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Outfit', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   
   --shadow-lux: 0 10px 30px -5px rgba(127, 29, 29, 0.08), 0 4px 15px rgba(0, 0, 0, 0.05);
   --shadow-maroon: 0 8px 25px -4px rgba(127, 29, 29, 0.35);

@@ -125,12 +125,17 @@ export default function WatchCard({ watch }) {
           </Link>
 
           <a
-            href={whatsappUrl}
+            href="https://www.facebook.com/messages/t/533098296554220"
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-whatsapp"
-            style={{ fontSize: '0.82rem', padding: '10px 8px' }}
-            title="Inquire about this watch on WhatsApp"
+            className="btn"
+            style={{
+              fontSize: '0.82rem',
+              padding: '10px 8px',
+              background: 'linear-gradient(135deg, #0084FF 0%, #00C6FF 100%)',
+              color: '#FFFFFF'
+            }}
+            title="Inquire about this watch on Facebook Messenger"
           >
             <MessageSquare size={15} /> Chat
           </a>

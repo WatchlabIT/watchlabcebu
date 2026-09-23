@@ -179,24 +179,26 @@ export default function WatchDetailPage() {
               </div>
             </div>
 
-            {/* WhatsApp Chat Button */}
+            {/* Facebook Messenger Inquiry Button */}
             <div style={{ marginBottom: '32px' }}>
               <a
-                href={whatsappUrl}
+                href="https://www.facebook.com/messages/t/533098296554220"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn btn-whatsapp"
+                className="btn"
                 style={{
                   width: '100%',
                   padding: '16px 24px',
                   fontSize: '1.1rem',
-                  borderRadius: '30px'
+                  borderRadius: '30px',
+                  background: 'linear-gradient(135deg, #0084FF 0%, #00C6FF 100%)',
+                  color: '#FFFFFF'
                 }}
               >
-                <MessageSquare size={22} /> Chat About This Watch
+                <MessageSquare size={22} /> Chat About This Watch on Messenger
               </a>
               <div style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                Opens WhatsApp with pre-filled inquiry details for Watch Lab Cebu
+                Direct message Watch Lab Cebu on Facebook Messenger
               </div>
             </div>
 
@@ -213,29 +215,6 @@ export default function WatchDetailPage() {
               }}>
                 {watch.description}
               </p>
-            </div>
-
-            {/* Authenticity Guarantee Card */}
-            <div style={{
-              marginTop: '32px',
-              padding: '20px',
-              borderRadius: '16px',
-              background: '#FFFFFF',
-              border: '1px solid var(--border-subtle)',
-              boxShadow: 'var(--shadow-lux)',
-              display: 'flex',
-              gap: '14px',
-              alignItems: 'flex-start'
-            }}>
-              <ShieldCheck size={28} color="var(--red-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <div style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem', marginBottom: '2px' }}>
-                  Watch Lab Cebu Authenticity Promise
-                </div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: '1.5' }}>
-                  This timepiece is verified authentic. Comes with certified origin verification, inspection records, and direct seller support.
-                </div>
-              </div>
             </div>
           </div>
         </div>

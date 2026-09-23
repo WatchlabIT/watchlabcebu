@@ -44,10 +44,8 @@ export default function Navbar() {
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      background: 'rgba(255, 255, 255, 0.96)',
-      backdropFilter: 'blur(16px)',
-      borderBottom: '2px solid var(--maroon-primary)',
-      boxShadow: '0 4px 20px rgba(127, 29, 29, 0.08)',
+      background: 'var(--maroon-gradient)',
+      boxShadow: '0 4px 20px rgba(69, 10, 10, 0.4)',
       transition: 'all 0.3s ease'
     }}>
       <div className="container" style={{
@@ -58,12 +56,12 @@ export default function Navbar() {
       }}>
         {/* Brand Logo */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <WatchLabLogo size={46} />
+          <WatchLabLogo size={46} style={{ boxShadow: '0 0 0 2px rgba(255, 255, 255, 0.8)', borderRadius: '50%' }} />
           <div>
-            <div className="font-serif gradient-text" style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+            <div style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '0.5px', color: '#FFFFFF' }}>
               WATCH LAB
             </div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--maroon-primary)', letterSpacing: '3px', fontWeight: 700, textTransform: 'uppercase', marginTop: '-3px' }}>
+            <div style={{ fontSize: '0.65rem', color: 'rgba(255, 255, 255, 0.85)', letterSpacing: '3px', fontWeight: 700, textTransform: 'uppercase', marginTop: '-3px' }}>
               CEBU • PHILIPPINES
             </div>
           </div>
@@ -78,10 +76,11 @@ export default function Navbar() {
               onClick={() => handleNavClick(link.path)}
               style={{
                 textDecoration: 'none',
-                color: isActive(link.path) ? 'var(--maroon-primary)' : 'var(--text-primary)',
+                color: '#FFFFFF',
+                opacity: isActive(link.path) ? 1 : 0.85,
                 fontWeight: isActive(link.path) ? 700 : 500,
                 fontSize: '0.95rem',
-                transition: 'color 0.2s ease',
+                transition: 'all 0.2s ease',
                 position: 'relative',
                 padding: '6px 0'
               }}
@@ -94,7 +93,7 @@ export default function Navbar() {
                   left: 0,
                   width: '100%',
                   height: '3px',
-                  background: 'var(--maroon-gradient)',
+                  background: '#FFFFFF',
                   borderRadius: '2px'
                 }} />
               )}
@@ -106,30 +105,34 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Link to="/admin/dashboard" className="btn btn-outline-maroon" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+              <Link to="/admin/dashboard" className="btn" style={{ padding: '8px 16px', fontSize: '0.85rem', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.6)', background: 'rgba(255, 255, 255, 0.1)' }}>
                 <LayoutDashboard size={16} /> Admin Portal
               </Link>
               <button
                 onClick={logout}
-                className="btn btn-secondary"
-                style={{ padding: '8px 12px', fontSize: '0.85rem' }}
+                className="btn"
+                style={{ padding: '8px 12px', fontSize: '0.85rem', color: '#FFFFFF', background: 'rgba(0, 0, 0, 0.2)', border: '1px solid rgba(255, 255, 255, 0.2)' }}
                 title="Log out admin session"
               >
                 <LogOut size={16} />
               </button>
             </div>
           ) : (
-            <Link to="/admin/login" style={{
-              color: 'var(--text-muted)',
-              fontSize: '0.8rem',
+            <Link to="/admin/login" className="btn" style={{
+              color: '#FFFFFF',
+              fontSize: '0.82rem',
               textDecoration: 'none',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '4px',
-              fontWeight: 500,
-              transition: 'color 0.2s ease'
+              gap: '6px',
+              fontWeight: 600,
+              padding: '8px 16px',
+              borderRadius: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.5)',
+              background: 'rgba(255, 255, 255, 0.08)',
+              transition: 'all 0.2s ease'
             }}>
-              <ShieldCheck size={14} color="var(--maroon-primary)" /> Owner Login
+              <ShieldCheck size={15} color="#FFFFFF" /> Owner Login
             </Link>
           )}
 
@@ -140,14 +143,14 @@ export default function Navbar() {
             style={{
               background: 'transparent',
               border: 'none',
-              color: 'var(--text-primary)',
+              color: '#FFFFFF',
               cursor: 'pointer',
               padding: '6px',
               display: 'flex'
             }}
             className="mobile-toggle"
           >
-            {mobileOpen ? <X size={26} color="var(--maroon-primary)" /> : <Menu size={26} />}
+            {mobileOpen ? <X size={26} color="#FFFFFF" /> : <Menu size={26} color="#FFFFFF" />}
           </button>
         </div>
       </div>

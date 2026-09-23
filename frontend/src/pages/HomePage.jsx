@@ -68,18 +68,18 @@ export default function HomePage() {
                 fontWeight: 700,
                 marginBottom: '24px'
               }}>
-                <Sparkles size={16} /> Certified Luxury Watch Seller • Cebu
+                <Sparkles size={16} /> Trusted Watch Dealer • Cebu based
               </div>
 
               <h1 className="font-serif gradient-text" style={{
                 fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-                fontWeight: 700,
+                fontWeight: 800,
                 lineHeight: '1.15',
                 marginBottom: '20px',
                 letterSpacing: '-0.5px'
               }}>
                 Timeless Elegance. <br />
-                Guaranteed Authenticity.
+                Your Everyday Watch.
               </h1>
 
               <p style={{
@@ -87,9 +87,10 @@ export default function HomePage() {
                 color: 'var(--text-secondary)',
                 lineHeight: '1.7',
                 marginBottom: '36px',
-                maxWidth: '540px'
+                maxWidth: '540px',
+                whiteSpace: 'pre-line'
               }}>
-                Watch Lab Cebu offers an exclusive selection of Brand New and Pre-Owned luxury timepieces from Rolex, Omega, Seiko, Tissot, AP, and Patek Philippe.
+                Watch Lab Cebu offers an exclusive selection of authentic timepieces, carefully selected for everyday wear from Pre-Owned to Brand New watches that suit your style.
               </p>
 
               {/* Call-to-action buttons */}
@@ -99,13 +100,18 @@ export default function HomePage() {
                 </Link>
 
                 <a
-                  href={getWhatsAppUrl()}
+                  href="https://www.facebook.com/messages/t/533098296554220"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn btn-whatsapp"
-                  style={{ padding: '14px 24px', fontSize: '1rem' }}
+                  className="btn"
+                  style={{
+                    padding: '14px 24px',
+                    fontSize: '1rem',
+                    background: 'linear-gradient(135deg, #0084FF 0%, #00C6FF 100%)',
+                    color: '#FFFFFF'
+                  }}
                 >
-                  <MessageSquare size={18} /> Chat With Us
+                  <MessageSquare size={18} /> Chat on Messenger
                 </a>
               </div>
             </div>
