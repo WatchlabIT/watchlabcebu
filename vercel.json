@@ -1,15 +1,6 @@
 {
   "buildCommand": "npm run build",
-
   "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/uploads/(.*)",
-      "destination": "/api/index"
-    },
     {
       "source": "/((?!api|uploads).*)",
       "destination": "/index.html"
