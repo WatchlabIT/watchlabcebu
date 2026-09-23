@@ -32,9 +32,9 @@ const upload = multer({
 });
 
 // GET /api/transactions - Public list of featured client transactions
-router.get('/transactions', (req, res) => {
+router.get('/transactions', async (req, res) => {
   try {
-    const transactions = dbOps.getAllTransactions();
+    const transactions = await dbOps.getAllTransactions();
     res.json({ count: transactions.length, transactions });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch featured transactions.' });
@@ -42,9 +42,9 @@ router.get('/transactions', (req, res) => {
 });
 
 // GET /api/transactions/:id - Public single transaction details
-router.get('/transactions/:id', (req, res) => {
+router.get('/transactions/:id', async (req, res) => {
   try {
-    const transaction = dbOps.getTransactionById(req.params.id);
+    const transaction = await dbOps.getTransactionById(req.params.id);
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found.' });
     }

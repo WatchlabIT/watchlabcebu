@@ -277,17 +277,25 @@ const dbOps = {
   },
 
   // Transactions CRUD Operations
-  getAllTransactions: () => {
-    const db = loadDatabase();
-    if (!db.transactions || !Array.isArray(db.transactions)) {
-      db.transactions = [];
-      saveDatabase(db);
+  getAllTransactions: async () => {
+    try {
+      const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
+      const liveTx = await fetchLiveTransactionsFromSheets();
+      if (liveTx && Array.isArray(liveTx)) {
+        const db = loadDatabase();
+        db.transactions = liveTx;
+        saveDatabase(db);
+        return liveTx;
+      }
+    } catch (err) {
+      console.warn('Google Sheets live transaction fetch fallback:', err.message);
     }
-    return db.transactions;
+    const db = loadDatabase();
+    return (db && Array.isArray(db.transactions)) ? db.transactions : [];
   },
 
-  getTransactionById: (id) => {
-    const transactions = dbOps.getAllTransactions();
+  getTransactionById: async (id) => {
+    const transactions = await dbOps.getAllTransactions();
     const targetId = Number(id);
     return transactions.find(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
   },

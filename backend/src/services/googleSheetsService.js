@@ -213,36 +213,55 @@ function doPost(e) {
 
 function doGet(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName("Watches") || ss.getActiveSheet();
-  var data = sheet.getDataRange().getValues();
   
-  if (data.length <= 1) {
-    return ContentService.createTextOutput(JSON.stringify({
-      status: "success",
-      watches: []
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-  
+  // 1. Fetch Watches from "Watches" sheet or first sheet tab
+  var watchSheet = ss.getSheetByName("Watches") || ss.getSheets()[0];
+  var watchData = watchSheet ? watchSheet.getDataRange().getValues() : [];
   var watches = [];
-  for (var i = 1; i < data.length; i++) {
-    var row = data[i];
-    if (!row[0]) continue;
-    watches.push({
-      id: Number(row[0]),
-      name: String(row[1] || ''),
-      brand: String(row[2] || ''),
-      price: Number(row[3]) || 0,
-      stock: Number(row[4]) || 0,
-      condition: String(row[5] || 'Brand New'),
-      description: String(row[6] || ''),
-      image_url: String(row[7] || ''),
-      updated_at: String(row[8] || new Date().toISOString())
-    });
+  if (watchData.length > 1) {
+    for (var i = 1; i < watchData.length; i++) {
+      var row = watchData[i];
+      if (!row[0] && !row[1]) continue;
+      watches.push({
+        id: Number(row[0]),
+        name: String(row[1] || ''),
+        brand: String(row[2] || ''),
+        price: Number(row[3]) || 0,
+        stock: Number(row[4]) || 0,
+        condition: String(row[5] || 'Brand New'),
+        description: String(row[6] || ''),
+        image_url: String(row[7] || ''),
+        updated_at: String(row[8] || new Date().toISOString())
+      });
+    }
   }
-  
+
+  // 2. Fetch Transactions from "Transactions" sheet tab
+  var txSheet = ss.getSheetByName("Transactions");
+  var txData = txSheet ? txSheet.getDataRange().getValues() : [];
+  var transactions = [];
+  if (txData.length > 1) {
+    for (var j = 1; j < txData.length; j++) {
+      var trow = txData[j];
+      if (!trow[0] && !trow[1]) continue;
+      transactions.push({
+        id: Number(trow[0]),
+        title: String(trow[1] || ''),
+        subtitle: String(trow[2] || ''),
+        location: String(trow[3] || ''),
+        category: String(trow[4] || ''),
+        badge: String(trow[5] || ''),
+        note: String(trow[6] || ''),
+        image_url: String(trow[7] || ''),
+        updated_at: String(trow[8] || new Date().toISOString())
+      });
+    }
+  }
+
   return ContentService.createTextOutput(JSON.stringify({
     status: "success",
-    watches: watches
+    watches: watches,
+    transactions: transactions
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -300,7 +319,7 @@ async function syncAllToSheets(customUrl = null) {
     throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
   }
 
-  const watches = dbOps.getAllWatches();
+  const watches = await dbOps.getAllWatches();
   const result = await postToWebhook(url, {
     action: 'sync_all',
     watches: watches,
@@ -373,7 +392,6 @@ async function pullFromSheets(customUrl = null) {
   }
 
   if (json.watches && Array.isArray(json.watches)) {
-    // Import / update watches into local DB
     for (const remoteWatch of json.watches) {
       if (!remoteWatch.name || !remoteWatch.brand) continue;
       const existing = dbOps.getWatchById(remoteWatch.id);
@@ -426,10 +444,45 @@ async function fetchLiveWatchesFromSheets() {
   return null;
 }
 
+async function fetchLiveTransactionsFromSheets() {
+  try {
+    const url = getWebhookUrl();
+    if (!url) return null;
+
+    const response = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+
+    const text = await response.text();
+    let json;
+    try { json = JSON.parse(text); } catch (e) { return null; }
+
+    if (json && json.status === 'success' && Array.isArray(json.transactions)) {
+      return json.transactions.map(t => ({
+        id: Number(t.id),
+        title: String(t.title || ''),
+        subtitle: String(t.subtitle || ''),
+        location: String(t.location || 'Cebu'),
+        category: String(t.category || 'Handover'),
+        badge: String(t.badge || 'Handover'),
+        note: String(t.note || ''),
+        image_url: String(t.image_url || ''),
+        created_at: t.created_at || t.updated_at || new Date().toISOString(),
+        updated_at: t.updated_at || new Date().toISOString()
+      }));
+    }
+  } catch (err) {
+    console.error('Failed to fetch live transactions from Google Sheets:', err.message);
+  }
+  return null;
+}
+
 module.exports = {
   GOOGLE_APPS_SCRIPT_CODE,
   syncAllToSheets,
   triggerAutoSync,
   pullFromSheets,
-  fetchLiveWatchesFromSheets
+  fetchLiveWatchesFromSheets,
+  fetchLiveTransactionsFromSheets
 };
