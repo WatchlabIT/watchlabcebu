@@ -13,7 +13,7 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Watch Collection', path: '/collection' },
-    { name: 'New Arrivals', path: '/#new-arrivals' },
+    { name: 'Transactions', path: '/transactions' },
     { name: 'About Watch Lab', path: '/about' }
   ];
 

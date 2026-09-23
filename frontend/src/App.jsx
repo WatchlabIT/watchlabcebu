@@ -8,6 +8,7 @@ import FloatingWhatsApp from './components/FloatingWhatsApp';
 import HomePage from './pages/HomePage';
 import CollectionPage from './pages/CollectionPage';
 import WatchDetailPage from './pages/WatchDetailPage';
+import TransactionsPage from './pages/TransactionsPage';
 import AboutPage from './pages/AboutPage';
 import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
@@ -56,6 +57,7 @@ export default function App() {
             {/* Customer Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/collection" element={<CollectionPage />} />
+            <Route path="/transactions" element={<TransactionsPage />} />
             <Route path="/watch/:id" element={<WatchDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
 

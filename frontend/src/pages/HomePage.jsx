@@ -215,7 +215,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CERTIFIED WATCH SELLER DETAILS */}
+      {/* CLIENT HANDOVERS / FEATURED TRANSACTIONS SECTION */}
       <section style={{
         padding: '80px 0',
         background: '#FFFFFF',
@@ -223,22 +223,186 @@ export default function HomePage() {
         borderBottom: '1px solid var(--border-subtle)'
       }}>
         <div className="container">
-          <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 60px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--red-primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
               WHY CHOOSE WATCH LAB CEBU
             </div>
-            <h2 className="font-serif" style={{ fontSize: '2.4rem', fontWeight: 700, marginBottom: '16px' }}>
-              Certified Seller & Authenticity Guaranteed
-            </h2>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.6' }}>
-              We take pride in delivering trusted horological excellence to watch enthusiasts across Cebu and nationwide. Every piece undergoes rigorous multi-point verification.
-            </p>
           </div>
 
           <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'flex-end',
+            justifyContent: 'space-between',
+            gap: '20px',
+            marginBottom: '36px'
+          }}>
+            <div>
+              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                CLIENT HANDOVERS
+              </div>
+              <div style={{
+                display: 'inline-block',
+                background: 'linear-gradient(135deg, #065F46 0%, #047857 100%)',
+                color: '#FFFFFF',
+                padding: '8px 24px',
+                borderRadius: '4px',
+                fontFamily: 'var(--font-serif)',
+                fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)',
+                fontWeight: 900,
+                letterSpacing: '1px'
+              }}>
+                FEATURED TRANSACTIONS
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <Link to="/transactions" style={{
+                background: '#F3F4F6',
+                border: '1px solid var(--border-glass)',
+                borderRadius: '30px',
+                padding: '8px 20px',
+                fontSize: '0.88rem',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                15 transactions <ArrowRight size={14} />
+              </Link>
+            </div>
+          </div>
+
+          {/* Handover Cards Grid (4 Column Layout matching reference screenshot) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '20px'
+          }}>
+            {/* Card 1: Meetup in Bohol */}
+            <Link to="/transactions" style={{ textDecoration: 'none' }}>
+              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
+                  <ProtectedImage
+                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop"
+                    alt="Meetup in Bohol"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
+                    padding: '16px 14px',
+                    color: '#FFFFFF'
+                  }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
+                      Meetup in Bohol
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
+                      6 units Sold! Thank you Maam Mafel.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 2: Ref. SRPD61 */}
+            <Link to="/transactions" style={{ textDecoration: 'none' }}>
+              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
+                  <ProtectedImage
+                    src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop"
+                    alt="Ref. SRPD61"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
+                    padding: '16px 14px',
+                    color: '#FFFFFF'
+                  }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
+                      Ref. SRPD61
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
+                      Sold! Thank you Sir Felix.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 3: Delivery via. Maxim */}
+            <Link to="/transactions" style={{ textDecoration: 'none' }}>
+              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
+                  <ProtectedImage
+                    src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop"
+                    alt="Delivery via Maxim"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
+                    padding: '16px 14px',
+                    color: '#FFFFFF'
+                  }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
+                      Delivery via. Maxim
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
+                      6 units Sold! Thank you Maam Eyay.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+
+            {/* Card 4: Ref. SSK001 */}
+            <Link to="/transactions" style={{ textDecoration: 'none' }}>
+              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
+                  <ProtectedImage
+                    src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop"
+                    alt="Ref. SSK001"
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
+                    padding: '16px 14px',
+                    color: '#FFFFFF'
+                  }}>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
+                      Ref. SSK001
+                    </h3>
+                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
+                      Brandnew Unit Sold! Thank you Sir.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </div>
+          {/* 3 Value Pillars */}
+          <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '32px'
+            gap: '32px',
+            marginTop: '40px'
           }}>
             {/* Feature 1 */}
             <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
@@ -246,13 +410,13 @@ export default function HomePage() {
                 width: '56px',
                 height: '56px',
                 borderRadius: '16px',
-                background: 'rgba(220, 38, 38, 0.08)',
+                background: 'rgba(127, 29, 29, 0.08)',
                 border: '1px solid var(--border-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 20px',
-                color: 'var(--red-primary)'
+                color: 'var(--maroon-primary)'
               }}>
                 <ShieldCheck size={28} />
               </div>
