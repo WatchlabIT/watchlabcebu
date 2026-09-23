@@ -19,14 +19,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Universal Vercel Path Normalization Middleware
-app.use((req, res, next) => {
-  if (req.originalUrl && req.originalUrl !== req.url) {
-    req.url = req.originalUrl;
-  }
-  next();
-});
-
 // Serve static watch image uploads
 const uploadsPath = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));

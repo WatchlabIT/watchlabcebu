@@ -1,4 +1,3 @@
-const app = require('../backend/src/server.js');
+const handler = require('./[...path].js');
 
-module.exports = app;
-
+module.exports = handler;
