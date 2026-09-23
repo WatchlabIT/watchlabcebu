@@ -11,62 +11,15 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const initialFallback = [
-    {
-      id: 1,
-      title: 'Meetup in Bohol',
-      subtitle: '6 units Sold! Thank you Maam Mafel.',
-      location: 'Bohol, Philippines',
-      category: 'Out of Town',
-      badge: 'Bohol Handover',
-      note: 'Successful inter-island client handover of 6 luxury timepieces.',
-      image_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop'
-    },
-    {
-      id: 2,
-      title: 'Ref. SRPD61',
-      subtitle: 'Sold! Thank you Sir Felix.',
-      location: 'Cebu City',
-      category: 'Meetups',
-      badge: 'In-Person Meetup',
-      note: 'Seiko 5 Sports Emerald SRPD61 handed over in person.',
-      image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop'
-    },
-    {
-      id: 3,
-      title: 'Delivery via. Maxim',
-      subtitle: '6 units Sold! Thank you Maam Eyay.',
-      location: 'Metro Cebu',
-      category: 'Express Deliveries',
-      badge: 'Maxim Express',
-      note: '6 units dispatched via Maxim courier for same-day delivery.',
-      image_url: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop'
-    },
-    {
-      id: 4,
-      title: 'Ref. SSK001',
-      subtitle: 'Brandnew Unit Sold! Thank you Sir.',
-      location: 'Cebu Mall Meetup',
-      category: 'Meetups',
-      badge: 'Brand New Unit',
-      note: 'Seiko 5 GMT SSK001 brand new unit inspected and delivered.',
-      image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop'
-    }
-  ];
-
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       try {
         const res = await fetchTransactions();
-        if (res && res.transactions && res.transactions.length > 0) {
-          setTransactions(res.transactions);
-        } else {
-          setTransactions(initialFallback);
-        }
+        setTransactions((res && res.transactions) ? res.transactions : []);
       } catch (err) {
         console.error('Error fetching transactions:', err);
-        setTransactions(initialFallback);
+        setTransactions([]);
       } finally {
         setLoading(false);
       }

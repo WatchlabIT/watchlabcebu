@@ -280,32 +280,7 @@ const dbOps = {
   getAllTransactions: () => {
     const db = loadDatabase();
     if (!db.transactions || !Array.isArray(db.transactions)) {
-      db.transactions = [
-        {
-          id: 1,
-          title: 'Handover in Bohol',
-          subtitle: 'Ref. SRPD61 • Seiko Sports',
-          location: 'Bohol',
-          category: 'Meetups',
-          badge: 'Bohol Handover',
-          note: 'Handed over in-person to our client in Bohol with complete tags & box.',
-          image_url: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        },
-        {
-          id: 2,
-          title: 'Maxim Express Delivery',
-          subtitle: 'Ref. SSK001 • Seiko GMT',
-          location: 'Cebu City',
-          category: 'Deliveries',
-          badge: 'Maxim Delivery',
-          note: 'Same-day express delivery within Cebu City.',
-          image_url: 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=800',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      db.transactions = [];
       saveDatabase(db);
     }
     return db.transactions;

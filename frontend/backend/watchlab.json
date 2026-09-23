@@ -21,52 +21,7 @@
       "updated_at": "2026-09-23T19:23:23.656Z"
     }
   ],
-  "transactions": [
-    {
-      "id": 1,
-      "title": "Meetup in Bohol",
-      "subtitle": "6 units Sold! Thank you Maam Mafel.",
-      "location": "Bohol, Philippines",
-      "category": "Out of Town",
-      "badge": "Bohol Handover",
-      "note": "Successful inter-island client handover of 6 luxury timepieces with full box and warranty papers.",
-      "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop",
-      "created_at": "2026-09-24T03:50:00.000Z"
-    },
-    {
-      "id": 2,
-      "title": "Ref. SRPD61",
-      "subtitle": "Sold! Thank you Sir Felix.",
-      "location": "Cebu City",
-      "category": "Meetups",
-      "badge": "In-Person Meetup",
-      "note": "Seiko 5 Sports Emerald SRPD61 handed over in person with full Watch Lab Cebu packaging.",
-      "image_url": "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop",
-      "created_at": "2026-09-24T03:50:00.000Z"
-    },
-    {
-      "id": 3,
-      "title": "Delivery via. Maxim",
-      "subtitle": "6 units Sold! Thank you Maam Eyay.",
-      "location": "Metro Cebu",
-      "category": "Express Deliveries",
-      "badge": "Maxim Express",
-      "note": "6 units securely packed and dispatched via Maxim courier for immediate same-day delivery.",
-      "image_url": "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop",
-      "created_at": "2026-09-24T03:50:00.000Z"
-    },
-    {
-      "id": 4,
-      "title": "Ref. SSK001",
-      "subtitle": "Brandnew Unit Sold! Thank you Sir.",
-      "location": "Cebu Mall Meetup",
-      "category": "Meetups",
-      "badge": "Brand New Unit",
-      "note": "Seiko 5 GMT SSK001 brand new unit inspected and delivered to client in Cebu.",
-      "image_url": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop",
-      "created_at": "2026-09-24T03:50:00.000Z"
-    }
-  ],
+  "transactions": [],
   "settings": {
     "google_sheets": {
       "webhook_url": "https://script.google.com/macros/s/AKfycbyXdt8GP2HZ0KAaPLfVDaQD1YiPym949VTCyTmTVqbVOXy8d40tsaw6rGbp2ylnDdjnAg/exec",

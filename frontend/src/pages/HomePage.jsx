@@ -3,20 +3,25 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldCheck, Award, MessageSquare, Sparkles, Clock } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
-import { fetchNewArrivals } from '../utils/api';
-import { getWhatsAppUrl } from '../utils/format';
+import { fetchNewArrivals, fetchTransactions } from '../utils/api';
+import { getWhatsAppUrl, getImageUrl } from '../utils/format';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
+  const [featuredTx, setFeaturedTx] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchNewArrivals(4);
-        setNewArrivals(data.watches || []);
+        const [arrivalsData, txData] = await Promise.all([
+          fetchNewArrivals(4).catch(() => ({ watches: [] })),
+          fetchTransactions().catch(() => ({ transactions: [] }))
+        ]);
+        setNewArrivals(arrivalsData.watches || []);
+        setFeaturedTx(txData.transactions || []);
       } catch (err) {
-        console.error('Error fetching new arrivals:', err);
+        console.error('Error fetching homepage data:', err);
       } finally {
         setLoading(false);
       }
@@ -270,132 +275,52 @@ export default function HomePage() {
                 alignItems: 'center',
                 gap: '6px'
               }}>
-                15 transactions <ArrowRight size={14} />
+                {featuredTx.length} transactions <ArrowRight size={14} />
               </Link>
             </div>
           </div>
 
-          {/* Handover Cards Grid (4 Column Layout matching reference screenshot) */}
+          {/* Dynamic Featured Transactions Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
             gap: '20px'
           }}>
-            {/* Card 1: Meetup in Bohol */}
-            <Link to="/transactions" style={{ textDecoration: 'none' }}>
-              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
-                  <ProtectedImage
-                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=800&auto=format&fit=crop"
-                    alt="Meetup in Bohol"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
-                    padding: '16px 14px',
-                    color: '#FFFFFF'
-                  }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
-                      Meetup in Bohol
-                    </h3>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
-                      6 units Sold! Thank you Maam Mafel.
-                    </p>
-                  </div>
-                </div>
+            {featuredTx.length === 0 ? (
+              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+                No featured transactions added yet. Post your first handover story via Admin Dashboard!
               </div>
-            </Link>
-
-            {/* Card 2: Ref. SRPD61 */}
-            <Link to="/transactions" style={{ textDecoration: 'none' }}>
-              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
-                  <ProtectedImage
-                    src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=800&auto=format&fit=crop"
-                    alt="Ref. SRPD61"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
-                    padding: '16px 14px',
-                    color: '#FFFFFF'
-                  }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
-                      Ref. SRPD61
-                    </h3>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
-                      Sold! Thank you Sir Felix.
-                    </p>
+            ) : (
+              featuredTx.slice(0, 4).map((tx) => (
+                <Link key={tx.id} to="/transactions" style={{ textDecoration: 'none' }}>
+                  <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+                    <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
+                      <ProtectedImage
+                        src={getImageUrl(tx.image_url || tx.image)}
+                        alt={tx.title}
+                        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
+                        padding: '16px 14px',
+                        color: '#FFFFFF'
+                      }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
+                          {tx.title}
+                        </h3>
+                        <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
+                          {tx.subtitle}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Card 3: Delivery via. Maxim */}
-            <Link to="/transactions" style={{ textDecoration: 'none' }}>
-              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
-                  <ProtectedImage
-                    src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?q=80&w=800&auto=format&fit=crop"
-                    alt="Delivery via Maxim"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
-                    padding: '16px 14px',
-                    color: '#FFFFFF'
-                  }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
-                      Delivery via. Maxim
-                    </h3>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
-                      6 units Sold! Thank you Maam Eyay.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
-
-            {/* Card 4: Ref. SSK001 */}
-            <Link to="/transactions" style={{ textDecoration: 'none' }}>
-              <div className="glass-card" style={{ borderRadius: '14px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-                <div style={{ position: 'relative', width: '100%', paddingTop: '130%', background: '#000' }}>
-                  <ProtectedImage
-                    src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800&auto=format&fit=crop"
-                    alt="Ref. SSK001"
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    background: 'linear-gradient(to top, rgba(6, 95, 70, 0.95) 0%, rgba(6, 95, 70, 0.85) 75%, transparent 100%)',
-                    padding: '16px 14px',
-                    color: '#FFFFFF'
-                  }}>
-                    <h3 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>
-                      Ref. SSK001
-                    </h3>
-                    <p style={{ fontSize: '0.82rem', fontWeight: 600, margin: '4px 0 0', color: '#E2E8F0' }}>
-                      Brandnew Unit Sold! Thank you Sir.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Link>
+                </Link>
+              ))
+            )}
           </div>
           {/* 3 Value Pillars */}
           <div style={{
