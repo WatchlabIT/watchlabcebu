@@ -82,8 +82,10 @@ router.post('/upload', requireAdminAuth, upload.single('image'), (req, res) => {
   res.json({ message: 'Image uploaded successfully.', image_url: imageUrl });
 });
 
+const { triggerAutoSync } = require('../services/googleSheetsService');
+
 // POST /api/watches - Admin create watch listing (Protected, supports JSON or multipart)
-router.post('/watches', requireAdminAuth, upload.single('image'), (req, res) => {
+router.post('/watches', requireAdminAuth, upload.single('image'), async (req, res) => {
   try {
     const { name, brand, price, stock, condition, description } = req.body;
 
@@ -114,6 +116,9 @@ router.post('/watches', requireAdminAuth, upload.single('image'), (req, res) => 
       image_url
     });
 
+    // Auto-sync to Google Sheets (await to prevent serverless cancellation)
+    await triggerAutoSync('upsert', newWatch);
+
     res.status(201).json({ message: 'Watch created successfully.', watch: newWatch });
   } catch (err) {
     console.error('Error creating watch:', err);
@@ -122,7 +127,7 @@ router.post('/watches', requireAdminAuth, upload.single('image'), (req, res) => 
 });
 
 // PUT /api/watches/:id - Admin update watch listing (Protected)
-router.put('/watches/:id', requireAdminAuth, upload.single('image'), (req, res) => {
+router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req, res) => {
   try {
     const existingWatch = dbOps.getWatchById(req.params.id);
     if (!existingWatch) {
@@ -150,6 +155,9 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), (req, res) 
       image_url
     });
 
+    // Auto-sync to Google Sheets (await to prevent serverless cancellation)
+    await triggerAutoSync('upsert', updatedWatch);
+
     res.json({ message: 'Watch updated successfully.', watch: updatedWatch });
   } catch (err) {
     console.error('Error updating watch:', err);
@@ -158,12 +166,15 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), (req, res) 
 });
 
 // DELETE /api/watches/:id - Admin delete watch listing (Protected)
-router.delete('/watches/:id', requireAdminAuth, (req, res) => {
+router.delete('/watches/:id', requireAdminAuth, async (req, res) => {
   try {
     const deleted = dbOps.deleteWatch(req.params.id);
     if (!deleted) {
       return res.status(404).json({ error: 'Watch listing not found.' });
     }
+
+    // Auto-sync deletion to Google Sheets (await to prevent serverless cancellation)
+    await triggerAutoSync('delete', req.params.id);
 
     res.json({ message: 'Watch listing deleted successfully.', watch: deleted });
   } catch (err) {

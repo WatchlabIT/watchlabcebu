@@ -7,6 +7,7 @@ dotenv.config();
 
 const authRoutes = require('./routes/auth');
 const watchRoutes = require('./routes/watches');
+const googleSheetsRoutes = require('./routes/googleSheets');
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -30,6 +31,9 @@ app.get(['/api/health', '/health'], (req, res) => {
 // API Routes (supports both /api/auth and /auth for Vercel Serverless Function compatibility)
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
+
+app.use('/api', googleSheetsRoutes);
+app.use('/', googleSheetsRoutes);
 
 app.use('/api', watchRoutes);
 app.use('/', watchRoutes);

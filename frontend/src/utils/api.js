@@ -120,3 +120,53 @@ export async function deleteWatch(id) {
 
   return await parseJsonResponse(res, 'Failed to delete watch listing.');
 }
+
+// Google Sheets API Helpers
+export async function fetchGoogleSheetsConfig() {
+  const res = await fetch(`${API_BASE}/google-sheets/config`, {
+    headers: getAuthHeaders()
+  });
+  return await parseJsonResponse(res, 'Failed to fetch Google Sheets config.');
+}
+
+export async function saveGoogleSheetsConfig(config) {
+  const res = await fetch(`${API_BASE}/google-sheets/config`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(config)
+  });
+  return await parseJsonResponse(res, 'Failed to save Google Sheets config.');
+}
+
+export async function syncToGoogleSheets(webhook_url) {
+  const res = await fetch(`${API_BASE}/google-sheets/sync`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ webhook_url })
+  });
+  return await parseJsonResponse(res, 'Failed to sync with Google Sheets.');
+}
+
+export async function pullFromGoogleSheets(webhook_url) {
+  const res = await fetch(`${API_BASE}/google-sheets/pull`, {
+    method: 'POST',
+    headers: {
+      ...getAuthHeaders(),
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ webhook_url })
+  });
+  return await parseJsonResponse(res, 'Failed to import from Google Sheets.');
+}
+
+export async function fetchGoogleAppsScriptCode() {
+  const res = await fetch(`${API_BASE}/google-sheets/apps-script`);
+  return await parseJsonResponse(res, 'Failed to fetch Google Apps Script code.');
+}
+

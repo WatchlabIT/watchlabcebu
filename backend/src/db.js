@@ -124,13 +124,18 @@ function getInitialState() {
         created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
         updated_at: new Date().toISOString()
       }
-    ]
+    ],
+    settings: {
+      google_sheets: {
+        webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || '',
+        auto_sync: true,
+        last_synced: null
+      }
+    }
   };
 }
 
 function loadDatabase() {
-  if (memoryDb) return memoryDb;
-
   try {
     if (fs.existsSync(dbPath)) {
       const raw = fs.readFileSync(dbPath, 'utf8');
@@ -140,6 +145,8 @@ function loadDatabase() {
   } catch (err) {
     console.error('File read failed, using memory DB:', err.message);
   }
+
+  if (memoryDb) return memoryDb;
 
   memoryDb = getInitialState();
   saveDatabase(memoryDb);
@@ -277,6 +284,31 @@ const dbOps = {
       soldOutCount,
       totalValue
     };
+  },
+
+  getGoogleSheetsConfig: () => {
+    const db = loadDatabase();
+    if (!db.settings) {
+      db.settings = { google_sheets: { webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || '', auto_sync: true, last_synced: null } };
+      saveDatabase(db);
+    } else if (!db.settings.google_sheets) {
+      db.settings.google_sheets = { webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || '', auto_sync: true, last_synced: null };
+      saveDatabase(db);
+    }
+    return db.settings.google_sheets;
+  },
+
+  updateGoogleSheetsConfig: (newConfig) => {
+    const db = loadDatabase();
+    if (!db.settings) db.settings = {};
+    const existing = db.settings.google_sheets || { webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || '', auto_sync: true, last_synced: null };
+    
+    db.settings.google_sheets = {
+      ...existing,
+      ...newConfig
+    };
+    saveDatabase(db);
+    return db.settings.google_sheets;
   }
 };
 
