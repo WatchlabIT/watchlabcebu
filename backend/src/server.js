@@ -67,8 +67,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Express HTTP Server locally if run directly
-if (require.main === module) {
+// Start Express HTTP Server locally if run directly outside Vercel
+const isVercelEnvironment = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+if (!isVercelEnvironment && require.main === module) {
   app.listen(PORT, () => {
     console.log(`====================================================`);
     console.log(` Watch Lab Cebu API Server running on port ${PORT}`);
