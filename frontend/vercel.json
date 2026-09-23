@@ -1,6 +1,22 @@
 {
   "rewrites": [
     {
+      "source": "/api/health",
+      "destination": "/api/health.cjs"
+    },
+    {
+      "source": "/api/auth/login",
+      "destination": "/api/auth/login.cjs"
+    },
+    {
+      "source": "/api/watches/new-arrivals",
+      "destination": "/api/watches/new-arrivals.cjs"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.cjs"
+    },
+    {
       "source": "/((?!api|uploads).*)",
       "destination": "/index.html"
     }
