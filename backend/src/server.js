@@ -23,8 +23,18 @@ app.use(express.urlencoded({ extended: true }));
 const uploadsPath = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
 
-// Health check endpoint (supports both /api/health and /health)
-app.get(['/api/health', '/health'], (req, res) => {
+// Middleware to normalize Vercel serverless request URLs
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/index.js')) {
+    req.url = req.url.replace('/api/index.js', '') || '/';
+  } else if (req.url.startsWith('/api/index')) {
+    req.url = req.url.replace('/api/index', '') || '/';
+  }
+  next();
+});
+
+// Health check endpoint (supports /api/health, /health, /api, and root /)
+app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   res.json({ status: 'ok', business: 'Watch Lab Cebu', time: new Date().toISOString() });
 });
 
