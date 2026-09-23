@@ -19,12 +19,12 @@ export default function FloatingWhatsApp() {
       {/* Tooltip speech bubble */}
       {showTooltip && (
         <div style={{
-          background: 'rgba(255, 255, 255, 0.98)',
+          background: '#FFFFFF',
           backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(37, 211, 102, 0.4)',
+          border: '1px solid rgba(127, 29, 29, 0.3)',
           borderRadius: '14px',
           padding: '10px 14px',
-          boxShadow: '0 10px 30px rgba(0,0,0,0.12)',
+          boxShadow: '0 10px 30px rgba(127, 29, 29, 0.15)',
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
@@ -32,7 +32,7 @@ export default function FloatingWhatsApp() {
           animation: 'fadeIn 0.3s ease'
         }}>
           <div style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-            <span style={{ fontWeight: 700, color: '#128C7E' }}>Chat with Watch Lab Cebu!</span>
+            <span style={{ fontWeight: 700, color: 'var(--maroon-primary)' }}>Chat with Watch Lab Cebu!</span>
             <br />
             <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Inquire about watches & pricing</span>
           </div>
@@ -61,12 +61,12 @@ export default function FloatingWhatsApp() {
           width: '60px',
           height: '60px',
           borderRadius: '30px',
-          background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+          background: 'var(--maroon-gradient)',
           color: '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          boxShadow: '0 12px 30px rgba(37, 211, 102, 0.4)',
+          boxShadow: '0 12px 30px rgba(127, 29, 29, 0.4)',
           textDecoration: 'none',
           transition: 'all 0.3s ease',
           cursor: 'pointer',

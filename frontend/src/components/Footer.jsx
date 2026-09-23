@@ -8,12 +8,12 @@ export default function Footer() {
   return (
     <footer style={{
       background: '#FFFFFF',
-      borderTop: '2px solid var(--red-primary)',
+      borderTop: '2px solid var(--maroon-primary)',
       paddingTop: '64px',
       paddingBottom: '32px',
       marginTop: '80px',
       color: 'var(--text-secondary)',
-      boxShadow: '0 -10px 30px rgba(220, 38, 38, 0.04)'
+      boxShadow: '0 -10px 30px rgba(127, 29, 29, 0.04)'
     }}>
       <div className="container">
         <div style={{
@@ -33,7 +33,7 @@ export default function Footer() {
             <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)', marginBottom: '20px' }}>
               Cebu’s premier destination for curated luxury watches. Specializing in Brand New and Pre-Owned high-grade timepieces with guaranteed authenticity.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--red-primary)', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--maroon-primary)', fontWeight: 600 }}>
               <ShieldCheck size={16} /> Certified Authenticity Guarantee
             </div>
           </div>
@@ -60,7 +60,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--red-primary)', textDecoration: 'none', fontWeight: 600 }}>
+                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--maroon-primary)', textDecoration: 'none', fontWeight: 600 }}>
                   Contact via WhatsApp
                 </a>
               </li>
@@ -74,16 +74,16 @@ export default function Footer() {
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '0.9rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <MapPin size={18} color="var(--red-primary)" />
+                <MapPin size={18} color="var(--maroon-primary)" />
                 <span>Cebu City, Philippines</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <Phone size={18} color="var(--red-primary)" />
+                <Phone size={18} color="var(--maroon-primary)" />
                 <span>0943 665 2681</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <MessageSquare size={18} color="#25D366" />
-                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" style={{ color: '#128C7E', textDecoration: 'none', fontWeight: 600 }}>
+                <MessageSquare size={18} color="var(--maroon-primary)" />
+                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--maroon-primary)', textDecoration: 'none', fontWeight: 600 }}>
                   WhatsApp (+639436652681)
                 </a>
               </div>

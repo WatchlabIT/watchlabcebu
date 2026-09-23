@@ -20,7 +20,7 @@ export default function WatchCard({ watch }) {
         position: 'relative',
         width: '100%',
         paddingTop: '80%', // 4:3 Aspect Ratio
-        background: '#F3F4F6',
+        background: '#F9FAFB',
         overflow: 'hidden'
       }}>
         <img
@@ -80,7 +80,7 @@ export default function WatchCard({ watch }) {
           <div style={{
             fontSize: '0.75rem',
             fontWeight: 800,
-            color: 'var(--red-primary)',
+            color: 'var(--maroon-primary)',
             letterSpacing: '1.5px',
             textTransform: 'uppercase',
             marginBottom: '4px'
@@ -107,7 +107,7 @@ export default function WatchCard({ watch }) {
           <div style={{
             fontSize: '1.4rem',
             fontWeight: 800,
-            color: 'var(--red-primary)'
+            color: 'var(--maroon-primary)'
           }}>
             {formatPrice(watch.price)}
           </div>

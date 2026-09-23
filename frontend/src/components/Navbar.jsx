@@ -46,8 +46,8 @@ export default function Navbar() {
       zIndex: 1000,
       background: 'rgba(255, 255, 255, 0.96)',
       backdropFilter: 'blur(16px)',
-      borderBottom: '2px solid var(--red-primary)',
-      boxShadow: '0 4px 20px rgba(220, 38, 38, 0.08)',
+      borderBottom: '2px solid var(--maroon-primary)',
+      boxShadow: '0 4px 20px rgba(127, 29, 29, 0.08)',
       transition: 'all 0.3s ease'
     }}>
       <div className="container" style={{
@@ -63,7 +63,7 @@ export default function Navbar() {
             <div className="font-serif gradient-text" style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '0.5px' }}>
               WATCH LAB
             </div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--red-primary)', letterSpacing: '3px', fontWeight: 700, textTransform: 'uppercase', marginTop: '-3px' }}>
+            <div style={{ fontSize: '0.65rem', color: 'var(--maroon-primary)', letterSpacing: '3px', fontWeight: 700, textTransform: 'uppercase', marginTop: '-3px' }}>
               CEBU • PHILIPPINES
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function Navbar() {
               onClick={() => handleNavClick(link.path)}
               style={{
                 textDecoration: 'none',
-                color: isActive(link.path) ? 'var(--red-primary)' : 'var(--text-primary)',
+                color: isActive(link.path) ? 'var(--maroon-primary)' : 'var(--text-primary)',
                 fontWeight: isActive(link.path) ? 700 : 500,
                 fontSize: '0.95rem',
                 transition: 'color 0.2s ease',
@@ -94,7 +94,7 @@ export default function Navbar() {
                   left: 0,
                   width: '100%',
                   height: '3px',
-                  background: 'var(--red-gradient)',
+                  background: 'var(--maroon-gradient)',
                   borderRadius: '2px'
                 }} />
               )}
@@ -106,7 +106,7 @@ export default function Navbar() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <Link to="/admin/dashboard" className="btn btn-outline-red" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
+              <Link to="/admin/dashboard" className="btn btn-outline-maroon" style={{ padding: '8px 16px', fontSize: '0.85rem' }}>
                 <LayoutDashboard size={16} /> Admin Portal
               </Link>
               <button
@@ -129,7 +129,7 @@ export default function Navbar() {
               fontWeight: 500,
               transition: 'color 0.2s ease'
             }}>
-              <ShieldCheck size={14} color="var(--red-primary)" /> Owner Login
+              <ShieldCheck size={14} color="var(--maroon-primary)" /> Owner Login
             </Link>
           )}
 
@@ -147,7 +147,7 @@ export default function Navbar() {
             }}
             className="mobile-toggle"
           >
-            {mobileOpen ? <X size={26} color="var(--red-primary)" /> : <Menu size={26} />}
+            {mobileOpen ? <X size={26} color="var(--maroon-primary)" /> : <Menu size={26} />}
           </button>
         </div>
       </div>
@@ -176,7 +176,7 @@ export default function Navbar() {
               onClick={() => handleNavClick(link.path)}
               style={{
                 textDecoration: 'none',
-                color: isActive(link.path) ? 'var(--red-primary)' : 'var(--text-primary)',
+                color: isActive(link.path) ? 'var(--maroon-primary)' : 'var(--text-primary)',
                 fontSize: '1.25rem',
                 fontWeight: 600,
                 padding: '12px 0',
@@ -188,7 +188,7 @@ export default function Navbar() {
           ))}
           {isAuthenticated ? (
             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-red">
+              <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-maroon">
                 <LayoutDashboard size={18} /> Admin Dashboard
               </Link>
               <button onClick={() => { logout(); setMobileOpen(false); }} className="btn btn-secondary">
@@ -197,7 +197,7 @@ export default function Navbar() {
             </div>
           ) : (
             <div style={{ marginTop: 'auto' }}>
-              <Link to="/admin/login" onClick={() => setMobileOpen(false)} className="btn btn-outline-red" style={{ width: '100%' }}>
+              <Link to="/admin/login" onClick={() => setMobileOpen(false)} className="btn btn-outline-maroon" style={{ width: '100%' }}>
                 <ShieldCheck size={18} /> Admin Portal Sign In
               </Link>
             </div>
