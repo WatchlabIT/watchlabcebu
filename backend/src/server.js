@@ -19,6 +19,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Universal Vercel Path Normalization Middleware
+app.use((req, res, next) => {
+  if (req.originalUrl && req.originalUrl !== req.url) {
+    req.url = req.originalUrl;
+  }
+  next();
+});
+
 // Serve static watch image uploads
 const uploadsPath = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
@@ -37,6 +45,16 @@ app.use('/', googleSheetsRoutes);
 
 app.use('/api', watchRoutes);
 app.use('/', watchRoutes);
+
+// Catch-all 404 handler for unmatched Express routes
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Route not found in WatchLab API',
+    url: req.url,
+    originalUrl: req.originalUrl,
+    method: req.method
+  });
+});
 
 // Start Express HTTP Server locally if run directly
 if (require.main === module) {
