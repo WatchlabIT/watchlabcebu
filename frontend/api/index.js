@@ -1,4 +1,3 @@
-module.exports = (req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.status(200).json({ status: 'ok', message: 'Vercel Serverless Function Works!' });
-};
+const app = require('../../backend/src/server.js');
+
+module.exports = app;
