@@ -27,107 +27,10 @@ function getInitialState() {
         created_at: new Date().toISOString()
       }
     ],
-    watches: [
-      {
-        id: 1,
-        name: 'Rolex Submariner Date 41mm',
-        brand: 'Rolex',
-        price: 850000,
-        stock: 2,
-        condition: 'Brand New',
-        description: 'Iconic Oystersteel luxury diving watch with black Cerachrom bezel and black dial. Unworn, 2026 papers and full set warranty box.',
-        image_url: 'https://images.unsplash.com/photo-1760541791863-424a4af5de1c?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 2,
-        name: 'Rolex Daytona Cosmograph Gold',
-        brand: 'Rolex',
-        price: 1850000,
-        stock: 1,
-        condition: 'Pre-Owned',
-        description: 'Exquisite 18ct Yellow Gold Daytona featuring black sub-dials. Mint condition with original box, papers, and certified authenticity.',
-        image_url: 'https://images.unsplash.com/photo-1639006570490-79c0c53f1080?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 3,
-        name: 'Omega Speedmaster Moonwatch Professional',
-        brand: 'Omega',
-        price: 420000,
-        stock: 3,
-        condition: 'Brand New',
-        description: 'Legendary chronograph tested on lunar missions. Calibre 3861 manual-winding movement with Hesalite glass and step dial.',
-        image_url: 'https://images.unsplash.com/photo-1622434641406-a158123450f9?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 4,
-        name: 'Omega Seamaster Diver 300M Co-Axial',
-        brand: 'Omega',
-        price: 330000,
-        stock: 1,
-        condition: 'Pre-Owned',
-        description: 'Blue laser-engraved ceramic wave dial with helium escape valve. Master Chronometer certified, pristine condition.',
-        image_url: 'https://images.unsplash.com/photo-1755440321869-9cab2985d9c6?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 5,
-        name: 'Seiko Presage Cocktail Time Automatic',
-        brand: 'Seiko',
-        price: 32000,
-        stock: 5,
-        condition: 'Brand New',
-        description: 'Sunburst blue textured dial inspired by classic cocktails. 4R35 automatic caliber with 41-hour power reserve.',
-        image_url: 'https://images.unsplash.com/photo-1614164185128-e4ec99c436d7?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 6,
-        name: 'Tissot PRX Powermatic 80 Ice Blue',
-        brand: 'Tissot',
-        price: 45000,
-        stock: 4,
-        condition: 'Brand New',
-        description: 'Integrated bracelet stainless steel watch with waffle pattern ice blue dial and 80-hour power reserve Powermatic 80 movement.',
-        image_url: 'https://images.unsplash.com/photo-1533139502658-0198f920d8e8?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 7,
-        name: 'Audemars Piguet Royal Oak Selfwinding',
-        brand: 'Audemars Piguet',
-        price: 2450000,
-        stock: 1,
-        condition: 'Pre-Owned',
-        description: 'Ultra-luxurious 41mm Royal Oak with Blue "Grande Tapisserie" dial. Octagonal bezel with hexagonal screws. Complete full set.',
-        image_url: 'https://images.unsplash.com/photo-1773414685933-bfc3ccf89a3c?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-        updated_at: new Date().toISOString()
-      },
-      {
-        id: 8,
-        name: 'Casio G-Shock GM-2100 Metal Oak',
-        brand: 'Casio',
-        price: 15500,
-        stock: 0,
-        condition: 'Brand New',
-        description: 'Stainless steel bezel covered Octagonal G-Shock. Impact resistant structure with dark grey sunray dial.',
-        image_url: 'https://images.unsplash.com/photo-1542496658-e33a6d0d50f6?q=80&w=1000&auto=format&fit=crop',
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 8).toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    ],
+    watches: [],
     settings: {
       google_sheets: {
-        webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || '',
+        webhook_url: process.env.GOOGLE_SHEET_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbyXdt8GP2HZ0KAaPLfVDaQD1YiPym949VTCyTmTVqbVOXy8d40tsaw6rGbp2ylnDdjnAg/exec',
         auto_sync: true,
         last_synced: null
       }
