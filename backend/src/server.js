@@ -19,6 +19,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// URL Normalization Middleware for Vercel Serverless Functions
+app.use((req, res, next) => {
+  if (req.url.startsWith('/api/index.js')) {
+    req.url = req.url.replace('/api/index.js', '') || '/';
+  } else if (req.url.startsWith('/index.js')) {
+    req.url = req.url.replace('/index.js', '') || '/';
+  }
+  next();
+});
+
 // Serve static watch image uploads
 const uploadsPath = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsPath));
