@@ -21,7 +21,11 @@ app.use(express.urlencoded({ extended: true }));
 
 // URL Normalization Middleware for Vercel Serverless Functions
 app.use((req, res, next) => {
-  if (req.url.startsWith('/api/index.js')) {
+  if (req.query && req.query.url) {
+    let target = req.query.url;
+    if (!target.startsWith('/')) target = '/' + target;
+    req.url = target;
+  } else if (req.url.startsWith('/api/index.js')) {
     req.url = req.url.replace('/api/index.js', '') || '/';
   } else if (req.url.startsWith('/index.js')) {
     req.url = req.url.replace('/index.js', '') || '/';
