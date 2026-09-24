@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star } from 'lucide-react';
-import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet } from 'lucide-react';
+import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
 import ProtectedImage from '../components/ProtectedImage';
+import GoogleSheetsSyncCard from '../components/GoogleSheetsSyncCard';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -47,6 +48,35 @@ export default function AdminDashboardPage() {
   const [deleteTxId, setDeleteTxId] = useState(null);
   const [deleteTxTitle, setDeleteTxTitle] = useState('');
   const [deletingTx, setDeletingTx] = useState(false);
+
+  // Google Sheets Sync State
+  const [syncing, setSyncing] = useState(false);
+  const [syncSuccessMsg, setSyncSuccessMsg] = useState(null);
+  const [showSheetsCard, setShowSheetsCard] = useState(false);
+
+  const handleGoogleSync = async () => {
+    setSyncing(true);
+    setSyncSuccessMsg(null);
+    try {
+      try {
+        await pullFromGoogleSheets();
+      } catch (e) {
+        console.warn('Pull warning:', e);
+      }
+      try {
+        await syncToGoogleSheets();
+      } catch (e) {
+        console.warn('Sync warning:', e);
+      }
+      await loadData();
+      setSyncSuccessMsg('Google Sheets sync complete! Dashboard listings and transactions updated.');
+      setTimeout(() => setSyncSuccessMsg(null), 5000);
+    } catch (err) {
+      alert('Google Sheets Sync error: ' + (err.message || 'Server issue'));
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -265,14 +295,82 @@ export default function AdminDashboardPage() {
           </p>
         </div>
 
-        <Link
-          to="/admin/watches/add"
-          className="btn btn-maroon"
-          style={{ padding: '12px 24px', fontSize: '0.95rem' }}
-        >
-          <Plus size={18} /> Add New Watch
-        </Link>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={handleGoogleSync}
+            disabled={syncing}
+            className="btn btn-secondary"
+            style={{
+              padding: '12px 20px',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              border: '1px solid var(--border-subtle)',
+              background: '#FFFFFF'
+            }}
+            title="Sync with Google Sheets and refresh latest inventory & transactions"
+          >
+            <RefreshCw size={18} className={syncing ? 'spin' : ''} color="var(--maroon-primary)" />
+            {syncing ? 'Syncing...' : 'Google Sync'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowSheetsCard(!showSheetsCard)}
+            className="btn btn-secondary"
+            style={{
+              padding: '12px',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: showSheetsCard ? 'rgba(16, 185, 129, 0.15)' : '#FFFFFF',
+              border: `1px solid ${showSheetsCard ? '#10B981' : 'var(--border-subtle)'}`
+            }}
+            title="Google Sheets Sync Settings & Apps Script"
+          >
+            <Sheet size={18} color="#10B981" />
+          </button>
+
+          <Link
+            to="/admin/watches/add"
+            className="btn btn-maroon"
+            style={{ padding: '12px 24px', fontSize: '0.95rem' }}
+          >
+            <Plus size={18} /> Add New Watch
+          </Link>
+        </div>
       </div>
+
+      {/* Sync Success Alert */}
+      {syncSuccessMsg && (
+        <div style={{
+          padding: '14px 20px',
+          borderRadius: '12px',
+          background: 'rgba(16, 185, 129, 0.15)',
+          border: '1px solid rgba(16, 185, 129, 0.3)',
+          color: '#10B981',
+          fontSize: '0.9rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          marginBottom: '28px',
+          animation: 'fadeIn 0.3s ease'
+        }}>
+          <CheckCircle2 size={20} style={{ flexShrink: 0 }} />
+          <span>{syncSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* Optional Google Sheets Detailed Panel */}
+      {showSheetsCard && (
+        <GoogleSheetsSyncCard onSyncSuccess={loadData} />
+      )}
 
       {/* Stats Section */}
       <div style={{
