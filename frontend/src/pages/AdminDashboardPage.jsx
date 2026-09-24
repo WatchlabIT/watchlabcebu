@@ -58,21 +58,14 @@ export default function AdminDashboardPage() {
     setSyncing(true);
     setSyncSuccessMsg(null);
     try {
-      try {
-        await pullFromGoogleSheets();
-      } catch (e) {
-        console.warn('Pull warning:', e);
-      }
-      try {
-        await syncToGoogleSheets();
-      } catch (e) {
-        console.warn('Sync warning:', e);
-      }
+      const res = await pullFromGoogleSheets();
       await loadData();
-      setSyncSuccessMsg('Google Sheets sync complete! Dashboard listings and transactions updated.');
+      const importedCount = res?.importedCount || 0;
+      setSyncSuccessMsg(`Sync & Refresh successful! ${importedCount > 0 ? `Loaded ${importedCount} items directly from Google Sheets.` : 'Latest items loaded from Google Sheets.'}`);
       setTimeout(() => setSyncSuccessMsg(null), 5000);
     } catch (err) {
-      alert('Google Sheets Sync error: ' + (err.message || 'Server issue'));
+      console.error('Refresh from Google Sheets error:', err);
+      alert('Sync & Refresh issue: ' + (err.message || 'Server error'));
     } finally {
       setSyncing(false);
     }

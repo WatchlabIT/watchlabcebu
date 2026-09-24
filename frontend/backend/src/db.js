@@ -185,15 +185,15 @@ const dbOps = {
     const db = loadDatabase();
     const maxId = db.watches.reduce((max, w) => (Number(w.id) > max ? Number(w.id) : max), 0);
     const newWatch = {
-      id: maxId + 1,
+      id: watchData.id ? Number(watchData.id) : (maxId + 1),
       name: watchData.name,
       brand: watchData.brand,
-      price: Number(watchData.price),
-      stock: Number(watchData.stock),
-      condition: watchData.condition,
-      description: watchData.description,
-      image_url: watchData.image_url,
-      created_at: new Date().toISOString(),
+      price: Number(watchData.price) || 0,
+      stock: watchData.stock !== undefined ? Number(watchData.stock) : 1,
+      condition: watchData.condition || 'Brand New',
+      description: watchData.description || '',
+      image_url: watchData.image_url || '',
+      created_at: watchData.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
     db.watches.unshift(newWatch);
@@ -308,15 +308,15 @@ const dbOps = {
 
     const maxId = db.transactions.reduce((max, t) => Math.max(max, Number(t.id) || 0), 0);
     const newTx = {
-      id: maxId + 1,
+      id: data.id ? Number(data.id) : (maxId + 1),
       title: data.title,
       subtitle: data.subtitle,
       location: data.location || 'Cebu',
       category: data.category || 'Handover',
       badge: data.badge || 'Handover',
       note: data.note || '',
-      image_url: data.image_url,
-      created_at: new Date().toISOString(),
+      image_url: data.image_url || data.image || '',
+      created_at: data.created_at || new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
