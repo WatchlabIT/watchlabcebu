@@ -114,6 +114,8 @@ function invalidateCache() {
 
 // Database Operations Wrapper
 const dbOps = {
+  loadDatabase,
+  saveDatabase,
   invalidateCache,
   // Admins
   getAdminByEmail: (email) => {

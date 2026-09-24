@@ -400,7 +400,7 @@ async function pullFromSheets(customUrl = null) {
     throw new Error('Failed to parse response from Google Sheets. Ensure Web App URL is published to Anyone.');
   }
 
-  const db = loadDatabase();
+  const db = dbOps.loadDatabase();
   let importedCount = 0;
 
   if (json.watches && Array.isArray(json.watches)) {
@@ -438,7 +438,7 @@ async function pullFromSheets(customUrl = null) {
     importedCount += cleanTx.length;
   }
 
-  saveDatabase(db);
+  dbOps.saveDatabase(db);
   dbOps.invalidateCache();
 
   dbOps.updateGoogleSheetsConfig({
