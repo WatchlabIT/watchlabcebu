@@ -6,6 +6,7 @@ import WatchLabLogo from './WatchLabLogo';
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
@@ -23,8 +24,26 @@ export default function Navbar() {
     return location.pathname.startsWith(path);
   };
 
+  const closeMobileMenu = () => {
+    if (!mobileOpen || isClosing) return;
+    setIsClosing(true);
+    setTimeout(() => {
+      setMobileOpen(false);
+      setIsClosing(false);
+    }, 300);
+  };
+
+  const toggleMobileMenu = () => {
+    if (mobileOpen) {
+      closeMobileMenu();
+    } else {
+      setIsClosing(false);
+      setMobileOpen(true);
+    }
+  };
+
   const handleNavClick = (path) => {
-    setMobileOpen(false);
+    closeMobileMenu();
     if (path.startsWith('/#')) {
       if (location.pathname !== '/') {
         navigate('/');
@@ -177,11 +196,11 @@ export default function Navbar() {
 
           {/* Mobile Hamburger Toggle */}
           <button
-            onClick={() => setMobileOpen(!mobileOpen)}
+            onClick={toggleMobileMenu}
             aria-label="Toggle menu"
             className="mobile-toggle mobile-toggle-btn"
             style={{
-              background: mobileOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.12)',
+              background: (mobileOpen && !isClosing) ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.12)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '12px',
               color: '#FFFFFF',
@@ -190,11 +209,11 @@ export default function Navbar() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              transform: mobileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-              boxShadow: mobileOpen ? '0 0 12px rgba(255, 255, 255, 0.4)' : 'none'
+              transform: (mobileOpen && !isClosing) ? 'rotate(180deg)' : 'rotate(0deg)',
+              boxShadow: (mobileOpen && !isClosing) ? '0 0 12px rgba(255, 255, 255, 0.4)' : 'none'
             }}
           >
-            {mobileOpen ? <X size={24} color="#FFFFFF" /> : <Menu size={24} color="#FFFFFF" />}
+            {(mobileOpen && !isClosing) ? <X size={24} color="#FFFFFF" /> : <Menu size={24} color="#FFFFFF" />}
           </button>
         </div>
       </div>
@@ -204,7 +223,7 @@ export default function Navbar() {
         <>
           {/* Semi-transparent Backdrop Overlay */}
           <div
-            onClick={() => setMobileOpen(false)}
+            onClick={closeMobileMenu}
             style={{
               position: 'fixed',
               top: '72px',
@@ -215,11 +234,11 @@ export default function Navbar() {
               backdropFilter: 'blur(6px)',
               WebkitBackdropFilter: 'blur(6px)',
               zIndex: 998,
-              animation: 'fadeIn 0.25s ease'
+              animation: isClosing ? 'fadeOut 0.3s ease forwards' : 'fadeIn 0.25s ease'
             }}
           />
 
-          {/* Right-to-Left Sliding Side Drawer */}
+          {/* Right-to-Left / Left-to-Right Sliding Side Drawer */}
           <div
             className="mobile-side-drawer"
             style={{
@@ -239,7 +258,9 @@ export default function Navbar() {
               padding: '24px 20px',
               gap: '14px',
               zIndex: 999,
-              animation: 'slideDrawerInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+              animation: isClosing
+                ? 'slideDrawerOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards'
+                : 'slideDrawerInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             }}
           >
             {navLinks.map((link) => {
@@ -271,10 +292,10 @@ export default function Navbar() {
             })}
             {isAuthenticated && (
               <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-maroon">
+                <Link to="/admin/dashboard" onClick={closeMobileMenu} className="btn btn-maroon">
                   <LayoutDashboard size={18} /> Admin Dashboard
                 </Link>
-                <button onClick={() => { logout(); setMobileOpen(false); }} className="btn btn-secondary">
+                <button onClick={() => { logout(); closeMobileMenu(); }} className="btn btn-secondary">
                   <LogOut size={18} /> Logout Admin Account
                 </button>
               </div>
@@ -316,6 +337,26 @@ export default function Navbar() {
           to {
             transform: translateX(0);
             opacity: 1;
+          }
+        }
+
+        @keyframes slideDrawerOutRight {
+          from {
+            transform: translateX(0);
+            opacity: 1;
+          }
+          to {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+        }
+
+        @keyframes fadeOut {
+          from {
+            opacity: 1;
+          }
+          to {
+            opacity: 0;
           }
         }
 
