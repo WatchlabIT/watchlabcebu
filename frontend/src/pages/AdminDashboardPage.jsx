@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet } from 'lucide-react';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown } from 'lucide-react';
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
@@ -20,6 +20,9 @@ export default function AdminDashboardPage() {
   const [watches, setWatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+
+  // Dropdown & Modal States
+  const [showAddDropdown, setShowAddDropdown] = useState(false);
 
   // Delete modal state
   const [deleteId, setDeleteId] = useState(null);
@@ -320,13 +323,98 @@ export default function AdminDashboardPage() {
             {syncing ? 'Syncing...' : 'Sync & Refresh'}
           </button>
 
-          <Link
-            to="/admin/watches/add"
-            className="btn btn-maroon"
-            style={{ padding: '12px 24px', fontSize: '0.95rem' }}
-          >
-            <Plus size={18} /> Add New Watch
-          </Link>
+          {/* Add Dropdown Menu */}
+          <div style={{ position: 'relative' }}>
+            <button
+              type="button"
+              onClick={() => setShowAddDropdown(!showAddDropdown)}
+              className="btn btn-maroon"
+              style={{
+                padding: '12px 24px',
+                fontSize: '0.95rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                borderRadius: '30px'
+              }}
+            >
+              <Plus size={18} /> Add <ChevronDown size={16} style={{ transition: 'transform 0.2s', transform: showAddDropdown ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+            </button>
+
+            {showAddDropdown && (
+              <>
+                <div
+                  onClick={() => setShowAddDropdown(false)}
+                  style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }}
+                />
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: '#FFFFFF',
+                  borderRadius: '16px',
+                  boxShadow: '0 12px 35px rgba(0,0,0,0.15)',
+                  border: '1px solid var(--border-subtle)',
+                  padding: '8px',
+                  minWidth: '240px',
+                  zIndex: 1000,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  animation: 'fadeIn 0.2s ease'
+                }}>
+                  <Link
+                    to="/admin/watches/add"
+                    onClick={() => setShowAddDropdown(false)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '12px 16px',
+                      fontSize: '0.88rem',
+                      fontWeight: 700,
+                      color: 'var(--text-primary)',
+                      textDecoration: 'none',
+                      borderRadius: '10px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#F3F4F6'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Package size={16} color="var(--maroon-primary)" /> Add New Watch
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddDropdown(false);
+                      handleOpenAddTx();
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      padding: '12px 16px',
+                      fontSize: '0.88rem',
+                      fontWeight: 700,
+                      color: 'var(--text-primary)',
+                      background: 'transparent',
+                      border: 'none',
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      borderRadius: '10px',
+                      transition: 'background 0.2s'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#F3F4F6'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <Sparkles size={16} color="var(--maroon-primary)" /> Add Featured Transaction
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -692,7 +780,7 @@ export default function AdminDashboardPage() {
 
             {transactions.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-                No featured transactions added yet. Click "+ Add Featured Transaction" to post your first handover story!
+                No featured transactions added yet. Click "+ Add" at the top right to post your first handover story!
               </div>
             ) : (
               <div style={{
