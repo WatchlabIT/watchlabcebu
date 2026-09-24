@@ -182,7 +182,7 @@ export default function WatchDetailPage() {
             {/* Facebook Messenger Inquiry Button */}
             <div style={{ marginBottom: '32px' }}>
               <a
-                href={getMessengerUrl()}
+                href={getMessengerUrl(watch.name, watch.price)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn"

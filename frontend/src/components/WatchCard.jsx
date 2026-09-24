@@ -125,7 +125,7 @@ export default function WatchCard({ watch }) {
           </Link>
 
           <a
-            href={getMessengerUrl()}
+            href={getMessengerUrl(watch.name, watch.price)}
             target="_blank"
             rel="noopener noreferrer"
             className="btn"
