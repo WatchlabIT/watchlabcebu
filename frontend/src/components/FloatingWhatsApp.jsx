@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MessageSquare, X } from 'lucide-react';
-import { getWhatsAppUrl } from '../utils/format';
+import { getMessengerUrl } from '../utils/format';
 
 export default function FloatingWhatsApp() {
   const [showTooltip, setShowTooltip] = useState(true);
@@ -53,10 +53,10 @@ export default function FloatingWhatsApp() {
 
       {/* Floating Button */}
       <a
-        href={getWhatsAppUrl()}
+        href={getMessengerUrl()}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Contact Watch Lab Cebu on WhatsApp"
+        aria-label="Contact Watch Lab Cebu on Messenger"
         style={{
           width: '60px',
           height: '60px',

@@ -6,17 +6,9 @@ export function formatPrice(price) {
   });
 }
 
-// WhatsApp pre-filled link generator
-export function getWhatsAppUrl(watchName = '', price = 0) {
-  const phoneNumber = '639436652681'; // International format without +
-  let message = "Hi Watch Lab Cebu! I'm interested in your watch collection. Are you available for inquiries?";
-  
-  if (watchName) {
-    const formattedPrice = formatPrice(price);
-    message = `Hi Watch Lab Cebu! I'm interested in the ${watchName} (${formattedPrice}). Is this still available?`;
-  }
-  
-  return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+// WhatsApp / Inquiry URL generator (redirects to Facebook Messenger)
+export function getWhatsAppUrl() {
+  return 'https://m.me/61571550718463';
 }
 
 // Facebook Messenger URL generator
