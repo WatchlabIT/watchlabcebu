@@ -56,11 +56,6 @@ export default function Footer() {
                   About Watch Lab Cebu
                 </Link>
               </li>
-              <li>
-                <a href={getWhatsAppUrl()} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--maroon-primary)', textDecoration: 'none', fontWeight: 600 }}>
-                  Contact via WhatsApp
-                </a>
-              </li>
             </ul>
           </div>
 
