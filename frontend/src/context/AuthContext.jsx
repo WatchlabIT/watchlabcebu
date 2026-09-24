@@ -74,6 +74,7 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const data = await apiLoginAdmin(email, password);
     sessionStorage.setItem('watchlab_token', data.token);
+    localStorage.setItem('watchlab_token', data.token);
     setToken(data.token);
     setAdmin(data.admin);
     return data;

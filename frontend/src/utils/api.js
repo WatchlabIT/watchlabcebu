@@ -1,7 +1,7 @@
 const API_BASE = '/api';
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('watchlab_token');
+  const token = sessionStorage.getItem('watchlab_token') || localStorage.getItem('watchlab_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
