@@ -179,78 +179,108 @@ export default function Navbar() {
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle menu"
+            className="mobile-toggle mobile-toggle-btn"
             style={{
-              background: 'rgba(255, 255, 255, 0.12)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              background: mobileOpen ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.12)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '12px',
               color: '#FFFFFF',
               cursor: 'pointer',
               padding: '8px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transform: mobileOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              boxShadow: mobileOpen ? '0 0 12px rgba(255, 255, 255, 0.4)' : 'none'
             }}
-            className="mobile-toggle"
           >
             {mobileOpen ? <X size={24} color="#FFFFFF" /> : <Menu size={24} color="#FFFFFF" />}
           </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer Menu & Overlay Backdrop */}
       {mobileOpen && (
-        <div style={{
-          position: 'fixed',
-          top: '72px',
-          left: 0,
-          width: '100%',
-          height: 'calc(100vh - 72px)',
-          background: 'rgba(255, 255, 255, 0.98)',
-          backdropFilter: 'blur(20px)',
-          borderTop: '1px solid var(--border-subtle)',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '24px',
-          gap: '16px',
-          zIndex: 999,
-          animation: 'fadeIn 0.2s ease'
-        }}>
-          {navLinks.map((link) => {
-            const active = isActive(link.path);
-            return (
-              <Link
-                key={link.name}
-                to={link.path}
-                onClick={() => handleNavClick(link.path)}
-                style={{
-                  textDecoration: 'none',
-                  color: active ? 'var(--maroon-primary)' : 'var(--text-primary)',
-                  fontSize: '1.15rem',
-                  fontWeight: active ? 700 : 600,
-                  padding: '12px 16px',
-                  borderRadius: '14px',
-                  background: active ? 'rgba(120, 16, 16, 0.08)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
-                }}
-              >
-                <span>{link.name}</span>
-                {active && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--maroon-primary)' }} />}
-              </Link>
-            );
-          })}
-          {isAuthenticated && (
-            <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-maroon">
-                <LayoutDashboard size={18} /> Admin Dashboard
-              </Link>
-              <button onClick={() => { logout(); setMobileOpen(false); }} className="btn btn-secondary">
-                <LogOut size={18} /> Logout Admin Account
-              </button>
-            </div>
-          )}
-        </div>
+        <>
+          {/* Semi-transparent Backdrop Overlay */}
+          <div
+            onClick={() => setMobileOpen(false)}
+            style={{
+              position: 'fixed',
+              top: '72px',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.55)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              zIndex: 998,
+              animation: 'fadeIn 0.25s ease'
+            }}
+          />
+
+          {/* Right-to-Left Sliding Side Drawer */}
+          <div
+            className="mobile-side-drawer"
+            style={{
+              position: 'fixed',
+              top: '72px',
+              right: 0,
+              width: '85vw',
+              maxWidth: '340px',
+              height: 'calc(100vh - 72px)',
+              background: 'rgba(255, 255, 255, 0.98)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderLeft: '1px solid var(--border-subtle)',
+              boxShadow: '-12px 0 35px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '24px 20px',
+              gap: '14px',
+              zIndex: 999,
+              animation: 'slideDrawerInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            }}
+          >
+            {navLinks.map((link) => {
+              const active = isActive(link.path);
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onClick={() => handleNavClick(link.path)}
+                  style={{
+                    textDecoration: 'none',
+                    color: active ? 'var(--maroon-primary)' : 'var(--text-primary)',
+                    fontSize: '1.1rem',
+                    fontWeight: active ? 700 : 600,
+                    padding: '12px 16px',
+                    borderRadius: '14px',
+                    background: active ? 'rgba(127, 29, 29, 0.08)' : '#F9FAFB',
+                    border: active ? '1px solid var(--border-subtle)' : '1px solid transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <span>{link.name}</span>
+                  {active && <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--maroon-primary)' }} />}
+                </Link>
+              );
+            })}
+            {isAuthenticated && (
+              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-maroon">
+                  <LayoutDashboard size={18} /> Admin Dashboard
+                </Link>
+                <button onClick={() => { logout(); setMobileOpen(false); }} className="btn btn-secondary">
+                  <LogOut size={18} /> Logout Admin Account
+                </button>
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Header CSS Animations & Hover FX */}
@@ -276,6 +306,25 @@ export default function Navbar() {
         @keyframes navShimmer {
           0% { background-position: -200% 0; }
           100% { background-position: 200% 0; }
+        }
+
+        @keyframes slideDrawerInRight {
+          from {
+            transform: translateX(100%);
+            opacity: 0.3;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+
+        .mobile-toggle-btn {
+          transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s ease, border-color 0.25s ease !important;
+        }
+
+        .mobile-toggle-btn:active {
+          transform: scale(0.9) !important;
         }
 
         .nav-pill-item:hover {
