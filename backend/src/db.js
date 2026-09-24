@@ -102,8 +102,19 @@ function saveDatabase(data) {
   }
 }
 
+// In-memory caching for ultra-fast live responses
+let lastWatchesFetchTime = 0;
+let lastTxFetchTime = 0;
+const CACHE_TTL_MS = 30000; // 30 seconds cache TTL
+
+function invalidateCache() {
+  lastWatchesFetchTime = 0;
+  lastTxFetchTime = 0;
+}
+
 // Database Operations Wrapper
 const dbOps = {
+  invalidateCache,
   // Admins
   getAdminByEmail: (email) => {
     const db = loadDatabase();
@@ -116,22 +127,33 @@ const dbOps = {
     return admins.find(a => a && a.id === Number(id));
   },
 
-  // Watches (Google Sheets as primary live database with local fallback)
-  getRawWatchesList: async () => {
+  // Watches (Google Sheets as primary live database with ultra-fast local memory cache)
+  getRawWatchesList: async (forceRefresh = false) => {
+    const db = loadDatabase();
+    const deletedIds = new Set((db.deleted_watch_ids || []).map(id => String(id)));
+    const now = Date.now();
+
+    // Serve instantly from local DB if cache is fresh and not forced
+    if (!forceRefresh && lastWatchesFetchTime > 0 && (now - lastWatchesFetchTime < CACHE_TTL_MS)) {
+      const watches = (db && Array.isArray(db.watches)) ? db.watches : [];
+      return watches.filter(w => w && !deletedIds.has(String(w.id)));
+    }
+
     try {
       const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
       const liveWatches = await fetchLiveWatchesFromSheets();
       if (liveWatches && Array.isArray(liveWatches)) {
-        const db = loadDatabase();
-        db.watches = liveWatches;
+        const cleanWatches = liveWatches.filter(w => w && !deletedIds.has(String(w.id)));
+        db.watches = cleanWatches;
         saveDatabase(db);
-        return liveWatches;
+        lastWatchesFetchTime = Date.now();
+        return cleanWatches;
       }
     } catch (err) {
       console.warn('Google Sheets live fetch fallback to local DB:', err.message);
     }
-    const db = loadDatabase();
-    return (db && Array.isArray(db.watches)) ? db.watches : [];
+    const watches = (db && Array.isArray(db.watches)) ? db.watches : [];
+    return watches.filter(w => w && !deletedIds.has(String(w.id)));
   },
 
   getAllWatches: async ({ brand, condition, search } = {}) => {
@@ -201,7 +223,14 @@ const dbOps = {
       db.watches.forEach(w => { w.is_featured = false; });
     }
     db.watches.unshift(newWatch);
+
+    // Remove from deleted list if recreating
+    if (Array.isArray(db.deleted_watch_ids)) {
+      db.deleted_watch_ids = db.deleted_watch_ids.filter(id => String(id) !== String(newWatch.id));
+    }
+
     saveDatabase(db);
+    lastWatchesFetchTime = Date.now();
     return newWatch;
   },
 
@@ -233,18 +262,28 @@ const dbOps = {
 
     db.watches[index] = updatedWatch;
     saveDatabase(db);
+    lastWatchesFetchTime = Date.now();
     return updatedWatch;
   },
 
   deleteWatch: (id) => {
     const db = loadDatabase();
     const targetId = Number(id);
-    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
-    if (index === -1) return false;
+    const targetIdStr = String(id).trim();
 
-    const removed = db.watches.splice(index, 1);
+    if (!Array.isArray(db.deleted_watch_ids)) db.deleted_watch_ids = [];
+    if (!db.deleted_watch_ids.map(String).includes(targetIdStr)) {
+      db.deleted_watch_ids.push(targetIdStr);
+    }
+
+    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === targetIdStr);
+    let removed = null;
+    if (index !== -1) {
+      removed = db.watches.splice(index, 1)[0];
+    }
     saveDatabase(db);
-    return removed[0];
+    lastWatchesFetchTime = Date.now();
+    return removed || { id: targetId };
   },
 
   getInventoryStats: async () => {
@@ -288,21 +327,31 @@ const dbOps = {
   },
 
   // Transactions CRUD Operations
-  getAllTransactions: async () => {
+  getAllTransactions: async (forceRefresh = false) => {
+    const db = loadDatabase();
+    const deletedTxIds = new Set((db.deleted_tx_ids || []).map(id => String(id)));
+    const now = Date.now();
+
+    if (!forceRefresh && lastTxFetchTime > 0 && (now - lastTxFetchTime < CACHE_TTL_MS)) {
+      const transactions = (db && Array.isArray(db.transactions)) ? db.transactions : [];
+      return transactions.filter(t => t && !deletedTxIds.has(String(t.id)));
+    }
+
     try {
       const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
       const liveTx = await fetchLiveTransactionsFromSheets();
       if (liveTx && Array.isArray(liveTx)) {
-        const db = loadDatabase();
-        db.transactions = liveTx;
+        const cleanTx = liveTx.filter(t => t && !deletedTxIds.has(String(t.id)));
+        db.transactions = cleanTx;
         saveDatabase(db);
-        return liveTx;
+        lastTxFetchTime = Date.now();
+        return cleanTx;
       }
     } catch (err) {
       console.warn('Google Sheets live transaction fetch fallback:', err.message);
     }
-    const db = loadDatabase();
-    return (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    const transactions = (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    return transactions.filter(t => t && !deletedTxIds.has(String(t.id)));
   },
 
   getTransactionById: async (id) => {
@@ -332,8 +381,13 @@ const dbOps = {
       updated_at: new Date().toISOString()
     };
 
+    if (Array.isArray(db.deleted_tx_ids)) {
+      db.deleted_tx_ids = db.deleted_tx_ids.filter(id => String(id) !== String(newTx.id));
+    }
+
     db.transactions.unshift(newTx);
     saveDatabase(db);
+    lastTxFetchTime = Date.now();
     return newTx;
   },
 
@@ -356,6 +410,7 @@ const dbOps = {
 
     db.transactions[index] = updated;
     saveDatabase(db);
+    lastTxFetchTime = Date.now();
     return updated;
   },
 
@@ -364,12 +419,21 @@ const dbOps = {
     if (!db.transactions) db.transactions = [];
 
     const targetId = Number(id);
-    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
-    if (index === -1) return null;
+    const targetIdStr = String(id).trim();
 
-    const removed = db.transactions.splice(index, 1);
+    if (!Array.isArray(db.deleted_tx_ids)) db.deleted_tx_ids = [];
+    if (!db.deleted_tx_ids.map(String).includes(targetIdStr)) {
+      db.deleted_tx_ids.push(targetIdStr);
+    }
+
+    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === targetIdStr);
+    let removed = null;
+    if (index !== -1) {
+      removed = db.transactions.splice(index, 1)[0];
+    }
     saveDatabase(db);
-    return removed[0];
+    lastTxFetchTime = Date.now();
+    return removed || { id: targetId };
   }
 };
 
