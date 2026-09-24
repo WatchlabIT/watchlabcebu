@@ -13,6 +13,9 @@ async function parseJsonResponse(res, fallbackErrorMsg = 'Request failed.') {
     return data;
   }
   if (!res.ok) {
+    if (res.status === 413) {
+      throw new Error('Uploaded image or payload size is too large (413 Payload Too Large). Please upload a smaller image.');
+    }
     throw new Error(`API Connection Error (${res.status}). Please verify API deployment.`);
   }
   return {};

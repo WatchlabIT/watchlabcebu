@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
+import { compressImageFile } from '../utils/imageCompressor';
 import ConfirmModal from '../components/ConfirmModal';
 import ProtectedImage from '../components/ProtectedImage';
 import GoogleSheetsSyncCard from '../components/GoogleSheetsSyncCard';
@@ -81,7 +82,7 @@ export default function AdminDashboardPage() {
     setSyncSuccessMsg(null);
     try {
       const res = await pullFromGoogleSheets();
-      await loadData();
+      await loadData(false);
       const importedCount = res?.importedCount || 0;
       setSyncSuccessMsg(`Sync & Refresh successful! ${importedCount > 0 ? `Loaded ${importedCount} items directly from Google Sheets.` : 'Latest items loaded from Google Sheets.'}`);
       setTimeout(() => setSyncSuccessMsg(null), 5000);
@@ -93,7 +94,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const loadData = async () => {
+  const loadData = async (shouldPullFromSheets = false) => {
     setLoading(true);
     try {
       // 1. Instantly fetch and render inventory & stats in parallel (sub-second response!)
@@ -111,14 +112,16 @@ export default function AdminDashboardPage() {
       setLoading(false);
     }
 
-    // 2. Perform background Google Sheets pull asynchronously without blocking UI render
-    pullFromGoogleSheets().then(() => {
-      Promise.all([fetchAdminStats(), fetchWatches(), fetchTransactions()]).then(([sRes, wRes, tRes]) => {
-        if (sRes?.stats) setStats(sRes.stats);
-        if (wRes?.watches) setWatches(wRes.watches);
-        if (tRes?.transactions) setTransactions(tRes.transactions);
-      }).catch(e => console.warn('Background sync fetch update notice:', e));
-    }).catch(e => console.warn('Background Google Sheets pull notice:', e));
+    // 2. Perform background Google Sheets pull asynchronously only when explicitly requested
+    if (shouldPullFromSheets) {
+      pullFromGoogleSheets().then(() => {
+        Promise.all([fetchAdminStats(), fetchWatches(), fetchTransactions()]).then(([sRes, wRes, tRes]) => {
+          if (sRes?.stats) setStats(sRes.stats);
+          if (wRes?.watches) setWatches(wRes.watches);
+          if (tRes?.transactions) setTransactions(tRes.transactions);
+        }).catch(e => console.warn('Background sync fetch update notice:', e));
+      }).catch(e => console.warn('Background Google Sheets pull notice:', e));
+    }
   };
 
   useEffect(() => {
@@ -1260,9 +1263,10 @@ export default function AdminDashboardPage() {
                     <input
                       type="file"
                       accept="image/png, image/jpeg, image/jpg, image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
+                      onChange={async (e) => {
+                        const rawFile = e.target.files[0];
+                        if (rawFile) {
+                          const file = await compressImageFile(rawFile);
                           setWatchImageFile(file);
                           setWatchImageUrlInput('');
                           const reader = new FileReader();
@@ -1443,9 +1447,10 @@ export default function AdminDashboardPage() {
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
+                      onChange={async (e) => {
+                        const rawFile = e.target.files[0];
+                        if (rawFile) {
+                          const file = await compressImageFile(rawFile);
                           setTxImageFile(file);
                           setTxImageUrl('');
                           const reader = new FileReader();

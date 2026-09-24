@@ -16,9 +16,9 @@ const PORT = process.env.PORT || 5005;
 // Enable CORS for frontend cross-origin access
 app.use(cors());
 
-// Middleware for parsing JSON and urlencoded request bodies
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware for parsing JSON and urlencoded request bodies (50MB limit to support image payloads)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Serve static watch image uploads if exists
 const fs = require('fs');
@@ -68,9 +68,10 @@ app.use('*', (req, res) => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error('WatchLab Express Runtime Error:', err);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: err.message || 'An unexpected runtime error occurred.'
+  const statusCode = err.status || err.statusCode || (err.type === 'entity.too.large' ? 413 : 500);
+  res.status(statusCode).json({
+    error: statusCode === 413 ? 'Payload Too Large' : 'Internal Server Error',
+    message: err.message || (statusCode === 413 ? 'The uploaded file or request body is too large.' : 'An unexpected runtime error occurred.')
   });
 });
 
