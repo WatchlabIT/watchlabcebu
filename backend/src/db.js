@@ -21,7 +21,7 @@ try {
 
 function getDefaultAdminHash() {
   const salt = bcrypt.genSaltSync(10);
-  return bcrypt.hashSync('watchlab2026!', salt);
+  return bcrypt.hashSync('WatchLabCebuest.2025!', salt);
 }
 
 function getInitialState() {

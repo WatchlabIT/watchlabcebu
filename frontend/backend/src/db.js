@@ -21,7 +21,7 @@ try {
 
 function getDefaultAdminHash() {
   const salt = bcrypt.genSaltSync(10);
-  return bcrypt.hashSync('watchlab2026!', salt);
+  return bcrypt.hashSync('WatchLabCebuest.2025!', salt);
 }
 
 function getInitialState() {
@@ -102,12 +102,19 @@ function saveDatabase(data) {
   }
 }
 
+// In-memory caching for ultra-fast live responses
 let lastWatchesFetchTime = 0;
 let lastTxFetchTime = 0;
-const CACHE_TTL_MS = 10000; // 10s fast cache TTL to prevent slow Google Apps Script cold starts
+const CACHE_TTL_MS = 5000; // 5 seconds cache TTL for live cloud sync
+
+function invalidateCache() {
+  lastWatchesFetchTime = 0;
+  lastTxFetchTime = 0;
+}
 
 // Database Operations Wrapper
 const dbOps = {
+  invalidateCache,
   // Admins
   getAdminByEmail: (email) => {
     const db = loadDatabase();
@@ -120,42 +127,30 @@ const dbOps = {
     return admins.find(a => a && a.id === Number(id));
   },
 
-  // Watches (Google Sheets as primary live database with local fallback)
-  getRawWatchesList: async () => {
+  // Watches (Google Sheets as primary live database with ultra-fast local memory cache)
+  getRawWatchesList: async (forceRefresh = false) => {
     const db = loadDatabase();
-    const localWatches = (db && Array.isArray(db.watches)) ? db.watches : [];
     const now = Date.now();
-    if (now - lastWatchesFetchTime < CACHE_TTL_MS && localWatches.length > 0) {
-      return localWatches;
+
+    // Serve instantly from local DB if cache is fresh and not forced
+    if (!forceRefresh && lastWatchesFetchTime > 0 && (now - lastWatchesFetchTime < CACHE_TTL_MS)) {
+      return (db && Array.isArray(db.watches)) ? db.watches : [];
     }
 
     try {
       const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
       const liveWatches = await fetchLiveWatchesFromSheets();
-      if (liveWatches && Array.isArray(liveWatches) && liveWatches.length > 0) {
-        lastWatchesFetchTime = Date.now();
-        const watchMap = new Map();
-        for (const w of localWatches) {
-          if (w && w.id !== undefined && w.id !== null) {
-            watchMap.set(String(w.id).trim(), w);
-          }
-        }
-        for (const lw of liveWatches) {
-          if (lw && lw.id !== undefined && lw.id !== null) {
-            const key = String(lw.id).trim();
-            const existing = watchMap.get(key);
-            watchMap.set(key, existing ? { ...existing, ...lw } : lw);
-          }
-        }
-        const merged = Array.from(watchMap.values());
-        db.watches = merged;
+      if (liveWatches && Array.isArray(liveWatches)) {
+        db.watches = liveWatches;
         saveDatabase(db);
-        return merged;
+        lastWatchesFetchTime = Date.now();
+        return liveWatches;
       }
     } catch (err) {
       console.warn('Google Sheets live fetch fallback to local DB:', err.message);
     }
-    return localWatches;
+    const dbData = loadDatabase();
+    return (dbData && Array.isArray(dbData.watches)) ? dbData.watches : [];
   },
 
   getAllWatches: async ({ brand, condition, search } = {}) => {
@@ -209,19 +204,25 @@ const dbOps = {
     const db = loadDatabase();
     const maxId = db.watches.reduce((max, w) => (Number(w.id) > max ? Number(w.id) : max), 0);
     const newWatch = {
-      id: watchData.id ? Number(watchData.id) : (maxId + 1),
+      id: maxId + 1,
       name: watchData.name,
       brand: watchData.brand,
-      price: Number(watchData.price) || 0,
-      stock: watchData.stock !== undefined ? Number(watchData.stock) : 1,
-      condition: watchData.condition || 'Brand New',
-      description: watchData.description || '',
-      image_url: watchData.image_url || '',
-      created_at: watchData.created_at || new Date().toISOString(),
+      price: Number(watchData.price),
+      stock: Number(watchData.stock),
+      condition: watchData.condition,
+      gender: watchData.gender || 'Unisex',
+      description: watchData.description,
+      image_url: watchData.image_url,
+      is_featured: watchData.is_featured ? true : false,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    if (newWatch.is_featured) {
+      db.watches.forEach(w => { w.is_featured = false; });
+    }
     db.watches.unshift(newWatch);
     saveDatabase(db);
+    lastWatchesFetchTime = Date.now();
     return newWatch;
   },
 
@@ -231,6 +232,12 @@ const dbOps = {
     const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
     if (index === -1) return null;
 
+    if (watchData.is_featured === true) {
+      db.watches.forEach(w => {
+        w.is_featured = false;
+      });
+    }
+
     const existing = db.watches[index];
     const updatedWatch = {
       ...existing,
@@ -239,33 +246,40 @@ const dbOps = {
       price: watchData.price !== undefined ? Number(watchData.price) : existing.price,
       stock: watchData.stock !== undefined ? Number(watchData.stock) : existing.stock,
       condition: watchData.condition !== undefined ? watchData.condition : existing.condition,
+      gender: watchData.gender !== undefined ? watchData.gender : (existing.gender || 'Unisex'),
       description: watchData.description !== undefined ? watchData.description : existing.description,
       image_url: watchData.image_url !== undefined ? watchData.image_url : existing.image_url,
+      is_featured: watchData.is_featured !== undefined ? !!watchData.is_featured : (existing.is_featured || false),
       updated_at: new Date().toISOString()
     };
 
     db.watches[index] = updatedWatch;
     saveDatabase(db);
+    lastWatchesFetchTime = Date.now();
     return updatedWatch;
   },
 
   deleteWatch: (id) => {
     const db = loadDatabase();
     const targetId = Number(id);
-    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
-    if (index === -1) return false;
+    const targetIdStr = String(id).trim();
 
-    const removed = db.watches.splice(index, 1);
+    const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === targetIdStr);
+    let removed = null;
+    if (index !== -1) {
+      removed = db.watches.splice(index, 1)[0];
+    }
     saveDatabase(db);
-    return removed[0];
+    lastWatchesFetchTime = 0; // Invalidate cache so live query fetches clean Google Sheet
+    return removed || { id: targetId };
   },
 
   getInventoryStats: async () => {
     const watches = await dbOps.getRawWatchesList();
     const totalWatches = watches.length;
-    const availableStock = watches.reduce((sum, w) => sum + (w.stock > 0 ? w.stock : 0), 0);
-    const soldOutCount = watches.filter(w => w.stock === 0).length;
-    const totalValue = watches.reduce((sum, w) => sum + (w.price * w.stock), 0);
+    const availableStock = watches.reduce((sum, w) => sum + (w.stock > 0 ? Number(w.stock) : 0), 0);
+    const soldOutCount = watches.filter(w => Number(w.stock) === 0).length;
+    const totalValue = watches.reduce((sum, w) => sum + (Number(w.price || 0) * Number(w.stock || 0)), 0);
 
     return {
       totalWatches,
@@ -301,41 +315,28 @@ const dbOps = {
   },
 
   // Transactions CRUD Operations
-  getAllTransactions: async () => {
+  getAllTransactions: async (forceRefresh = false) => {
     const db = loadDatabase();
-    const localTx = (db && Array.isArray(db.transactions)) ? db.transactions : [];
     const now = Date.now();
-    if (now - lastTxFetchTime < CACHE_TTL_MS && localTx.length > 0) {
-      return localTx;
+
+    if (!forceRefresh && lastTxFetchTime > 0 && (now - lastTxFetchTime < CACHE_TTL_MS)) {
+      return (db && Array.isArray(db.transactions)) ? db.transactions : [];
     }
 
     try {
       const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
       const liveTx = await fetchLiveTransactionsFromSheets();
-      if (liveTx && Array.isArray(liveTx) && liveTx.length > 0) {
-        lastTxFetchTime = Date.now();
-        const txMap = new Map();
-        for (const t of localTx) {
-          if (t && t.id !== undefined && t.id !== null) {
-            txMap.set(String(t.id).trim(), t);
-          }
-        }
-        for (const lt of liveTx) {
-          if (lt && lt.id !== undefined && lt.id !== null) {
-            const key = String(lt.id).trim();
-            const existing = txMap.get(key);
-            txMap.set(key, existing ? { ...existing, ...lt } : lt);
-          }
-        }
-        const merged = Array.from(txMap.values());
-        db.transactions = merged;
+      if (liveTx && Array.isArray(liveTx)) {
+        db.transactions = liveTx;
         saveDatabase(db);
-        return merged;
+        lastTxFetchTime = Date.now();
+        return liveTx;
       }
     } catch (err) {
       console.warn('Google Sheets live transaction fetch fallback:', err.message);
     }
-    return localTx;
+    const dbData = loadDatabase();
+    return (dbData && Array.isArray(dbData.transactions)) ? dbData.transactions : [];
   },
 
   getTransactionById: async (id) => {
@@ -352,20 +353,22 @@ const dbOps = {
 
     const maxId = db.transactions.reduce((max, t) => Math.max(max, Number(t.id) || 0), 0);
     const newTx = {
-      id: data.id ? Number(data.id) : (maxId + 1),
+      id: maxId + 1,
       title: data.title,
       subtitle: data.subtitle,
       location: data.location || 'Cebu',
       category: data.category || 'Handover',
       badge: data.badge || 'Handover',
       note: data.note || '',
-      image_url: data.image_url || data.image || '',
-      created_at: data.created_at || new Date().toISOString(),
+      image_url: data.image_url,
+      is_featured: data.is_featured !== undefined ? !!data.is_featured : true,
+      created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     db.transactions.unshift(newTx);
     saveDatabase(db);
+    lastTxFetchTime = Date.now();
     return newTx;
   },
 
@@ -382,11 +385,13 @@ const dbOps = {
       ...existing,
       ...updates,
       id: existing.id,
+      is_featured: updates.is_featured !== undefined ? !!updates.is_featured : (existing.is_featured !== undefined ? existing.is_featured : true),
       updated_at: new Date().toISOString()
     };
 
     db.transactions[index] = updated;
     saveDatabase(db);
+    lastTxFetchTime = Date.now();
     return updated;
   },
 
@@ -395,12 +400,16 @@ const dbOps = {
     if (!db.transactions) db.transactions = [];
 
     const targetId = Number(id);
-    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === String(id).trim());
-    if (index === -1) return null;
+    const targetIdStr = String(id).trim();
 
-    const removed = db.transactions.splice(index, 1);
+    const index = db.transactions.findIndex(t => Number(t.id) === targetId || String(t.id).trim() === targetIdStr);
+    let removed = null;
+    if (index !== -1) {
+      removed = db.transactions.splice(index, 1)[0];
+    }
     saveDatabase(db);
-    return removed[0];
+    lastTxFetchTime = 0; // Invalidate cache
+    return removed || { id: targetId };
   }
 };
 

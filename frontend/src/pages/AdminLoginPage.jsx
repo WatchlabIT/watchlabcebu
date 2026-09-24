@@ -9,7 +9,7 @@ export default function AdminLoginPage() {
   const { login, isAuthenticated } = useAuth();
 
   const [email, setEmail] = useState('admin@watchlabcebu.com');
-  const [password, setPassword] = useState('watchlab2026!');
+  const [password, setPassword] = useState('WatchLabCebuest.2025!');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
