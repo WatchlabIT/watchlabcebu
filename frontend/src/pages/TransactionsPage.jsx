@@ -29,6 +29,12 @@ export default function TransactionsPage() {
 
   const filteredTransactions = transactions.filter(tx => {
     if (activeFilter === 'All') return true;
+    if (activeFilter === 'Deliveries') {
+      return tx.category === 'Deliveries' || tx.category === 'Express Deliveries';
+    }
+    if (activeFilter === 'Shipping') {
+      return tx.category === 'Shipping' || tx.category === 'Out of Town';
+    }
     return tx.category === activeFilter;
   });
 
@@ -98,7 +104,7 @@ export default function TransactionsPage() {
 
         {/* Filter Pills */}
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
-          {['All', 'Meetups', 'Express Deliveries', 'Out of Town'].map((category) => (
+          {['All', 'Meetups', 'Deliveries', 'Shipping'].map((category) => (
             <button
               key={category}
               onClick={() => setActiveFilter(category)}

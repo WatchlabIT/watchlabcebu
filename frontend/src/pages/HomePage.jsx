@@ -1,22 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, Award, MessageSquare, Sparkles, Clock } from 'lucide-react';
+import { ArrowRight, ShieldCheck, MessageSquare, Sparkles, MapPin } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
-import { fetchNewArrivals } from '../utils/api';
-import { getWhatsAppUrl, getImageUrl } from '../utils/format';
+import { fetchNewArrivals, fetchWatches, fetchTransactions } from '../utils/api';
+import { getImageUrl } from '../utils/format';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
+  const [featuredWatch, setFeaturedWatch] = useState(null);
+  const [featuredTransactions, setFeaturedTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
-        const data = await fetchNewArrivals(4);
-        setNewArrivals(data.watches || []);
+        const [arrivalsData, allWatchesData, txData] = await Promise.all([
+          fetchNewArrivals(4),
+          fetchWatches(),
+          fetchTransactions()
+        ]);
+        
+        setNewArrivals(arrivalsData.watches || []);
+
+        const watchesList = allWatchesData.watches || [];
+        const featured = watchesList.find(w => w.is_featured === true) || watchesList[0] || null;
+        setFeaturedWatch(featured);
+
+        const txList = txData.transactions || [];
+        setFeaturedTransactions(txList.filter(t => t.is_featured !== false));
       } catch (err) {
-        console.error('Error fetching new arrivals:', err);
+        console.error('Error fetching home page data:', err);
       } finally {
         setLoading(false);
       }
@@ -78,7 +92,6 @@ export default function HomePage() {
                 marginBottom: '20px',
                 letterSpacing: '-0.5px'
               }}>
-                Timeless Elegance. <br />
                 Your Everyday Watch.
               </h1>
 
@@ -116,7 +129,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Hero Image Card */}
+            {/* Right Hero Image Card - Dynamically Changeable Admin Featured Watch */}
             <div style={{ position: 'relative' }}>
               <div className="glass-card" style={{
                 padding: '16px',
@@ -125,8 +138,8 @@ export default function HomePage() {
                 overflow: 'hidden'
               }}>
                 <ProtectedImage
-                  src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop"
-                  alt="Watch Lab Cebu Featured Rolex Submariner"
+                  src={featuredWatch ? getImageUrl(featuredWatch.image_url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop"}
+                  alt={featuredWatch ? featuredWatch.name : "Watch Lab Cebu Featured Timepiece"}
                   style={{
                     width: '100%',
                     height: '420px',
@@ -157,10 +170,14 @@ export default function HomePage() {
                       FEATURED TIMEPIECE
                     </div>
                     <div className="font-serif" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      Rolex Submariner Date
+                      {featuredWatch ? featuredWatch.name : "Rolex Submariner Date"}
                     </div>
                   </div>
-                  <span className="badge badge-brand-new">Brand New</span>
+                  {featuredWatch && (
+                    <span className={featuredWatch.condition === 'Brand New' ? 'badge badge-brand-new' : 'badge badge-pre-owned'}>
+                      {featuredWatch.condition}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -215,7 +232,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CLIENT HANDOVERS / FEATURED TRANSACTIONS SECTION */}
+      {/* FEATURED TRANSACTIONS SECTION under "WHY CHOOSE WATCH LAB CEBU" */}
       <section style={{
         padding: '80px 0',
         background: '#FFFFFF',
@@ -223,91 +240,124 @@ export default function HomePage() {
         borderBottom: '1px solid var(--border-subtle)'
       }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase' }}>
-              WHY CHOOSE WATCH LAB CEBU
-            </div>
-          </div>
-
-          {/* 3 Value Pillars */}
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '32px',
-            marginTop: '40px'
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '40px',
+            gap: '20px'
           }}>
-            {/* Feature 1 */}
-            <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '16px',
-                background: 'rgba(127, 29, 29, 0.08)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px',
-                color: 'var(--maroon-primary)'
-              }}>
-                <ShieldCheck size={28} />
+            <div>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                WHY CHOOSE WATCH LAB CEBU
               </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)' }}>
-                100% Authentic Guarantee
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                Every timepiece in our catalog is guaranteed 100% authentic. We carefully verify serials, movements, dials, and accompanying paperwork.
-              </p>
+              <h2 className="font-serif" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                Recent Client Transactions & Handovers
+              </h2>
             </div>
 
-            {/* Feature 2 */}
-            <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '16px',
-                background: 'rgba(220, 38, 38, 0.08)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px',
-                color: 'var(--red-primary)'
-              }}>
-                <Award size={28} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)' }}>
-                Curated Luxury Brands
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                From high-complication Swiss icons like Rolex and Omega to everyday luxury Japanese classics like Seiko and Tissot.
-              </p>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="glass-card" style={{ padding: '32px', textAlign: 'center' }}>
-              <div style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '16px',
-                background: 'rgba(220, 38, 38, 0.08)',
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 20px',
-                color: 'var(--red-primary)'
-              }}>
-                <Clock size={28} />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '12px', color: 'var(--text-primary)' }}>
-                Direct Customer Support
-              </h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', lineHeight: '1.6' }}>
-                Connect directly with the business owner for immediate availability inquiries, price negotiation, and personalized consultations.
-              </p>
-            </div>
+            <Link to="/transactions" className="btn btn-outline-red">
+              View All Transactions <ArrowRight size={16} />
+            </Link>
           </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+              Loading featured transactions...
+            </div>
+          ) : featuredTransactions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+              No transactions currently featured.
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: '28px'
+            }}>
+              {featuredTransactions.slice(0, 3).map((tx) => (
+                <div
+                  key={tx.id}
+                  className="glass-card"
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    position: 'relative'
+                  }}
+                >
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    paddingTop: '110%',
+                    background: '#000',
+                    overflow: 'hidden'
+                  }}>
+                    <ProtectedImage
+                      src={getImageUrl(tx.image_url || tx.image)}
+                      alt={tx.title}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '12px',
+                      right: '12px',
+                      background: 'rgba(0, 0, 0, 0.75)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#FFFFFF',
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
+                    }}>
+                      {tx.badge || tx.category}
+                    </div>
+
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      padding: '16px 14px',
+                      background: 'linear-gradient(to top, rgba(5, 46, 22, 0.95) 0%, rgba(5, 46, 22, 0.85) 70%, transparent 100%)',
+                      color: '#FFFFFF',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '1.2rem',
+                        fontWeight: 800,
+                        lineHeight: '1.2',
+                        margin: 0,
+                        color: '#FFFFFF',
+                        fontFamily: 'var(--font-serif)'
+                      }}>
+                        {tx.title}
+                      </h3>
+                      <p style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        margin: 0,
+                        color: '#E2E8F0'
+                      }}>
+                        {tx.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

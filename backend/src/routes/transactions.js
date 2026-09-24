@@ -57,7 +57,7 @@ router.get('/transactions/:id', async (req, res) => {
 // POST /api/transactions - Admin create new featured transaction (Protected)
 router.post('/transactions', requireAdminAuth, upload.single('image'), async (req, res) => {
   try {
-    const { title, subtitle, location, category, badge, note } = req.body;
+    const { title, subtitle, location, category, badge, note, is_featured } = req.body;
 
     if (!title || !String(title).trim()) {
       return res.status(400).json({ error: 'Transaction Title is required.' });
@@ -79,6 +79,8 @@ router.post('/transactions', requireAdminAuth, upload.single('image'), async (re
       return res.status(400).json({ error: 'Transaction image is required.' });
     }
 
+    const isFeaturedBool = is_featured !== undefined ? (is_featured === true || is_featured === 'true' || is_featured === 1) : true;
+
     const newTx = dbOps.createTransaction({
       title: String(title).trim(),
       subtitle: String(subtitle).trim(),
@@ -86,7 +88,8 @@ router.post('/transactions', requireAdminAuth, upload.single('image'), async (re
       category: category ? String(category).trim() : 'Meetups',
       badge: badge ? String(badge).trim() : 'Handover',
       note: note ? String(note).trim() : '',
-      image_url
+      image_url,
+      is_featured: isFeaturedBool
     });
 
     // Auto-sync to Google Sheets in "Transactions" tab
@@ -107,7 +110,7 @@ router.put('/transactions/:id', requireAdminAuth, upload.single('image'), async 
       return res.status(404).json({ error: 'Transaction not found.' });
     }
 
-    const { title, subtitle, location, category, badge, note } = req.body;
+    const { title, subtitle, location, category, badge, note, is_featured } = req.body;
     let image_url = req.body.image_url;
 
     if (req.file) {
@@ -118,6 +121,8 @@ router.put('/transactions/:id', requireAdminAuth, upload.single('image'), async 
       }
     }
 
+    const isFeaturedBool = is_featured !== undefined ? (is_featured === true || is_featured === 'true' || is_featured === 1) : undefined;
+
     const updatedTx = dbOps.updateTransaction(req.params.id, {
       title: title ? String(title).trim() : undefined,
       subtitle: subtitle ? String(subtitle).trim() : undefined,
@@ -125,7 +130,8 @@ router.put('/transactions/:id', requireAdminAuth, upload.single('image'), async 
       category: category ? String(category).trim() : undefined,
       badge: badge ? String(badge).trim() : undefined,
       note: note ? String(note).trim() : undefined,
-      image_url
+      image_url,
+      is_featured: isFeaturedBool
     });
 
     // Auto-sync update to Google Sheets "Transactions" tab

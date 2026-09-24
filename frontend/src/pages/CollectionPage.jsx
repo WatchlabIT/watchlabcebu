@@ -87,7 +87,7 @@ export default function CollectionPage() {
             Watch Collection
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: '1.6' }}>
-            Browse our complete inventory of authentic timepieces, curated for everyday wear.
+            Browse our complete inventory of authentic timepieces, ready for inquiry.
           </p>
         </div>
 

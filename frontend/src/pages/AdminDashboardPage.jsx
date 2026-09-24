@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag } from 'lucide-react';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star } from 'lucide-react';
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
@@ -69,6 +69,28 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  const handleSetFeaturedWatch = async (watch) => {
+    try {
+      await updateWatch(watch.id, { is_featured: true });
+      setWatches(prev => prev.map(w => ({
+        ...w,
+        is_featured: w.id === watch.id
+      })));
+    } catch (err) {
+      alert('Failed to update hero featured watch: ' + err.message);
+    }
+  };
+
+  const handleToggleFeaturedTx = async (tx) => {
+    try {
+      const nextFeatured = !(tx.is_featured ?? true);
+      await updateTransaction(tx.id, { is_featured: nextFeatured });
+      setTransactions(prev => prev.map(t => (t.id === tx.id ? { ...t, is_featured: nextFeatured } : t)));
+    } catch (err) {
+      alert('Failed to update featured transaction status: ' + err.message);
+    }
+  };
 
   const handleOpenAddTx = () => {
     setEditingTx(null);
@@ -405,6 +427,7 @@ export default function AdminDashboardPage() {
                       <th style={{ padding: '12px' }}>Price</th>
                       <th style={{ padding: '12px' }}>Stock</th>
                       <th style={{ padding: '12px' }}>Condition</th>
+                      <th style={{ padding: '12px' }}>Hero Feature</th>
                       <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
                     </tr>
                   </thead>
@@ -500,6 +523,33 @@ export default function AdminDashboardPage() {
                           )}
                         </td>
 
+                        <td style={{ padding: '12px' }}>
+                          {w.is_featured ? (
+                            <span style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              padding: '4px 10px',
+                              borderRadius: '12px',
+                              background: 'rgba(220, 38, 38, 0.1)',
+                              color: 'var(--red-primary)',
+                              border: '1px solid var(--red-primary)',
+                              fontSize: '0.78rem',
+                              fontWeight: 700
+                            }}>
+                              <Star size={12} fill="var(--red-primary)" /> Hero Featured
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => handleSetFeaturedWatch(w)}
+                              className="btn btn-secondary"
+                              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
+                            >
+                              Set as Hero
+                            </button>
+                          )}
+                        </td>
+
                         <td style={{ padding: '12px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '8px' }}>
                             <Link
@@ -550,7 +600,7 @@ export default function AdminDashboardPage() {
                   Featured Client Transactions & Handover Showcase ({transactions.length})
                 </h2>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Manage proof of transaction photos, client notes, and handover stories. Auto-synced to Google Sheets under tab "Transactions".
+                  Manage proof of transaction photos, client notes, and feature status on Home Page.
                 </p>
               </div>
 
@@ -605,6 +655,30 @@ export default function AdminDashboardPage() {
                       }}>
                         {tx.badge || tx.category}
                       </div>
+
+                      {/* Feature badge overlay */}
+                      <button
+                        onClick={() => handleToggleFeaturedTx(tx)}
+                        style={{
+                          position: 'absolute',
+                          top: '10px',
+                          left: '10px',
+                          background: (tx.is_featured ?? true) ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0,0,0,0.6)',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          padding: '4px 10px',
+                          borderRadius: '10px',
+                          fontSize: '0.75rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <Star size={12} fill={(tx.is_featured ?? true) ? '#FFFFFF' : 'none'} />
+                        {(tx.is_featured ?? true) ? 'Featured on Home' : 'Not Featured'}
+                      </button>
                     </div>
 
                     <div style={{ padding: '16px' }}>
@@ -622,27 +696,37 @@ export default function AdminDashboardPage() {
                       </p>
                     </div>
 
-                    <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'flex-end', gap: '8px', background: '#F9FAFB' }}>
+                    <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: '#F9FAFB' }}>
                       <button
-                        onClick={() => handleOpenEditTx(tx)}
+                        onClick={() => handleToggleFeaturedTx(tx)}
                         className="btn btn-secondary"
-                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        style={{ padding: '6px 10px', fontSize: '0.78rem' }}
                       >
-                        <Edit size={14} /> Edit
+                        {(tx.is_featured ?? true) ? 'Unfeature' : 'Feature'}
                       </button>
-                      <button
-                        onClick={() => handleDeleteTxClick(tx)}
-                        className="btn"
-                        style={{
-                          padding: '6px 12px',
-                          fontSize: '0.8rem',
-                          background: 'rgba(239, 68, 68, 0.15)',
-                          color: '#F87171',
-                          border: '1px solid rgba(239, 68, 68, 0.3)'
-                        }}
-                      >
-                        <Trash2 size={14} /> Delete
-                      </button>
+
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          onClick={() => handleOpenEditTx(tx)}
+                          className="btn btn-secondary"
+                          style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                        >
+                          <Edit size={14} /> Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTxClick(tx)}
+                          className="btn"
+                          style={{
+                            padding: '6px 12px',
+                            fontSize: '0.8rem',
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            color: '#F87171',
+                            border: '1px solid rgba(239, 68, 68, 0.3)'
+                          }}
+                        >
+                          <Trash2 size={14} /> Delete
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -761,8 +845,8 @@ export default function AdminDashboardPage() {
                     className="form-select"
                   >
                     <option value="Meetups">Meetups</option>
-                    <option value="Express Deliveries">Express Deliveries</option>
-                    <option value="Out of Town">Out of Town</option>
+                    <option value="Deliveries">Deliveries</option>
+                    <option value="Shipping">Shipping</option>
                   </select>
                 </div>
               </div>

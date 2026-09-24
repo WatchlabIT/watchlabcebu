@@ -181,7 +181,7 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       return res.status(404).json({ error: 'Watch listing not found.' });
     }
 
-    const { name, brand, price, stock, condition, description } = req.body;
+    const { name, brand, price, stock, condition, description, is_featured } = req.body;
     let image_url = req.body.image_url;
 
     if (req.file) {
@@ -196,6 +196,8 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       return res.status(400).json({ error: 'Condition must be either "Brand New" or "Pre-Owned".' });
     }
 
+    const isFeaturedBool = is_featured === true || is_featured === 'true' || is_featured === 1;
+
     const updatedWatch = dbOps.updateWatch(req.params.id, {
       name: name ? String(name).trim() : undefined,
       brand: brand ? String(brand).trim() : undefined,
@@ -203,7 +205,8 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       stock: stock !== undefined && stock !== '' ? Number(stock) : undefined,
       condition,
       description: description ? String(description).trim() : undefined,
-      image_url
+      image_url,
+      is_featured: is_featured !== undefined ? isFeaturedBool : undefined
     });
 
     // Auto-sync to Google Sheets (await to prevent serverless cancellation)

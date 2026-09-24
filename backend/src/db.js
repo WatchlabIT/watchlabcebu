@@ -193,9 +193,13 @@ const dbOps = {
       condition: watchData.condition,
       description: watchData.description,
       image_url: watchData.image_url,
+      is_featured: watchData.is_featured ? true : false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
+    if (newWatch.is_featured) {
+      db.watches.forEach(w => { w.is_featured = false; });
+    }
     db.watches.unshift(newWatch);
     saveDatabase(db);
     return newWatch;
@@ -207,6 +211,12 @@ const dbOps = {
     const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
     if (index === -1) return null;
 
+    if (watchData.is_featured === true) {
+      db.watches.forEach(w => {
+        w.is_featured = false;
+      });
+    }
+
     const existing = db.watches[index];
     const updatedWatch = {
       ...existing,
@@ -217,6 +227,7 @@ const dbOps = {
       condition: watchData.condition !== undefined ? watchData.condition : existing.condition,
       description: watchData.description !== undefined ? watchData.description : existing.description,
       image_url: watchData.image_url !== undefined ? watchData.image_url : existing.image_url,
+      is_featured: watchData.is_featured !== undefined ? !!watchData.is_featured : (existing.is_featured || false),
       updated_at: new Date().toISOString()
     };
 
@@ -316,6 +327,7 @@ const dbOps = {
       badge: data.badge || 'Handover',
       note: data.note || '',
       image_url: data.image_url,
+      is_featured: data.is_featured !== undefined ? !!data.is_featured : true,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
@@ -338,6 +350,7 @@ const dbOps = {
       ...existing,
       ...updates,
       id: existing.id,
+      is_featured: updates.is_featured !== undefined ? !!updates.is_featured : (existing.is_featured !== undefined ? existing.is_featured : true),
       updated_at: new Date().toISOString()
     };
 

@@ -30,9 +30,6 @@ export default function Footer() {
                 WATCH LAB CEBU
               </span>
             </div>
-            <p style={{ fontSize: '0.9rem', lineHeight: '1.6', color: 'var(--text-secondary)', marginBottom: '20px' }}>
-              Cebu’s premier destination for curated luxury watches. Specializing in Brand New and Pre-Owned high-grade timepieces with guaranteed authenticity.
-            </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--maroon-primary)', fontWeight: 600 }}>
               <ShieldCheck size={16} /> Certified Authenticity Guarantee
             </div>
