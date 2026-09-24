@@ -39,7 +39,7 @@ export default function TransactionsPage() {
   });
 
   return (
-    <div style={{ padding: '60px 0 100px' }}>
+    <div className="page-fade-in" style={{ padding: '60px 0 100px' }}>
       <div className="container">
         {/* Header Bar matching Reference Photo */}
         <div style={{

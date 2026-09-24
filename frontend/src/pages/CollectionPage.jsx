@@ -79,7 +79,7 @@ export default function CollectionPage() {
   });
 
   return (
-    <div style={{ padding: '60px 0' }}>
+    <div className="page-fade-in" style={{ padding: '60px 0' }}>
       <div className="container">
         {/* Header */}
         <div style={{ textAlign: 'center', maxWidth: '640px', margin: '0 auto 40px' }}>

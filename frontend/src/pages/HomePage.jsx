@@ -39,7 +39,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div>
+    <div className="page-fade-in">
       {/* HERO SECTION */}
       <section style={{
         position: 'relative',

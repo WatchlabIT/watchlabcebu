@@ -60,7 +60,7 @@ export default function WatchDetailPage() {
   const whatsappUrl = getWhatsAppUrl(watch.name, watch.price);
 
   return (
-    <div style={{ padding: '40px 0 80px' }}>
+    <div className="page-fade-in" style={{ padding: '40px 0 80px' }}>
       <div className="container">
         {/* Back Button */}
         <Link

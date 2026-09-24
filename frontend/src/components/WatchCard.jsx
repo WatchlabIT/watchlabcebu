@@ -9,7 +9,7 @@ export default function WatchCard({ watch }) {
   const whatsappUrl = getWhatsAppUrl(watch.name, watch.price);
 
   return (
-    <div className="glass-card" style={{
+    <div className="glass-card watch-card" style={{
       display: 'flex',
       flexDirection: 'column',
       overflow: 'hidden',
