@@ -102,6 +102,10 @@ function saveDatabase(data) {
   }
 }
 
+let lastWatchesFetchTime = 0;
+let lastTxFetchTime = 0;
+const CACHE_TTL_MS = 10000; // 10s fast cache TTL to prevent slow Google Apps Script cold starts
+
 // Database Operations Wrapper
 const dbOps = {
   // Admins
@@ -120,10 +124,16 @@ const dbOps = {
   getRawWatchesList: async () => {
     const db = loadDatabase();
     const localWatches = (db && Array.isArray(db.watches)) ? db.watches : [];
+    const now = Date.now();
+    if (now - lastWatchesFetchTime < CACHE_TTL_MS && localWatches.length > 0) {
+      return localWatches;
+    }
+
     try {
       const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
       const liveWatches = await fetchLiveWatchesFromSheets();
       if (liveWatches && Array.isArray(liveWatches) && liveWatches.length > 0) {
+        lastWatchesFetchTime = Date.now();
         const watchMap = new Map();
         for (const w of localWatches) {
           if (w && w.id !== undefined && w.id !== null) {
@@ -294,10 +304,16 @@ const dbOps = {
   getAllTransactions: async () => {
     const db = loadDatabase();
     const localTx = (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    const now = Date.now();
+    if (now - lastTxFetchTime < CACHE_TTL_MS && localTx.length > 0) {
+      return localTx;
+    }
+
     try {
       const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
       const liveTx = await fetchLiveTransactionsFromSheets();
       if (liveTx && Array.isArray(liveTx) && liveTx.length > 0) {
+        lastTxFetchTime = Date.now();
         const txMap = new Map();
         for (const t of localTx) {
           if (t && t.id !== undefined && t.id !== null) {

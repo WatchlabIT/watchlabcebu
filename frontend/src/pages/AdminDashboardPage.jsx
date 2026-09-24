@@ -74,13 +74,7 @@ export default function AdminDashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      // Auto pull behind-the-scenes from Google Sheets to ensure strict sync
-      try {
-        await pullFromGoogleSheets();
-      } catch (e) {
-        console.warn('Background Google Sheets pull notice:', e);
-      }
-
+      // 1. Instantly fetch and render inventory & stats in parallel (sub-second response!)
       const [statsRes, watchesRes, txRes] = await Promise.all([
         fetchAdminStats(),
         fetchWatches(),
@@ -94,6 +88,15 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
+
+    // 2. Perform background Google Sheets pull asynchronously without blocking UI render
+    pullFromGoogleSheets().then(() => {
+      Promise.all([fetchAdminStats(), fetchWatches(), fetchTransactions()]).then(([sRes, wRes, tRes]) => {
+        if (sRes?.stats) setStats(sRes.stats);
+        if (wRes?.watches) setWatches(wRes.watches);
+        if (tRes?.transactions) setTransactions(tRes.transactions);
+      }).catch(e => console.warn('Background sync fetch update notice:', e));
+    }).catch(e => console.warn('Background Google Sheets pull notice:', e));
   };
 
   useEffect(() => {
