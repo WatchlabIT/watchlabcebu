@@ -394,7 +394,7 @@ async function pullFromSheets(customUrl = null) {
   if (json.watches && Array.isArray(json.watches)) {
     for (const remoteWatch of json.watches) {
       if (!remoteWatch.name || !remoteWatch.brand) continue;
-      const existing = dbOps.getWatchById(remoteWatch.id);
+      const existing = await dbOps.getWatchById(remoteWatch.id);
       if (existing) {
         dbOps.updateWatch(remoteWatch.id, remoteWatch);
       } else {
@@ -403,11 +403,24 @@ async function pullFromSheets(customUrl = null) {
     }
   }
 
+  if (json.transactions && Array.isArray(json.transactions)) {
+    for (const remoteTx of json.transactions) {
+      if (!remoteTx.title) continue;
+      const existing = await dbOps.getTransactionById(remoteTx.id);
+      if (existing) {
+        dbOps.updateTransaction(remoteTx.id, remoteTx);
+      } else {
+        dbOps.createTransaction(remoteTx);
+      }
+    }
+  }
+
   dbOps.updateGoogleSheetsConfig({
     last_synced: new Date().toISOString()
   });
 
-  return { importedCount: json.watches ? json.watches.length : 0 };
+  const totalImported = (json.watches ? json.watches.length : 0) + (json.transactions ? json.transactions.length : 0);
+  return { importedCount: totalImported };
 }
 
 async function fetchLiveWatchesFromSheets() {
