@@ -81,6 +81,13 @@ export default function AdminDashboardPage() {
   const loadData = async () => {
     setLoading(true);
     try {
+      // Auto pull behind-the-scenes from Google Sheets to ensure strict sync
+      try {
+        await pullFromGoogleSheets();
+      } catch (e) {
+        console.warn('Background Google Sheets pull notice:', e);
+      }
+
       const [statsRes, watchesRes, txRes] = await Promise.all([
         fetchAdminStats(),
         fetchWatches(),
@@ -314,26 +321,7 @@ export default function AdminDashboardPage() {
             title="Sync with Google Sheets and refresh latest inventory & transactions"
           >
             <RefreshCw size={18} className={syncing ? 'spin' : ''} color="var(--maroon-primary)" />
-            {syncing ? 'Syncing...' : 'Google Sync'}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setShowSheetsCard(!showSheetsCard)}
-            className="btn btn-secondary"
-            style={{
-              padding: '12px',
-              fontSize: '0.92rem',
-              fontWeight: 700,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: showSheetsCard ? 'rgba(16, 185, 129, 0.15)' : '#FFFFFF',
-              border: `1px solid ${showSheetsCard ? '#10B981' : 'var(--border-subtle)'}`
-            }}
-            title="Google Sheets Sync Settings & Apps Script"
-          >
-            <Sheet size={18} color="#10B981" />
+            {syncing ? 'Syncing...' : 'Sync & Refresh'}
           </button>
 
           <Link
@@ -365,11 +353,6 @@ export default function AdminDashboardPage() {
           <CheckCircle2 size={20} style={{ flexShrink: 0 }} />
           <span>{syncSuccessMsg}</span>
         </div>
-      )}
-
-      {/* Optional Google Sheets Detailed Panel */}
-      {showSheetsCard && (
-        <GoogleSheetsSyncCard onSyncSuccess={loadData} />
       )}
 
       {/* Stats Section */}
