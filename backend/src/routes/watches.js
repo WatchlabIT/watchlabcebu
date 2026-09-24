@@ -121,6 +121,8 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
     const condition = req.body.condition ? String(req.body.condition).trim() : '';
     const description = req.body.description ? String(req.body.description).trim() : '';
 
+    const gender = req.body.gender ? String(req.body.gender).trim() : 'Unisex';
+
     if (!name) {
       return res.status(400).json({ error: 'Watch Name is required.' });
     }
@@ -159,6 +161,7 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
       price: priceVal,
       stock: stockVal,
       condition,
+      gender: ['Unisex', 'Men', 'Women'].includes(gender) ? gender : 'Unisex',
       description,
       image_url
     });
@@ -181,7 +184,7 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       return res.status(404).json({ error: 'Watch listing not found.' });
     }
 
-    const { name, brand, price, stock, condition, description, is_featured } = req.body;
+    const { name, brand, price, stock, condition, gender, description, is_featured } = req.body;
     let image_url = req.body.image_url;
 
     if (req.file) {
@@ -204,6 +207,7 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       price: price !== undefined && price !== '' ? Number(price) : undefined,
       stock: stock !== undefined && stock !== '' ? Number(stock) : undefined,
       condition,
+      gender: gender && ['Unisex', 'Men', 'Women'].includes(String(gender).trim()) ? String(gender).trim() : undefined,
       description: description ? String(description).trim() : undefined,
       image_url,
       is_featured: is_featured !== undefined ? isFeaturedBool : undefined

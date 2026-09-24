@@ -6,7 +6,6 @@ import ProtectedImage from './ProtectedImage';
 
 export default function WatchCard({ watch }) {
   const isAvailable = watch.stock > 0;
-  const whatsappUrl = getWhatsAppUrl(watch.name, watch.price);
 
   return (
     <div className="glass-card watch-card" style={{
@@ -16,7 +15,7 @@ export default function WatchCard({ watch }) {
       height: '100%',
       position: 'relative'
     }}>
-      {/* Top Image Container */}
+      {/* Top Image Container - Clean Unobstructed Photo */}
       <div style={{
         position: 'relative',
         width: '100%',
@@ -36,28 +35,6 @@ export default function WatchCard({ watch }) {
             objectFit: 'cover'
           }}
         />
-
-        {/* Condition Badge (Top Left) */}
-        <div style={{ position: 'absolute', top: '12px', left: '12px', zIndex: 2 }}>
-          {watch.condition === 'Brand New' ? (
-            <span className="badge badge-brand-new">Brand New</span>
-          ) : (
-            <span className="badge badge-pre-owned">Pre-Owned</span>
-          )}
-        </div>
-
-        {/* Stock Badge (Top Right) */}
-        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 2 }}>
-          {isAvailable ? (
-            <span className="badge badge-available">
-              Available ({watch.stock})
-            </span>
-          ) : (
-            <span className="badge badge-sold-out">
-              Sold Out
-            </span>
-          )}
-        </div>
       </div>
 
       {/* Card Content Body */}
@@ -67,19 +44,42 @@ export default function WatchCard({ watch }) {
         flexDirection: 'column',
         flexGrow: 1,
         justifyContent: 'space-between',
-        gap: '16px'
+        gap: '14px'
       }}>
         <div>
-          {/* Brand */}
+          {/* Top Line: Brand & Gender */}
           <div style={{
-            fontSize: '0.75rem',
-            fontWeight: 800,
-            color: 'var(--maroon-primary)',
-            letterSpacing: '1.5px',
-            textTransform: 'uppercase',
-            marginBottom: '4px'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '8px',
+            marginBottom: '6px'
           }}>
-            {watch.brand}
+            <div style={{
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              color: 'var(--maroon-primary)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase'
+            }}>
+              {watch.brand}
+            </div>
+
+            {watch.gender && (
+              <span style={{
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                color: 'var(--text-secondary)',
+                background: '#F3F4F6',
+                padding: '2px 8px',
+                borderRadius: '10px',
+                letterSpacing: '0.5px',
+                textTransform: 'uppercase',
+                border: '1px solid var(--border-glass)'
+              }}>
+                {watch.gender}
+              </span>
+            )}
           </div>
 
           {/* Watch Title */}
@@ -87,8 +87,8 @@ export default function WatchCard({ watch }) {
             fontSize: '1.15rem',
             fontWeight: 700,
             color: 'var(--text-primary)',
-            lineHeight: '1.4',
-            marginBottom: '8px',
+            lineHeight: '1.35',
+            marginBottom: '6px',
             display: '-webkit-box',
             WebkitLineClamp: 2,
             WebkitBoxOrient: 'vertical',
@@ -99,11 +99,42 @@ export default function WatchCard({ watch }) {
 
           {/* Price */}
           <div style={{
-            fontSize: '1.4rem',
+            fontSize: '1.35rem',
             fontWeight: 800,
-            color: 'var(--maroon-primary)'
+            color: 'var(--maroon-primary)',
+            marginBottom: '10px'
           }}>
             {formatPrice(watch.price)}
+          </div>
+
+          {/* Creative Badges Container inside Card Body */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            alignItems: 'center'
+          }}>
+            {/* Condition Badge */}
+            {watch.condition === 'Brand New' ? (
+              <span className="badge badge-brand-new" style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '20px' }}>
+                Brand New
+              </span>
+            ) : (
+              <span className="badge badge-pre-owned" style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '20px' }}>
+                Pre-Owned
+              </span>
+            )}
+
+            {/* Stock Badge */}
+            {isAvailable ? (
+              <span className="badge badge-available" style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '20px' }}>
+                Available ({watch.stock})
+              </span>
+            ) : (
+              <span className="badge badge-sold-out" style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: '20px' }}>
+                Sold Out
+              </span>
+            )}
           </div>
         </div>
 

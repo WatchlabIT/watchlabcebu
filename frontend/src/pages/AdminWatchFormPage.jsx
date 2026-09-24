@@ -12,6 +12,7 @@ export default function AdminWatchFormPage() {
   const [name, setName] = useState('');
   const [brand, setBrand] = useState('Rolex');
   const [customBrand, setCustomBrand] = useState('');
+  const [gender, setGender] = useState('Unisex');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('1');
   const [condition, setCondition] = useState('Brand New');
@@ -40,6 +41,7 @@ export default function AdminWatchFormPage() {
               setBrand('Other');
               setCustomBrand(w.brand);
             }
+            setGender(w.gender || 'Unisex');
             setPrice(w.price.toString());
             setStock(w.stock.toString());
             setCondition(w.condition);
@@ -128,6 +130,7 @@ export default function AdminWatchFormPage() {
       const formData = new FormData();
       formData.append('name', name);
       formData.append('brand', finalBrand);
+      formData.append('gender', gender);
       formData.append('price', price);
       formData.append('stock', stock);
       formData.append('condition', condition);
@@ -224,8 +227,8 @@ export default function AdminWatchFormPage() {
             />
           </div>
 
-          {/* Brand & Condition Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px' }}>
+          {/* Brand, Gender & Condition Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
             {/* Brand Select */}
             <div className="form-group">
               <label className="form-label">Brand *</label>
@@ -249,6 +252,20 @@ export default function AdminWatchFormPage() {
                   style={{ marginTop: '8px' }}
                 />
               )}
+            </div>
+
+            {/* Gender Select */}
+            <div className="form-group">
+              <label className="form-label">Gender *</label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="form-select"
+              >
+                <option value="Unisex">Unisex</option>
+                <option value="Men">Men</option>
+                <option value="Women">Women</option>
+              </select>
             </div>
 
             {/* Condition Select */}

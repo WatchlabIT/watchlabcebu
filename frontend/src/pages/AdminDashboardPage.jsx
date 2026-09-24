@@ -30,6 +30,7 @@ export default function AdminDashboardPage() {
   const [watchName, setWatchName] = useState('');
   const [watchBrand, setWatchBrand] = useState('Rolex');
   const [watchCustomBrand, setWatchCustomBrand] = useState('');
+  const [watchGender, setWatchGender] = useState('Unisex');
   const [watchPrice, setWatchPrice] = useState('');
   const [watchStock, setWatchStock] = useState('1');
   const [watchCondition, setWatchCondition] = useState('Brand New');
@@ -152,6 +153,7 @@ export default function AdminDashboardPage() {
     setWatchName('');
     setWatchBrand('Rolex');
     setWatchCustomBrand('');
+    setWatchGender('Unisex');
     setWatchPrice('');
     setWatchStock('1');
     setWatchCondition('Brand New');
@@ -173,6 +175,7 @@ export default function AdminDashboardPage() {
       setWatchBrand('Other');
       setWatchCustomBrand(watch.brand || '');
     }
+    setWatchGender(watch.gender || 'Unisex');
     setWatchPrice(watch.price !== undefined ? watch.price.toString() : '');
     setWatchStock(watch.stock !== undefined ? watch.stock.toString() : '1');
     setWatchCondition(watch.condition || 'Brand New');
@@ -231,6 +234,7 @@ export default function AdminDashboardPage() {
       const formData = new FormData();
       formData.append('name', watchName);
       formData.append('brand', finalBrand);
+      formData.append('gender', watchGender);
       formData.append('price', watchPrice);
       formData.append('stock', watchStock);
       formData.append('condition', watchCondition);
@@ -726,6 +730,7 @@ export default function AdminDashboardPage() {
                     <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
                       <th style={{ padding: '12px' }}>Watch</th>
                       <th style={{ padding: '12px' }}>Brand</th>
+                      <th style={{ padding: '12px' }}>Gender</th>
                       <th style={{ padding: '12px' }}>Price</th>
                       <th style={{ padding: '12px' }}>Stock</th>
                       <th style={{ padding: '12px' }}>Condition</th>
@@ -754,6 +759,10 @@ export default function AdminDashboardPage() {
 
                         <td style={{ padding: '12px', fontWeight: 600, color: 'var(--gold-light)' }}>
                           {w.brand}
+                        </td>
+
+                        <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                          {w.gender || 'Unisex'}
                         </td>
 
                         <td style={{ padding: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
@@ -1129,7 +1138,7 @@ export default function AdminDashboardPage() {
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
                 <div className="form-group">
                   <label className="form-label">Brand *</label>
                   <select
@@ -1152,6 +1161,19 @@ export default function AdminDashboardPage() {
                       style={{ marginTop: '8px' }}
                     />
                   )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Gender *</label>
+                  <select
+                    value={watchGender}
+                    onChange={(e) => setWatchGender(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="Unisex">Unisex</option>
+                    <option value="Men">Men</option>
+                    <option value="Women">Women</option>
+                  </select>
                 </div>
 
                 <div className="form-group">
