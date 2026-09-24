@@ -118,20 +118,34 @@ const dbOps = {
 
   // Watches (Google Sheets as primary live database with local fallback)
   getRawWatchesList: async () => {
+    const db = loadDatabase();
+    const localWatches = (db && Array.isArray(db.watches)) ? db.watches : [];
     try {
       const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
       const liveWatches = await fetchLiveWatchesFromSheets();
-      if (liveWatches && Array.isArray(liveWatches)) {
-        const db = loadDatabase();
-        db.watches = liveWatches;
+      if (liveWatches && Array.isArray(liveWatches) && liveWatches.length > 0) {
+        const watchMap = new Map();
+        for (const w of localWatches) {
+          if (w && w.id !== undefined && w.id !== null) {
+            watchMap.set(String(w.id).trim(), w);
+          }
+        }
+        for (const lw of liveWatches) {
+          if (lw && lw.id !== undefined && lw.id !== null) {
+            const key = String(lw.id).trim();
+            const existing = watchMap.get(key);
+            watchMap.set(key, existing ? { ...existing, ...lw } : lw);
+          }
+        }
+        const merged = Array.from(watchMap.values());
+        db.watches = merged;
         saveDatabase(db);
-        return liveWatches;
+        return merged;
       }
     } catch (err) {
       console.warn('Google Sheets live fetch fallback to local DB:', err.message);
     }
-    const db = loadDatabase();
-    return (db && Array.isArray(db.watches)) ? db.watches : [];
+    return localWatches;
   },
 
   getAllWatches: async ({ brand, condition, search } = {}) => {
@@ -278,20 +292,34 @@ const dbOps = {
 
   // Transactions CRUD Operations
   getAllTransactions: async () => {
+    const db = loadDatabase();
+    const localTx = (db && Array.isArray(db.transactions)) ? db.transactions : [];
     try {
       const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
       const liveTx = await fetchLiveTransactionsFromSheets();
-      if (liveTx && Array.isArray(liveTx)) {
-        const db = loadDatabase();
-        db.transactions = liveTx;
+      if (liveTx && Array.isArray(liveTx) && liveTx.length > 0) {
+        const txMap = new Map();
+        for (const t of localTx) {
+          if (t && t.id !== undefined && t.id !== null) {
+            txMap.set(String(t.id).trim(), t);
+          }
+        }
+        for (const lt of liveTx) {
+          if (lt && lt.id !== undefined && lt.id !== null) {
+            const key = String(lt.id).trim();
+            const existing = txMap.get(key);
+            txMap.set(key, existing ? { ...existing, ...lt } : lt);
+          }
+        }
+        const merged = Array.from(txMap.values());
+        db.transactions = merged;
         saveDatabase(db);
-        return liveTx;
+        return merged;
       }
     } catch (err) {
       console.warn('Google Sheets live transaction fetch fallback:', err.message);
     }
-    const db = loadDatabase();
-    return (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    return localTx;
   },
 
   getTransactionById: async (id) => {
