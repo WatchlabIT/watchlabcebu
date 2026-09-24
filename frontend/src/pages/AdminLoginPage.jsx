@@ -92,7 +92,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="form-input"
                 style={{ paddingLeft: '42px' }}
-                placeholder="admin@watchlabcebu.com"
+                placeholder="Email"
               />
             </div>
           </div>
@@ -108,7 +108,7 @@ export default function AdminLoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="form-input"
                 style={{ paddingLeft: '42px' }}
-                placeholder="••••••••••••"
+                placeholder="Password"
               />
             </div>
           </div>
