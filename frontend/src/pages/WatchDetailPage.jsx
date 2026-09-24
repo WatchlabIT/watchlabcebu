@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MessageSquare, ShieldCheck, AlertCircle } from 'lucide-react';
 import { fetchWatchById } from '../utils/api';
-import { formatPrice, getWhatsAppUrl, getImageUrl } from '../utils/format';
+import { formatPrice, getWhatsAppUrl, getImageUrl, getMessengerUrl } from '../utils/format';
 import ProtectedImage from '../components/ProtectedImage';
 
 export default function WatchDetailPage() {
@@ -182,7 +182,7 @@ export default function WatchDetailPage() {
             {/* Facebook Messenger Inquiry Button */}
             <div style={{ marginBottom: '32px' }}>
               <a
-                href="https://www.facebook.com/messages/t/533098296554220"
+                href={getMessengerUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn"

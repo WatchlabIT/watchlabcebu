@@ -4,7 +4,7 @@ import { ArrowRight, ShieldCheck, MessageSquare, Sparkles, MapPin } from 'lucide
 import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
 import { fetchNewArrivals, fetchWatches, fetchTransactions } from '../utils/api';
-import { getImageUrl } from '../utils/format';
+import { getImageUrl, getMessengerUrl } from '../utils/format';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
@@ -113,7 +113,7 @@ export default function HomePage() {
                 </Link>
 
                 <a
-                  href="https://www.facebook.com/messages/t/533098296554220"
+                  href={getMessengerUrl()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn"

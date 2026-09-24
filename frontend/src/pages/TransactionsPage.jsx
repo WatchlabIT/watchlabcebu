@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, ChevronLeft, ChevronRight, CheckCircle2, MessageSquare, MapPin, Sparkles, Filter, X, Eye, RefreshCw } from 'lucide-react';
 import ProtectedImage from '../components/ProtectedImage';
 import { fetchTransactions } from '../utils/api';
-import { getImageUrl } from '../utils/format';
+import { getImageUrl, getMessengerUrl } from '../utils/format';
 
 export default function TransactionsPage() {
   const [activeFilter, setActiveFilter] = useState('All');
@@ -308,7 +308,7 @@ export default function TransactionsPage() {
 
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <a
-                    href="https://www.facebook.com/messages/t/533098296554220"
+                    href={getMessengerUrl()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn"

@@ -19,6 +19,11 @@ export function getWhatsAppUrl(watchName = '', price = 0) {
   return `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
 }
 
+// Facebook Messenger URL generator
+export function getMessengerUrl() {
+  return 'https://m.me/61571550718463';
+}
+
 // Handle backend upload image path vs external URLs
 export function getImageUrl(path) {
   if (!path) return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000';

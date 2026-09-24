@@ -1,6 +1,6 @@
 import React from 'react';
 import { MapPin, CheckCircle2, MessageSquare, Instagram, Facebook } from 'lucide-react';
-import { getWhatsAppUrl } from '../utils/format';
+import { getWhatsAppUrl, getMessengerUrl } from '../utils/format';
 
 export default function AboutPage() {
   const highlights = [
@@ -87,7 +87,7 @@ export default function AboutPage() {
           {/* Contact Action Buttons */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
             <a
-              href="https://www.facebook.com/messages/t/533098296554220"
+              href={getMessengerUrl()}
               target="_blank"
               rel="noopener noreferrer"
               className="btn"

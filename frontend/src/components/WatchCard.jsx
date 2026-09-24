@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Eye } from 'lucide-react';
-import { formatPrice, getWhatsAppUrl, getImageUrl } from '../utils/format';
+import { formatPrice, getWhatsAppUrl, getImageUrl, getMessengerUrl } from '../utils/format';
 import ProtectedImage from './ProtectedImage';
 
 export default function WatchCard({ watch }) {
@@ -125,7 +125,7 @@ export default function WatchCard({ watch }) {
           </Link>
 
           <a
-            href="https://www.facebook.com/messages/t/533098296554220"
+            href={getMessengerUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="btn"
