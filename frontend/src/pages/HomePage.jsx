@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldCheck, MessageSquare, Sparkles, MapPin } from 'lucide-react';
+import { ArrowRight, ShieldCheck, MessageSquare, Sparkles, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
 import ScrollReveal from '../components/ScrollReveal';
@@ -13,11 +13,21 @@ export default function HomePage() {
   const [featuredTransactions, setFeaturedTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const highlightsScrollRef = useRef(null);
+  const txScrollRef = useRef(null);
+
+  const scrollContainer = (ref, direction) => {
+    if (ref.current) {
+      const scrollAmount = direction === 'left' ? -300 : 300;
+      ref.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     async function load() {
       try {
         const [arrivalsData, allWatchesData, txData] = await Promise.all([
-          fetchNewArrivals(4),
+          fetchNewArrivals(10),
           fetchWatches(),
           fetchTransactions()
         ]);
@@ -190,8 +200,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* NEW ARRIVALS */}
-      <section id="new-arrivals" style={{ padding: '80px 0' }}>
+      {/* NEW ARRIVALS / WATCH HIGHLIGHTS (HORIZONTAL SLIDER) */}
+      <section id="new-arrivals" style={{ padding: '56px 0' }}>
         <div className="container">
           <ScrollReveal animation="up">
             <div style={{
@@ -199,51 +209,96 @@ export default function HomePage() {
               flexWrap: 'wrap',
               alignItems: 'flex-end',
               justifyContent: 'space-between',
-              marginBottom: '48px',
-              gap: '20px'
+              marginBottom: '20px',
+              gap: '16px'
             }}>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--red-primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '6px' }}>
                   FRESH IN STOCK
                 </div>
-                <h2 className="font-serif" style={{ fontSize: '2.2rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  New Arrivals
+                <h2 className="font-serif" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
+                  Watch Highlights & New Arrivals
                 </h2>
               </div>
 
-              <Link to="/collection" className="btn btn-outline-red">
-                View Full Collection <ArrowRight size={16} />
-              </Link>
+              {/* Slider Controls & Link */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => scrollContainer(highlightsScrollRef, 'left')}
+                    className="btn btn-secondary"
+                    style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    aria-label="Previous Watch Highlight"
+                    title="Scroll left"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => scrollContainer(highlightsScrollRef, 'right')}
+                    className="btn btn-secondary"
+                    style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    aria-label="Next Watch Highlight"
+                    title="Scroll right"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+
+                <Link to="/collection" className="btn btn-outline-maroon" style={{ padding: '8px 18px', fontSize: '0.88rem' }}>
+                  View Collection <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
           </ScrollReveal>
 
+          {/* Swipe Hint Label */}
+          <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>‹ Slide left & right to browse watch highlights ›</span>
+          </div>
+
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-              Loading new arrivals...
+              Loading watch highlights...
             </div>
           ) : newArrivals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-              No new arrivals currently listed.
+              No watch highlights currently listed.
             </div>
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: '28px'
-            }}>
-              {newArrivals.map((watch, index) => (
-                <ScrollReveal key={watch.id} animation="up" delay={index * 100}>
+            <div
+              ref={highlightsScrollRef}
+              className="horizontal-watch-slider"
+              style={{
+                display: 'flex',
+                gap: '20px',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                padding: '8px 4px 20px 4px',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {newArrivals.map((watch) => (
+                <div
+                  key={watch.id}
+                  style={{
+                    flex: '0 0 280px',
+                    minWidth: '280px',
+                    maxWidth: '280px',
+                    scrollSnapAlign: 'start'
+                  }}
+                >
                   <WatchCard watch={watch} />
-                </ScrollReveal>
+                </div>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* FEATURED TRANSACTIONS SECTION under "WHY CHOOSE WATCH LAB CEBU" */}
+      {/* FEATURED TRANSACTIONS SECTION (HORIZONTAL SLIDER) */}
       <section style={{
-        padding: '80px 0',
+        padding: '56px 0',
         background: '#FFFFFF',
         borderTop: '1px solid var(--border-subtle)',
         borderBottom: '1px solid var(--border-subtle)'
@@ -255,23 +310,52 @@ export default function HomePage() {
               flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '40px',
-              gap: '20px'
+              marginBottom: '24px',
+              gap: '16px'
             }}>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--maroon-primary)', letterSpacing: '2.5px', textTransform: 'uppercase', marginBottom: '6px' }}>
                   WHY CHOOSE WATCH LAB CEBU
                 </div>
-                <h2 className="font-serif" style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>
+                <h2 className="font-serif" style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
                   Recent Client Transactions & Handovers
                 </h2>
               </div>
 
-              <Link to="/transactions" className="btn btn-outline-red">
-                View All Transactions <ArrowRight size={16} />
-              </Link>
+              {/* Slider Controls & Link */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    onClick={() => scrollContainer(txScrollRef, 'left')}
+                    className="btn btn-secondary"
+                    style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    aria-label="Previous Transaction"
+                    title="Scroll left"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <button
+                    onClick={() => scrollContainer(txScrollRef, 'right')}
+                    className="btn btn-secondary"
+                    style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
+                    aria-label="Next Transaction"
+                    title="Scroll right"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+
+                <Link to="/transactions" className="btn btn-outline-maroon" style={{ padding: '8px 18px', fontSize: '0.88rem' }}>
+                  View All Transactions <ArrowRight size={16} />
+                </Link>
+              </div>
             </div>
           </ScrollReveal>
+
+          {/* Swipe Hint */}
+          <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>‹ Slide left & right to browse client handovers ›</span>
+          </div>
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
@@ -282,13 +366,29 @@ export default function HomePage() {
               No transactions currently featured.
             </div>
           ) : (
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-              gap: '28px'
-            }}>
-              {featuredTransactions.slice(0, 3).map((tx, index) => (
-                <ScrollReveal key={tx.id} animation="zoom" delay={index * 120}>
+            <div
+              ref={txScrollRef}
+              className="horizontal-watch-slider"
+              style={{
+                display: 'flex',
+                gap: '20px',
+                overflowX: 'auto',
+                scrollSnapType: 'x mandatory',
+                padding: '8px 4px 20px 4px',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {featuredTransactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  style={{
+                    flex: '0 0 280px',
+                    minWidth: '280px',
+                    maxWidth: '280px',
+                    scrollSnapAlign: 'start'
+                  }}
+                >
                   <div
                     className="glass-card"
                     style={{
@@ -296,7 +396,8 @@ export default function HomePage() {
                       flexDirection: 'column',
                       borderRadius: '16px',
                       overflow: 'hidden',
-                      position: 'relative'
+                      position: 'relative',
+                      height: '100%'
                     }}
                   >
                     <div style={{
@@ -366,7 +467,7 @@ export default function HomePage() {
                       </div>
                     </div>
                   </div>
-                </ScrollReveal>
+                </div>
               ))}
             </div>
           )}

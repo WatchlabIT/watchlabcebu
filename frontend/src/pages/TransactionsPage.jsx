@@ -104,7 +104,7 @@ export default function TransactionsPage() {
         </div>
 
         {/* Filter Pills */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '36px' }}>
+        <div className="horizontal-watch-slider" style={{ display: 'flex', gap: '10px', marginBottom: '32px', overflowX: 'auto', paddingBottom: '6px' }}>
           {['All', 'Meetups', 'Deliveries', 'Shipping'].map((category) => (
             <button
               key={category}
@@ -119,6 +119,7 @@ export default function TransactionsPage() {
                 border: activeFilter === category ? 'none' : '1px solid #D1D5DB',
                 fontWeight: activeFilter === category ? 700 : 500,
                 boxShadow: activeFilter === category ? 'var(--shadow-maroon)' : 'none',
+                whiteSpace: 'nowrap',
                 transition: 'all 0.25 ease'
               }}
             >
@@ -136,7 +137,7 @@ export default function TransactionsPage() {
         ) : (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
             gap: '24px'
           }}>
             {filteredTransactions.map((tx, idx) => (

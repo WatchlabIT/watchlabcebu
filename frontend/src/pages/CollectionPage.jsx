@@ -125,7 +125,7 @@ export default function CollectionPage() {
           </div>
 
           {/* Filter Methods: Condition & Gender */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-glass)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', paddingTop: '20px', borderTop: '1px solid var(--border-glass)' }}>
             {/* Condition Filter Group */}
             <div>
               <div style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--maroon-primary)', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -233,8 +233,8 @@ export default function CollectionPage() {
 
             <div style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: '28px'
+              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+              gap: '24px'
             }}>
               {filteredWatches.map((watch, idx) => (
                 <ScrollReveal key={watch.id} animation="up" delay={(idx % 4) * 80}>

@@ -434,3 +434,56 @@ img, .protected-image {
   transform: scale(1);
 }
 
+/* ==========================================================================
+   Horizontal Scroll Sliders & Mobile Layout Fit Rules
+   ========================================================================== */
+.horizontal-watch-slider {
+  scrollbar-width: thin;
+  scrollbar-color: var(--maroon-primary) rgba(127, 29, 29, 0.08);
+}
+
+.horizontal-watch-slider::-webkit-scrollbar {
+  height: 6px;
+}
+
+.horizontal-watch-slider::-webkit-scrollbar-track {
+  background: rgba(127, 29, 29, 0.08);
+  border-radius: 10px;
+}
+
+.horizontal-watch-slider::-webkit-scrollbar-thumb {
+  background: var(--maroon-primary);
+  border-radius: 10px;
+}
+
+.horizontal-watch-slider::-webkit-scrollbar-thumb:hover {
+  background: var(--maroon-light);
+}
+
+/* Mobile Screen Specific Viewport Adaptations */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden !important;
+    width: 100vw;
+  }
+
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  h1 {
+    font-size: clamp(1.75rem, 7vw, 2.5rem) !important;
+  }
+
+  h2 {
+    font-size: clamp(1.4rem, 6vw, 2rem) !important;
+  }
+
+  /* Grid card fallback on mobile */
+  .mobile-full-width-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
