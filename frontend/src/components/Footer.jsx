@@ -145,10 +145,6 @@ export default function Footer() {
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <span>Certified Watch Dealer</span>
-            <span>•</span>
-            <Link to="/admin/login" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>
-              Admin Portal
-            </Link>
           </div>
         </div>
       </div>

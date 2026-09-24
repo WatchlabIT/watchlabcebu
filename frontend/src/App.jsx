@@ -14,11 +14,14 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminWatchFormPage from './pages/AdminWatchFormPage';
 
+// Secret custom URL route for brand owner access only
+export const OWNER_SECRET_PATH = '/watchlab-portal-bea-cebu-access-x99';
+
 // Protected Route Guard for Admin pages
 function ProtectedAdminRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -61,8 +64,11 @@ export default function App() {
             <Route path="/watch/:id" element={<WatchDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
+            {/* Secret Owner Login Route */}
+            <Route path={OWNER_SECRET_PATH} element={<AdminLoginPage />} />
+            <Route path="/admin/login" element={<Navigate to="/" replace />} />
+
+            {/* Protected Admin Dashboard & Management Routes */}
             <Route
               path="/admin/dashboard"
               element={

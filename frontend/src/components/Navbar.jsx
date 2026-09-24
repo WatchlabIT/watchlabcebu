@@ -103,7 +103,7 @@ export default function Navbar() {
 
         {/* Action Controls & Admin */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <Link to="/admin/dashboard" className="btn" style={{ padding: '8px 16px', fontSize: '0.85rem', color: '#FFFFFF', border: '1px solid rgba(255, 255, 255, 0.6)', background: 'rgba(255, 255, 255, 0.1)' }}>
                 <LayoutDashboard size={16} /> Admin Portal
@@ -117,23 +117,6 @@ export default function Navbar() {
                 <LogOut size={16} />
               </button>
             </div>
-          ) : (
-            <Link to="/admin/login" className="btn" style={{
-              color: '#FFFFFF',
-              fontSize: '0.82rem',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontWeight: 600,
-              padding: '8px 16px',
-              borderRadius: '20px',
-              border: '1px solid rgba(255, 255, 255, 0.5)',
-              background: 'rgba(255, 255, 255, 0.08)',
-              transition: 'all 0.2s ease'
-            }}>
-              <ShieldCheck size={15} color="#FFFFFF" /> Owner Login
-            </Link>
           )}
 
           {/* Mobile Hamburger Toggle */}
@@ -189,7 +172,7 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-          {isAuthenticated ? (
+          {isAuthenticated && (
             <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <Link to="/admin/dashboard" onClick={() => setMobileOpen(false)} className="btn btn-maroon">
                 <LayoutDashboard size={18} /> Admin Dashboard
@@ -197,12 +180,6 @@ export default function Navbar() {
               <button onClick={() => { logout(); setMobileOpen(false); }} className="btn btn-secondary">
                 <LogOut size={18} /> Logout Admin Account
               </button>
-            </div>
-          ) : (
-            <div style={{ marginTop: 'auto' }}>
-              <Link to="/admin/login" onClick={() => setMobileOpen(false)} className="btn btn-outline-maroon" style={{ width: '100%' }}>
-                <ShieldCheck size={18} /> Admin Portal Sign In
-              </Link>
             </div>
           )}
         </div>
