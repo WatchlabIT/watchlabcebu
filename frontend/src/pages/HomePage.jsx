@@ -200,7 +200,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* NEW ARRIVALS / WATCH HIGHLIGHTS (HORIZONTAL SLIDER) */}
+      {/* NEW ARRIVALS SECTION */}
       <section id="new-arrivals" style={{ padding: '56px 0' }}>
         <div className="container">
           <ScrollReveal animation="up">
@@ -217,18 +217,18 @@ export default function HomePage() {
                   FRESH IN STOCK
                 </div>
                 <h2 className="font-serif" style={{ fontSize: 'clamp(1.8rem, 4vw, 2.4rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  Watch Highlights & New Arrivals
+                  New Arrivals
                 </h2>
               </div>
 
-              {/* Slider Controls & Link */}
+              {/* Controls & Link */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div className="mobile-slider-controls" style={{ display: 'flex', gap: '6px' }}>
                   <button
                     onClick={() => scrollContainer(highlightsScrollRef, 'left')}
                     className="btn btn-secondary"
                     style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                    aria-label="Previous Watch Highlight"
+                    aria-label="Previous New Arrival"
                     title="Scroll left"
                   >
                     <ChevronLeft size={20} />
@@ -237,7 +237,7 @@ export default function HomePage() {
                     onClick={() => scrollContainer(highlightsScrollRef, 'right')}
                     className="btn btn-secondary"
                     style={{ width: '40px', height: '40px', padding: 0, borderRadius: '50%', boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}
-                    aria-label="Next Watch Highlight"
+                    aria-label="Next New Arrival"
                     title="Scroll right"
                   >
                     <ChevronRight size={20} />
@@ -251,42 +251,28 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          {/* Swipe Hint Label */}
-          <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>‹ Slide left & right to browse watch highlights ›</span>
+          {/* Swipe Hint Label (Mobile only) */}
+          <div className="mobile-swipe-hint" style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span>‹ Slide left & right to browse new arrivals ›</span>
           </div>
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-              Loading watch highlights...
+              Loading new arrivals...
             </div>
           ) : newArrivals.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-              No watch highlights currently listed.
+              No new arrivals currently listed.
             </div>
           ) : (
             <div
               ref={highlightsScrollRef}
-              className="horizontal-watch-slider"
-              style={{
-                display: 'flex',
-                gap: '20px',
-                overflowX: 'auto',
-                scrollSnapType: 'x mandatory',
-                padding: '8px 4px 20px 4px',
-                scrollBehavior: 'smooth',
-                WebkitOverflowScrolling: 'touch'
-              }}
+              className="new-arrivals-grid-container"
             >
               {newArrivals.map((watch) => (
                 <div
                   key={watch.id}
-                  style={{
-                    flex: '0 0 280px',
-                    minWidth: '280px',
-                    maxWidth: '280px',
-                    scrollSnapAlign: 'start'
-                  }}
+                  className="new-arrivals-grid-item"
                 >
                   <WatchCard watch={watch} />
                 </div>
@@ -473,6 +459,49 @@ export default function HomePage() {
           )}
         </div>
       </section>
+
+      {/* Responsive Styles for Desktop Grid View & Mobile Slider */}
+      <style>{`
+        @media (min-width: 768px) {
+          .new-arrivals-grid-container {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+            gap: 24px !important;
+            overflow-x: visible !important;
+            padding: 8px 0 !important;
+          }
+          .new-arrivals-grid-item {
+            flex: none !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            width: 100% !important;
+          }
+          .mobile-slider-controls {
+            display: none !important;
+          }
+          .mobile-swipe-hint {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 767px) {
+          .new-arrivals-grid-container {
+            display: flex !important;
+            gap: 16px !important;
+            overflow-x: auto !important;
+            scroll-snap-type: x mandatory !important;
+            padding: 8px 4px 20px 4px !important;
+            scroll-behavior: smooth !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
+          .new-arrivals-grid-item {
+            flex: 0 0 280px !important;
+            min-width: 280px !important;
+            max-width: 280px !important;
+            scroll-snap-align: start !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
