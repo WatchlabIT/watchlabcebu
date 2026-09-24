@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown } from 'lucide-react';
-import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import ConfirmModal from '../components/ConfirmModal';
 import ProtectedImage from '../components/ProtectedImage';
@@ -24,7 +24,25 @@ export default function AdminDashboardPage() {
   // Dropdown & Modal States
   const [showAddDropdown, setShowAddDropdown] = useState(false);
 
-  // Delete modal state
+  // Watch Form Modal State
+  const [showWatchModal, setShowWatchModal] = useState(false);
+  const [editingWatch, setEditingWatch] = useState(null);
+  const [watchName, setWatchName] = useState('');
+  const [watchBrand, setWatchBrand] = useState('Rolex');
+  const [watchCustomBrand, setWatchCustomBrand] = useState('');
+  const [watchPrice, setWatchPrice] = useState('');
+  const [watchStock, setWatchStock] = useState('1');
+  const [watchCondition, setWatchCondition] = useState('Brand New');
+  const [watchDescription, setWatchDescription] = useState('');
+  const [watchImageUrlInput, setWatchImageUrlInput] = useState('');
+  const [watchImageFile, setWatchImageFile] = useState(null);
+  const [watchImagePreview, setWatchImagePreview] = useState('');
+  const [savingWatch, setSavingWatch] = useState(false);
+  const [watchError, setWatchError] = useState(null);
+
+  const brandOptions = ['Rolex', 'Omega', 'Seiko', 'Tissot', 'Casio', 'Audemars Piguet', 'Patek Philippe', 'Cartier', 'Tag Heuer', 'Other'];
+
+  // Delete watch modal state
   const [deleteId, setDeleteId] = useState(null);
   const [deleteName, setDeleteName] = useState('');
   const [deleting, setDeleting] = useState(false);
@@ -128,6 +146,118 @@ export default function AdminDashboardPage() {
     }
   };
 
+  // Watch Modal Handlers
+  const handleOpenAddWatch = () => {
+    setEditingWatch(null);
+    setWatchName('');
+    setWatchBrand('Rolex');
+    setWatchCustomBrand('');
+    setWatchPrice('');
+    setWatchStock('1');
+    setWatchCondition('Brand New');
+    setWatchDescription('');
+    setWatchImageUrlInput('');
+    setWatchImageFile(null);
+    setWatchImagePreview('');
+    setWatchError(null);
+    setShowWatchModal(true);
+  };
+
+  const handleOpenEditWatch = (watch) => {
+    setEditingWatch(watch);
+    setWatchName(watch.name || '');
+    if (brandOptions.includes(watch.brand)) {
+      setWatchBrand(watch.brand);
+      setWatchCustomBrand('');
+    } else {
+      setWatchBrand('Other');
+      setWatchCustomBrand(watch.brand || '');
+    }
+    setWatchPrice(watch.price !== undefined ? watch.price.toString() : '');
+    setWatchStock(watch.stock !== undefined ? watch.stock.toString() : '1');
+    setWatchCondition(watch.condition || 'Brand New');
+    setWatchDescription(watch.description || '');
+    setWatchImageUrlInput(watch.image_url || '');
+    setWatchImagePreview(getImageUrl(watch.image_url));
+    setWatchImageFile(null);
+    setWatchError(null);
+    setShowWatchModal(true);
+  };
+
+  const handleWatchNameChange = (e) => {
+    const val = e.target.value;
+    setWatchName(val);
+
+    const lower = val.toLowerCase();
+    const brandMap = [
+      { key: 'Audemars Piguet', targets: ['audemars piguet', 'audemars', 'ap'] },
+      { key: 'Patek Philippe', targets: ['patek philippe', 'patek'] },
+      { key: 'Tag Heuer', targets: ['tag heuer', 'tagheuer'] },
+      { key: 'Rolex', targets: ['rolex'] },
+      { key: 'Omega', targets: ['omega'] },
+      { key: 'Seiko', targets: ['seiko'] },
+      { key: 'Tissot', targets: ['tissot'] },
+      { key: 'Casio', targets: ['casio', 'g-shock', 'gshock'] },
+      { key: 'Cartier', targets: ['cartier'] }
+    ];
+
+    for (const item of brandMap) {
+      if (item.targets.some(target => lower.includes(target))) {
+        setWatchBrand(item.key);
+        break;
+      }
+    }
+  };
+
+  const handleSaveWatch = async (e) => {
+    e.preventDefault();
+    setSavingWatch(true);
+    setWatchError(null);
+
+    const finalBrand = watchBrand === 'Other' ? watchCustomBrand : watchBrand;
+    if (!finalBrand || !finalBrand.trim()) {
+      setWatchError('Please specify the watch brand.');
+      setSavingWatch(false);
+      return;
+    }
+
+    if (!watchImageFile && !watchImageUrlInput) {
+      setWatchError('Watch image is required (upload a file or provide an image URL).');
+      setSavingWatch(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('name', watchName);
+      formData.append('brand', finalBrand);
+      formData.append('price', watchPrice);
+      formData.append('stock', watchStock);
+      formData.append('condition', watchCondition);
+      formData.append('description', watchDescription);
+
+      if (watchImageFile) {
+        formData.append('image', watchImageFile);
+      } else {
+        formData.append('image_url', watchImageUrlInput);
+      }
+
+      if (editingWatch) {
+        await updateWatch(editingWatch.id, formData);
+      } else {
+        await createWatch(formData);
+      }
+
+      setShowWatchModal(false);
+      await loadData();
+    } catch (err) {
+      setWatchError(err.message || 'Failed to save watch listing.');
+    } finally {
+      setSavingWatch(false);
+    }
+  };
+
+  // Transaction Modal Handlers
   const handleOpenAddTx = () => {
     setEditingTx(null);
     setTxTitle('');
@@ -363,9 +493,12 @@ export default function AdminDashboardPage() {
                   gap: '4px',
                   animation: 'fadeIn 0.2s ease'
                 }}>
-                  <Link
-                    to="/admin/watches/add"
-                    onClick={() => setShowAddDropdown(false)}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddDropdown(false);
+                      handleOpenAddWatch();
+                    }}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -374,7 +507,11 @@ export default function AdminDashboardPage() {
                       fontSize: '0.88rem',
                       fontWeight: 700,
                       color: 'var(--text-primary)',
-                      textDecoration: 'none',
+                      background: 'transparent',
+                      border: 'none',
+                      width: '100%',
+                      textAlign: 'left',
+                      cursor: 'pointer',
                       borderRadius: '10px',
                       transition: 'background 0.2s'
                     }}
@@ -382,7 +519,7 @@ export default function AdminDashboardPage() {
                     onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                   >
                     <Package size={16} color="var(--maroon-primary)" /> Add New Watch
-                  </Link>
+                  </button>
 
                   <button
                     type="button"
@@ -717,13 +854,14 @@ export default function AdminDashboardPage() {
 
                         <td style={{ padding: '12px', textAlign: 'right' }}>
                           <div style={{ display: 'inline-flex', gap: '8px' }}>
-                            <Link
-                              to={`/admin/watches/edit/${w.id}`}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditWatch(w)}
                               className="btn btn-secondary"
                               style={{ padding: '6px 12px', fontSize: '0.8rem' }}
                             >
                               <Edit size={14} /> Edit
-                            </Link>
+                            </button>
 
                             <button
                               onClick={() => handleDeleteClick(w)}
@@ -768,14 +906,6 @@ export default function AdminDashboardPage() {
                   Manage proof of transaction photos, client notes, and feature status on Home Page.
                 </p>
               </div>
-
-              <button
-                onClick={handleOpenAddTx}
-                className="btn btn-maroon"
-                style={{ padding: '10px 20px', fontSize: '0.88rem' }}
-              >
-                <Plus size={16} /> Add Featured Transaction
-              </button>
             </div>
 
             {transactions.length === 0 ? (
@@ -920,7 +1050,228 @@ export default function AdminDashboardPage() {
         loading={deletingTx}
       />
 
-      {/* Transaction Add / Edit Modal */}
+      {/* Watch Add / Edit Modal Overlay */}
+      {showWatchModal && (
+        <div
+          onClick={() => setShowWatchModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(10px)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            animation: 'fadeIn 0.25s ease'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="glass-card"
+            style={{
+              maxWidth: '720px',
+              width: '100%',
+              borderRadius: '24px',
+              overflow: 'hidden',
+              padding: '32px',
+              background: '#FFFFFF',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                {editingWatch ? 'Edit Watch Listing' : 'Add New Watch Listing'}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowWatchModal(false)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {watchError && (
+              <div style={{
+                padding: '12px 16px',
+                borderRadius: '12px',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#F87171',
+                fontSize: '0.88rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                marginBottom: '20px'
+              }}>
+                <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                <span>{watchError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveWatch}>
+              <div className="form-group">
+                <label className="form-label">Watch Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Rolex Submariner Date 41mm"
+                  value={watchName}
+                  onChange={handleWatchNameChange}
+                  className="form-input"
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Brand *</label>
+                  <select
+                    value={watchBrand}
+                    onChange={(e) => setWatchBrand(e.target.value)}
+                    className="form-select"
+                  >
+                    {brandOptions.map((b) => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                  {watchBrand === 'Other' && (
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter brand name..."
+                      value={watchCustomBrand}
+                      onChange={(e) => setWatchCustomBrand(e.target.value)}
+                      className="form-input"
+                      style={{ marginTop: '8px' }}
+                    />
+                  )}
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Watch Condition *</label>
+                  <select
+                    value={watchCondition}
+                    onChange={(e) => setWatchCondition(e.target.value)}
+                    className="form-select"
+                  >
+                    <option value="Brand New">Brand New</option>
+                    <option value="Pre-Owned">Pre-Owned</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                <div className="form-group">
+                  <label className="form-label">Price (₱ PHP) *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    placeholder="e.g. 450000"
+                    value={watchPrice}
+                    onChange={(e) => setWatchPrice(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Stock Quantity *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    required
+                    placeholder="e.g. 1"
+                    value={watchStock}
+                    onChange={(e) => setWatchStock(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Watch Description & Details *</label>
+                <textarea
+                  required
+                  rows={4}
+                  placeholder="Enter detailed description including bezel specs, dial pattern, box/papers availability, warranty details..."
+                  value={watchDescription}
+                  onChange={(e) => setWatchDescription(e.target.value)}
+                  className="form-textarea"
+                />
+              </div>
+
+              <div style={{ border: '1px dashed var(--border-subtle)', borderRadius: '12px', padding: '18px', background: '#F9FAFB', marginBottom: '24px' }}>
+                <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>
+                  Watch Image (Upload file or paste URL) *
+                </label>
+                
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '10px 16px', fontSize: '0.85rem' }}>
+                    <Upload size={16} /> Upload Image File
+                    <input
+                      type="file"
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setWatchImageFile(file);
+                          setWatchImageUrlInput('');
+                          const reader = new FileReader();
+                          reader.onloadend = () => setWatchImagePreview(reader.result);
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
+                  </label>
+
+                  <input
+                    type="url"
+                    placeholder="Or paste direct Image URL..."
+                    value={watchImageUrlInput}
+                    onChange={(e) => {
+                      setWatchImageUrlInput(e.target.value);
+                      if (e.target.value) {
+                        setWatchImageFile(null);
+                        setWatchImagePreview(getImageUrl(e.target.value));
+                      }
+                    }}
+                    className="form-input"
+                    style={{ flex: 1, minWidth: '200px', padding: '8px 12px' }}
+                  />
+                </div>
+
+                {watchImagePreview && (
+                  <div style={{ marginTop: '14px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '6px' }}>Image Preview:</div>
+                    <img src={watchImagePreview} alt="Preview" style={{ maxHeight: '150px', borderRadius: '8px', border: '1px solid #DDD', objectFit: 'cover' }} />
+                  </div>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                <button type="button" onClick={() => setShowWatchModal(false)} className="btn btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" disabled={savingWatch} className="btn btn-maroon" style={{ padding: '10px 24px' }}>
+                  {savingWatch ? 'Saving...' : editingWatch ? 'Update Watch Listing' : 'Save Watch Listing'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Transaction Add / Edit Modal Overlay */}
       {showTxModal && (
         <div
           onClick={() => setShowTxModal(false)}
@@ -936,7 +1287,8 @@ export default function AdminDashboardPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '24px'
+            padding: '24px',
+            animation: 'fadeIn 0.25s ease'
           }}
         >
           <div
@@ -950,7 +1302,8 @@ export default function AdminDashboardPage() {
               padding: '32px',
               background: '#FFFFFF',
               maxHeight: '90vh',
-              overflowY: 'auto'
+              overflowY: 'auto',
+              animation: 'scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -958,6 +1311,7 @@ export default function AdminDashboardPage() {
                 {editingTx ? 'Edit Featured Transaction' : 'Add New Featured Transaction'}
               </h2>
               <button
+                type="button"
                 onClick={() => setShowTxModal(false)}
                 style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
               >
