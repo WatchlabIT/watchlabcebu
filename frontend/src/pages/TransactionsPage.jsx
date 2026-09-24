@@ -198,7 +198,7 @@ export default function TransactionsPage() {
                       left: 0,
                       right: 0,
                       padding: '16px 14px',
-                      background: 'linear-gradient(to top, rgba(5, 46, 22, 0.95) 0%, rgba(5, 46, 22, 0.85) 70%, transparent 100%)',
+                      background: 'linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 70%, transparent 100%)',
                       color: '#FFFFFF',
                       zIndex: 4,
                       display: 'flex',
@@ -300,7 +300,7 @@ export default function TransactionsPage() {
                 <h2 className="font-serif" style={{ fontSize: '1.8rem', fontWeight: 800, marginBottom: '8px', color: 'var(--text-primary)' }}>
                   {selectedTx.title}
                 </h2>
-                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#10B981', marginBottom: '16px' }}>
+                <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--maroon-primary)', marginBottom: '16px' }}>
                   {selectedTx.subtitle}
                 </div>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '24px' }}>

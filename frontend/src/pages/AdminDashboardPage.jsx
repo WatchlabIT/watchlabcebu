@@ -1013,7 +1013,7 @@ export default function AdminDashboardPage() {
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
                         {tx.title}
                       </h3>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#10B981', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--maroon-primary)', marginBottom: '8px' }}>
                         {tx.subtitle}
                       </div>
                       <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>

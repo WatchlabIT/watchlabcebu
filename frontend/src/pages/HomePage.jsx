@@ -339,7 +339,7 @@ export default function HomePage() {
                         left: 0,
                         right: 0,
                         padding: '16px 14px',
-                        background: 'linear-gradient(to top, rgba(5, 46, 22, 0.95) 0%, rgba(5, 46, 22, 0.85) 70%, transparent 100%)',
+                        background: 'linear-gradient(to top, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.82) 70%, transparent 100%)',
                         color: '#FFFFFF',
                         display: 'flex',
                         flexDirection: 'column',
