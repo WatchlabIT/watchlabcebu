@@ -1,5 +1,6 @@
 import React from 'react';
 import { MapPin, CheckCircle2, MessageSquare, Instagram, Facebook } from 'lucide-react';
+import ScrollReveal from '../components/ScrollReveal';
 import { getWhatsAppUrl, getMessengerUrl } from '../utils/format';
 
 export default function AboutPage() {
@@ -16,14 +17,17 @@ export default function AboutPage() {
       <div className="container" style={{ maxWidth: '680px' }}>
         
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h1 className="font-serif" style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>
-            About Watch Lab Cebu
-          </h1>
-          <div style={{ width: '40px', height: '2px', background: 'var(--maroon-primary)', margin: '0 auto' }} />
-        </div>
+        <ScrollReveal animation="up">
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h1 className="font-serif" style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '12px' }}>
+              About Watch Lab Cebu
+            </h1>
+            <div style={{ width: '40px', height: '2px', background: 'var(--maroon-primary)', margin: '0 auto' }} />
+          </div>
+        </ScrollReveal>
 
         {/* Minimal Content Card */}
+        <ScrollReveal animation="zoom" delay={120}>
         <div style={{
           background: '#FFFFFF',
           borderRadius: '24px',
@@ -138,6 +142,7 @@ export default function AboutPage() {
           </div>
 
         </div>
+        </ScrollReveal>
       </div>
     </div>
   );

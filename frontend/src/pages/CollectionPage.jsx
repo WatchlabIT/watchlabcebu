@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, RefreshCw, X, SlidersHorizontal } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
+import ScrollReveal from '../components/ScrollReveal';
 import { fetchWatches, fetchBrands } from '../utils/api';
 
 export default function CollectionPage() {
@@ -235,8 +236,10 @@ export default function CollectionPage() {
               gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
               gap: '28px'
             }}>
-              {filteredWatches.map((watch) => (
-                <WatchCard key={watch.id} watch={watch} />
+              {filteredWatches.map((watch, idx) => (
+                <ScrollReveal key={watch.id} animation="up" delay={(idx % 4) * 80}>
+                  <WatchCard watch={watch} />
+                </ScrollReveal>
               ))}
             </div>
           </div>

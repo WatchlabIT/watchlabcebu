@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ChevronLeft, ChevronRight, CheckCircle2, MessageSquare, MapPin, Sparkles, Filter, X, Eye, RefreshCw } from 'lucide-react';
 import ProtectedImage from '../components/ProtectedImage';
+import ScrollReveal from '../components/ScrollReveal';
 import { fetchTransactions } from '../utils/api';
 import { getImageUrl, getMessengerUrl } from '../utils/format';
 
@@ -138,96 +139,96 @@ export default function TransactionsPage() {
             gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
             gap: '24px'
           }}>
-            {filteredTransactions.map((tx) => (
-              <div
-                key={tx.id}
-                className="glass-card"
-                onClick={() => setSelectedTx(tx)}
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                }}
-              >
-                {/* Image Container */}
-                <div style={{
-                  position: 'relative',
-                  width: '100%',
-                  paddingTop: '125%',
-                  background: '#000',
-                  overflow: 'hidden'
-                }}>
-                  <ProtectedImage
-                    src={getImageUrl(tx.image_url || tx.image)}
-                    alt={tx.title}
-                    style={{
+            {filteredTransactions.map((tx, idx) => (
+              <ScrollReveal key={tx.id} animation="up" delay={(idx % 4) * 80}>
+                <div
+                  className="glass-card"
+                  onClick={() => setSelectedTx(tx)}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Image Container */}
+                  <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    paddingTop: '125%',
+                    background: '#000',
+                    overflow: 'hidden'
+                  }}>
+                    <ProtectedImage
+                      src={getImageUrl(tx.image_url || tx.image)}
+                      alt={tx.title}
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover'
+                      }}
+                    />
+
+                    {/* Top Category Badge */}
+                    <div style={{
                       position: 'absolute',
-                      top: 0,
+                      top: '12px',
+                      right: '12px',
+                      background: 'rgba(0, 0, 0, 0.75)',
+                      backdropFilter: 'blur(8px)',
+                      color: '#FFFFFF',
+                      padding: '4px 12px',
+                      borderRadius: '12px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      zIndex: 3
+                    }}>
+                      {tx.badge}
+                    </div>
+
+                    {/* Banner Overlay */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
                       left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover'
-                    }}
-                  />
-
-                {/* Top Category Badge */}
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  background: 'rgba(0, 0, 0, 0.75)',
-                  backdropFilter: 'blur(8px)',
-                  color: '#FFFFFF',
-                  padding: '4px 12px',
-                  borderRadius: '12px',
-                  fontSize: '0.75rem',
-                  fontWeight: 700,
-                  zIndex: 3
-                }}>
-                  {tx.badge}
+                      right: 0,
+                      padding: '16px 14px',
+                      background: 'linear-gradient(to top, rgba(5, 46, 22, 0.95) 0%, rgba(5, 46, 22, 0.85) 70%, transparent 100%)',
+                      color: '#FFFFFF',
+                      zIndex: 4,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '4px'
+                    }}>
+                      <h3 style={{
+                        fontSize: '1.25rem',
+                        fontWeight: 800,
+                        lineHeight: '1.2',
+                        margin: 0,
+                        color: '#FFFFFF',
+                        fontFamily: 'var(--font-serif)'
+                      }}>
+                        {tx.title}
+                      </h3>
+                      <p style={{
+                        fontSize: '0.85rem',
+                        fontWeight: 600,
+                        margin: 0,
+                        color: '#E2E8F0',
+                        lineHeight: '1.3'
+                      }}>
+                        {tx.subtitle}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-
-                {/* Green/Maroon Banner Overlay at Bottom (Exact design as photo) */}
-                <div style={{
-                  position: 'absolute',
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  padding: '16px 14px',
-                  background: 'linear-gradient(to top, rgba(5, 46, 22, 0.95) 0%, rgba(5, 46, 22, 0.85) 70%, transparent 100%)',
-                  color: '#FFFFFF',
-                  zIndex: 4,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '4px'
-                }}>
-                  <h3 style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 800,
-                    lineHeight: '1.2',
-                    margin: 0,
-                    color: '#FFFFFF',
-                    fontFamily: 'var(--font-serif)'
-                  }}>
-                    {tx.title}
-                  </h3>
-                  <p style={{
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    margin: 0,
-                    color: '#E2E8F0',
-                    lineHeight: '1.3'
-                  }}>
-                    {tx.subtitle}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
+              </ScrollReveal>
+            ))}
         </div>
       )}
 
