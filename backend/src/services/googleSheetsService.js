@@ -175,18 +175,16 @@ function doPost(e) {
     }
     
     if (data.action === "delete_watch" && (data.id !== undefined && data.id !== null)) {
-      var sheets = ss.getSheets();
+      var watchSheet = ss.getSheetByName("Watches") || ss.getSheets()[0];
       var deletedCount = 0;
-
-      for (var s = 0; s < sheets.length; s++) {
-        var curSheet = sheets[s];
-        var lastRow = curSheet.getLastRow();
-        if (lastRow > 1) {
-          var ids = curSheet.getRange(2, 1, lastRow - 1, 1).getValues();
-          for (var i = ids.length - 1; i >= 0; i--) {
-            var cellVal = ids[i][0];
+      var lastRow = watchSheet.getLastRow();
+      if (lastRow > 1) {
+        var ids = watchSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var i = ids.length - 1; i >= 0; i--) {
+          var cellVal = ids[i][0];
+          if (cellVal !== "" && cellVal !== null && cellVal !== undefined) {
             if (String(cellVal).trim() == String(data.id).trim() || Number(cellVal) == Number(data.id)) {
-              curSheet.deleteRow(i + 2);
+              watchSheet.deleteRow(i + 2);
               deletedCount++;
             }
           }
@@ -452,8 +450,9 @@ async function pullFromSheets(customUrl = null) {
 
 async function fetchLiveWatchesFromSheets() {
   try {
-    const url = getWebhookUrl();
-    if (!url) return null;
+    const baseUrl = getWebhookUrl();
+    if (!baseUrl) return null;
+    const url = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3500);
@@ -495,8 +494,9 @@ async function fetchLiveWatchesFromSheets() {
 
 async function fetchLiveTransactionsFromSheets() {
   try {
-    const url = getWebhookUrl();
-    if (!url) return null;
+    const baseUrl = getWebhookUrl();
+    if (!baseUrl) return null;
+    const url = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3500);

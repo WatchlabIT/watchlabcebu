@@ -175,18 +175,16 @@ function doPost(e) {
     }
     
     if (data.action === "delete_watch" && (data.id !== undefined && data.id !== null)) {
-      var sheets = ss.getSheets();
+      var watchSheet = ss.getSheetByName("Watches") || ss.getSheets()[0];
       var deletedCount = 0;
-
-      for (var s = 0; s < sheets.length; s++) {
-        var curSheet = sheets[s];
-        var lastRow = curSheet.getLastRow();
-        if (lastRow > 1) {
-          var ids = curSheet.getRange(2, 1, lastRow - 1, 1).getValues();
-          for (var i = ids.length - 1; i >= 0; i--) {
-            var cellVal = ids[i][0];
+      var lastRow = watchSheet.getLastRow();
+      if (lastRow > 1) {
+        var ids = watchSheet.getRange(2, 1, lastRow - 1, 1).getValues();
+        for (var i = ids.length - 1; i >= 0; i--) {
+          var cellVal = ids[i][0];
+          if (cellVal !== "" && cellVal !== null && cellVal !== undefined) {
             if (String(cellVal).trim() == String(data.id).trim() || Number(cellVal) == Number(data.id)) {
-              curSheet.deleteRow(i + 2);
+              watchSheet.deleteRow(i + 2);
               deletedCount++;
             }
           }
@@ -378,10 +376,21 @@ async function pullFromSheets(customUrl = null) {
     throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
   }
 
-  const response = await fetch(url, {
-    method: 'GET',
-    redirect: 'follow'
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+  let response;
+  try {
+    response = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow',
+      signal: controller.signal
+    });
+  } catch (err) {
+    throw new Error('Google Sheets request timed out or failed to connect: ' + err.message);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const text = await response.text();
   let json;
@@ -391,47 +400,73 @@ async function pullFromSheets(customUrl = null) {
     throw new Error('Failed to parse response from Google Sheets. Ensure Web App URL is published to Anyone.');
   }
 
+  const db = loadDatabase();
+  let importedCount = 0;
+
   if (json.watches && Array.isArray(json.watches)) {
-    for (const remoteWatch of json.watches) {
-      if (!remoteWatch.name || !remoteWatch.brand) continue;
-      const existing = await dbOps.getWatchById(remoteWatch.id);
-      if (existing) {
-        dbOps.updateWatch(remoteWatch.id, remoteWatch);
-      } else {
-        dbOps.createWatch(remoteWatch);
-      }
-    }
+    const cleanWatches = json.watches.filter(w => w && w.name && w.brand).map(w => ({
+      id: Number(w.id),
+      name: String(w.name || ''),
+      brand: String(w.brand || ''),
+      price: Number(w.price) || 0,
+      stock: Number(w.stock) || 0,
+      condition: String(w.condition || 'Brand New'),
+      gender: String(w.gender || 'Unisex'),
+      description: String(w.description || ''),
+      image_url: String(w.image_url || ''),
+      created_at: w.created_at || w.updated_at || new Date().toISOString(),
+      updated_at: w.updated_at || new Date().toISOString()
+    }));
+    db.watches = cleanWatches;
+    importedCount += cleanWatches.length;
   }
 
   if (json.transactions && Array.isArray(json.transactions)) {
-    for (const remoteTx of json.transactions) {
-      if (!remoteTx.title) continue;
-      const existing = await dbOps.getTransactionById(remoteTx.id);
-      if (existing) {
-        dbOps.updateTransaction(remoteTx.id, remoteTx);
-      } else {
-        dbOps.createTransaction(remoteTx);
-      }
-    }
+    const cleanTx = json.transactions.filter(t => t && t.title).map(t => ({
+      id: Number(t.id),
+      title: String(t.title || ''),
+      subtitle: String(t.subtitle || ''),
+      location: String(t.location || 'Cebu'),
+      category: String(t.category || 'Handover'),
+      badge: String(t.badge || 'Handover'),
+      note: String(t.note || ''),
+      image_url: String(t.image_url || ''),
+      created_at: t.created_at || t.updated_at || new Date().toISOString(),
+      updated_at: t.updated_at || new Date().toISOString()
+    }));
+    db.transactions = cleanTx;
+    importedCount += cleanTx.length;
   }
+
+  saveDatabase(db);
+  dbOps.invalidateCache();
 
   dbOps.updateGoogleSheetsConfig({
     last_synced: new Date().toISOString()
   });
 
-  const totalImported = (json.watches ? json.watches.length : 0) + (json.transactions ? json.transactions.length : 0);
-  return { importedCount: totalImported };
+  return { importedCount };
 }
 
 async function fetchLiveWatchesFromSheets() {
   try {
-    const url = getWebhookUrl();
-    if (!url) return null;
+    const baseUrl = getWebhookUrl();
+    if (!baseUrl) return null;
+    const url = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow'
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const text = await response.text();
     let json;
@@ -452,20 +487,30 @@ async function fetchLiveWatchesFromSheets() {
       }));
     }
   } catch (err) {
-    console.error('Failed to fetch live watches from Google Sheets:', err.message);
+    console.warn('Live watches fetch timeout or warning:', err.message);
   }
   return null;
 }
 
 async function fetchLiveTransactionsFromSheets() {
   try {
-    const url = getWebhookUrl();
-    if (!url) return null;
+    const baseUrl = getWebhookUrl();
+    if (!baseUrl) return null;
+    const url = baseUrl.includes('?') ? `${baseUrl}&_t=${Date.now()}` : `${baseUrl}?_t=${Date.now()}`;
 
-    const response = await fetch(url, {
-      method: 'GET',
-      redirect: 'follow'
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+    let response;
+    try {
+      response = await fetch(url, {
+        method: 'GET',
+        redirect: 'follow',
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     const text = await response.text();
     let json;
@@ -486,7 +531,7 @@ async function fetchLiveTransactionsFromSheets() {
       }));
     }
   } catch (err) {
-    console.error('Failed to fetch live transactions from Google Sheets:', err.message);
+    console.warn('Live transactions fetch timeout or warning:', err.message);
   }
   return null;
 }
