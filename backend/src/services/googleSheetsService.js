@@ -403,42 +403,45 @@ async function pullFromSheets(customUrl = null) {
   }
 
   const db = loadDatabase();
-  const deletedWatchIds = new Set((db.deleted_watch_ids || []).map(id => String(id)));
-  const deletedTxIds = new Set((db.deleted_tx_ids || []).map(id => String(id)));
-
   let importedCount = 0;
 
   if (json.watches && Array.isArray(json.watches)) {
-    for (const remoteWatch of json.watches) {
-      if (!remoteWatch.name || !remoteWatch.brand) continue;
-      const remoteIdStr = String(remoteWatch.id);
-      if (deletedWatchIds.has(remoteIdStr)) continue; // Skip deleted items
-
-      const existingIndex = (db.watches || []).findIndex(w => String(w.id) === remoteIdStr || Number(w.id) === Number(remoteWatch.id));
-      if (existingIndex !== -1) {
-        dbOps.updateWatch(remoteWatch.id, remoteWatch);
-      } else {
-        dbOps.createWatch(remoteWatch);
-      }
-      importedCount++;
-    }
+    const cleanWatches = json.watches.filter(w => w && w.name && w.brand).map(w => ({
+      id: Number(w.id),
+      name: String(w.name || ''),
+      brand: String(w.brand || ''),
+      price: Number(w.price) || 0,
+      stock: Number(w.stock) || 0,
+      condition: String(w.condition || 'Brand New'),
+      gender: String(w.gender || 'Unisex'),
+      description: String(w.description || ''),
+      image_url: String(w.image_url || ''),
+      created_at: w.created_at || w.updated_at || new Date().toISOString(),
+      updated_at: w.updated_at || new Date().toISOString()
+    }));
+    db.watches = cleanWatches;
+    importedCount += cleanWatches.length;
   }
 
   if (json.transactions && Array.isArray(json.transactions)) {
-    for (const remoteTx of json.transactions) {
-      if (!remoteTx.title) continue;
-      const remoteTxIdStr = String(remoteTx.id);
-      if (deletedTxIds.has(remoteTxIdStr)) continue; // Skip deleted transactions
-
-      const existingTx = (db.transactions || []).find(t => String(t.id) === remoteTxIdStr || Number(t.id) === Number(remoteTx.id));
-      if (existingTx) {
-        dbOps.updateTransaction(remoteTx.id, remoteTx);
-      } else {
-        dbOps.createTransaction(remoteTx);
-      }
-      importedCount++;
-    }
+    const cleanTx = json.transactions.filter(t => t && t.title).map(t => ({
+      id: Number(t.id),
+      title: String(t.title || ''),
+      subtitle: String(t.subtitle || ''),
+      location: String(t.location || 'Cebu'),
+      category: String(t.category || 'Handover'),
+      badge: String(t.badge || 'Handover'),
+      note: String(t.note || ''),
+      image_url: String(t.image_url || ''),
+      created_at: t.created_at || t.updated_at || new Date().toISOString(),
+      updated_at: t.updated_at || new Date().toISOString()
+    }));
+    db.transactions = cleanTx;
+    importedCount += cleanTx.length;
   }
+
+  saveDatabase(db);
+  dbOps.invalidateCache();
 
   dbOps.updateGoogleSheetsConfig({
     last_synced: new Date().toISOString()

@@ -350,12 +350,30 @@ export default function AdminDashboardPage() {
   const handleConfirmDelete = async () => {
     if (!deleteId) return;
     setDeleting(true);
+    const targetId = deleteId;
+    setDeleteId(null);
+
+    // Optimistically remove deleted watch and recalculate stats from remaining watches
+    setWatches(prev => {
+      const remaining = prev.filter(w => Number(w.id) !== Number(targetId) && String(w.id).trim() !== String(targetId).trim());
+      const available = remaining.reduce((sum, w) => sum + (w.stock > 0 ? Number(w.stock) : 0), 0);
+      const soldOut = remaining.filter(w => Number(w.stock) === 0).length;
+      const totalVal = remaining.reduce((sum, w) => sum + (Number(w.price || 0) * Number(w.stock || 0)), 0);
+      setStats({
+        totalWatches: remaining.length,
+        availableStock: available,
+        soldOutCount: soldOut,
+        totalValue: totalVal
+      });
+      return remaining;
+    });
+
     try {
-      await apiDeleteWatch(deleteId);
-      setDeleteId(null);
+      await apiDeleteWatch(targetId);
       await loadData();
     } catch (err) {
       alert(err.message || 'Failed to delete watch.');
+      await loadData();
     } finally {
       setDeleting(false);
     }
