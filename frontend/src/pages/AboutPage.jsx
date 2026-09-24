@@ -13,7 +13,7 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="page-fade-in" style={{ padding: '80px 0 100px', background: '#FAFAFA' }}>
+    <div className="page-fade-in" style={{ padding: '24px 0 80px', background: '#FAFAFA' }}>
       <div className="container" style={{ maxWidth: '1000px' }}>
         
         {/* Header */}

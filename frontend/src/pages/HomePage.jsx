@@ -44,7 +44,7 @@ export default function HomePage() {
       {/* HERO SECTION */}
       <section style={{
         position: 'relative',
-        padding: '100px 0 80px',
+        padding: '28px 0 60px',
         overflow: 'hidden',
         background: 'radial-gradient(circle at 50% 20%, rgba(220, 38, 38, 0.1) 0%, rgba(248, 249, 250, 1) 70%)'
       }}>
