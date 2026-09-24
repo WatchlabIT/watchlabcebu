@@ -59,6 +59,31 @@ export default function AdminWatchFormPage() {
     }
   }, [id, isEditMode]);
 
+  const handleNameChange = (e) => {
+    const val = e.target.value;
+    setName(val);
+
+    const lower = val.toLowerCase();
+    const brandMap = [
+      { key: 'Audemars Piguet', targets: ['audemars piguet', 'audemars', 'ap'] },
+      { key: 'Patek Philippe', targets: ['patek philippe', 'patek'] },
+      { key: 'Tag Heuer', targets: ['tag heuer', 'tagheuer'] },
+      { key: 'Rolex', targets: ['rolex'] },
+      { key: 'Omega', targets: ['omega'] },
+      { key: 'Seiko', targets: ['seiko'] },
+      { key: 'Tissot', targets: ['tissot'] },
+      { key: 'Casio', targets: ['casio', 'g-shock', 'gshock'] },
+      { key: 'Cartier', targets: ['cartier'] }
+    ];
+
+    for (const item of brandMap) {
+      if (item.targets.some(target => lower.includes(target))) {
+        setBrand(item.key);
+        break;
+      }
+    }
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -194,7 +219,7 @@ export default function AdminWatchFormPage() {
               required
               placeholder="e.g. Rolex Submariner Date 41mm"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={handleNameChange}
               className="form-input"
             />
           </div>
