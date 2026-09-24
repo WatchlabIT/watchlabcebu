@@ -8,8 +8,8 @@ export default function AdminLoginPage() {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
 
-  const [email, setEmail] = useState('admin@watchlabcebu.com');
-  const [password, setPassword] = useState('WatchLabCebuest.2025!');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
