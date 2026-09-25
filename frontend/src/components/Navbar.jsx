@@ -162,7 +162,7 @@ export default function Navbar() {
 
         {/* Action Controls & Admin */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {isAuthenticated && (
+          {isAuthenticated ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <Link to="/admin/dashboard" className="btn" style={{
                 padding: '8px 16px',
@@ -192,6 +192,19 @@ export default function Navbar() {
                 <LogOut size={15} />
               </button>
             </div>
+          ) : (
+            <Link to="/admin/login" className="btn" style={{
+              padding: '8px 16px',
+              fontSize: '0.85rem',
+              color: '#FFFFFF',
+              borderRadius: '20px',
+              border: '1px solid rgba(255, 255, 255, 0.35)',
+              background: 'rgba(255, 255, 255, 0.12)',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+            }}>
+              <ShieldCheck size={15} /> Admin Portal
+            </Link>
           )}
 
           {/* Mobile Hamburger Toggle */}
@@ -290,7 +303,7 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            {isAuthenticated && (
+            {isAuthenticated ? (
               <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <Link to="/admin/dashboard" onClick={closeMobileMenu} className="btn btn-maroon">
                   <LayoutDashboard size={18} /> Admin Dashboard
@@ -298,6 +311,12 @@ export default function Navbar() {
                 <button onClick={() => { logout(); closeMobileMenu(); }} className="btn btn-secondary">
                   <LogOut size={18} /> Logout Admin Account
                 </button>
+              </div>
+            ) : (
+              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <Link to="/admin/login" onClick={closeMobileMenu} className="btn btn-maroon">
+                  <ShieldCheck size={18} /> Admin Portal Login
+                </Link>
               </div>
             )}
           </div>

@@ -64,9 +64,10 @@ export default function App() {
             <Route path="/watch/:id" element={<WatchDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Secret Owner Login Route */}
+            {/* Admin Login Routes */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
+            <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
             <Route path={OWNER_SECRET_PATH} element={<AdminLoginPage />} />
-            <Route path="/admin/login" element={<Navigate to="/" replace />} />
 
             {/* Protected Admin Dashboard & Management Routes */}
             <Route
