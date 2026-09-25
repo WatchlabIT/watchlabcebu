@@ -133,7 +133,7 @@ export default function AdminDashboardPage() {
       await updateWatch(watch.id, { is_featured: true });
       setWatches(prev => prev.map(w => ({
         ...w,
-        is_featured: w.id === watch.id
+        is_featured: (Number(w.id) === Number(watch.id) || String(w.id).trim() === String(watch.id).trim())
       })));
     } catch (err) {
       alert('Failed to update hero featured watch: ' + err.message);

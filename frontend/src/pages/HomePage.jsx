@@ -35,7 +35,7 @@ export default function HomePage() {
         setNewArrivals(arrivalsData.watches || []);
 
         const watchesList = allWatchesData.watches || [];
-        const featured = watchesList.find(w => w.is_featured === true) || watchesList[0] || null;
+        const featured = watchesList.find(w => w.is_featured === true || w.is_featured === 'true' || w.is_featured === 'TRUE' || w.is_featured === 1) || watchesList[0] || null;
         setFeaturedWatch(featured);
 
         const txList = txData.transactions || [];

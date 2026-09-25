@@ -414,6 +414,7 @@ async function pullFromSheets(customUrl = null) {
       gender: String(w.gender || 'Unisex'),
       description: String(w.description || ''),
       image_url: String(w.image_url || ''),
+      is_featured: w.is_featured === true || w.is_featured === 'true' || w.is_featured === 'TRUE' || w.is_featured === 1,
       created_at: w.created_at || w.updated_at || new Date().toISOString(),
       updated_at: w.updated_at || new Date().toISOString()
     }));

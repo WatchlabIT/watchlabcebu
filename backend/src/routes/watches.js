@@ -179,7 +179,7 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
 // PUT /api/watches/:id - Admin update watch listing (Protected)
 router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req, res) => {
   try {
-    const existingWatch = dbOps.getWatchById(req.params.id);
+    const existingWatch = await dbOps.getWatchById(req.params.id);
     if (!existingWatch) {
       return res.status(404).json({ error: 'Watch listing not found.' });
     }
