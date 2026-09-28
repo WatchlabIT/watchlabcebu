@@ -1,4 +1,5 @@
-const RAW_API_URL = import.meta.env.VITE_API_URL || '';
+const DEFAULT_RAILWAY_URL = 'https://watchlabcebu-production.up.railway.app';
+const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? DEFAULT_RAILWAY_URL : '');
 const API_BASE = RAW_API_URL ? `${RAW_API_URL.replace(/\/+$/, '')}/api` : '/api';
 
 function getAuthHeaders() {
