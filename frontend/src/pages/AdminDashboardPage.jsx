@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import { compressImageFile } from '../utils/imageCompressor';
@@ -562,26 +562,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Sync Success Alert */}
-      {syncSuccessMsg && (
-        <div style={{
-          padding: '14px 20px',
-          borderRadius: '12px',
-          background: 'rgba(16, 185, 129, 0.15)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
-          color: '#10B981',
-          fontSize: '0.9rem',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          marginBottom: '28px',
-          animation: 'fadeIn 0.3s ease'
-        }}>
-          <CheckCircle2 size={20} style={{ flexShrink: 0 }} />
-          <span>{syncSuccessMsg}</span>
-        </div>
-      )}
+
 
       {/* Stats Section */}
       <div style={{
