@@ -123,8 +123,45 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          Restricted access. Only 1 single owner account permitted.
+        {/* Secret Owner Credentials Info Card */}
+        <div style={{
+          marginTop: '28px',
+          padding: '16px',
+          borderRadius: '16px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px dashed rgba(255, 255, 255, 0.2)',
+          fontSize: '0.82rem',
+          color: 'var(--text-muted)'
+        }}>
+          <div style={{ fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>🔑 Default Owner Credentials</span>
+            <button
+              type="button"
+              onClick={() => {
+                setEmail('admin@watchlabcebu.com');
+                setPassword('WatchLabCebuest.2025!');
+              }}
+              style={{
+                background: 'rgba(127, 29, 29, 0.2)',
+                border: '1px solid rgba(127, 29, 29, 0.4)',
+                color: '#F87171',
+                padding: '4px 8px',
+                borderRadius: '6px',
+                fontSize: '0.75rem',
+                cursor: 'pointer'
+              }}
+            >
+              Auto-Fill
+            </button>
+          </div>
+          <div style={{ fontFamily: 'monospace', fontSize: '0.8rem', lineHeight: 1.6 }}>
+            <strong>Email:</strong> admin@watchlabcebu.com<br />
+            <strong>Password:</strong> WatchLabCebuest.2025!
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+          🔒 Restricted access. Secret owner portal for WatchLab Cebu.
         </div>
       </div>
     </div>
