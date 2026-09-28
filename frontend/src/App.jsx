@@ -20,8 +20,15 @@ export const OWNER_SECRET_PATH = '/watchlab-portal-bea-cebu-access-x99';
 // Protected Route Guard for Admin pages
 function ProtectedAdminRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
-  if (loading) return null;
-  if (!isAuthenticated) return <Navigate to="/" replace />;
+  if (loading) {
+    return (
+      <div style={{ minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+        <div className="spin" style={{ width: '36px', height: '36px', border: '3px solid var(--border-subtle)', borderTopColor: 'var(--maroon-primary)', borderRadius: '50%' }} />
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Loading Admin Session...</div>
+      </div>
+    );
+  }
+  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
   return children;
 }
 

@@ -399,6 +399,15 @@ export default function AdminDashboardPage() {
     w.brand.toLowerCase().includes(search.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+        <div className="spin" style={{ width: '40px', height: '40px', border: '3px solid var(--border-subtle)', borderTopColor: 'var(--maroon-primary)', borderRadius: '50%', margin: '0 auto 16px' }} />
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.95rem', fontWeight: 600 }}>Loading WatchLab Catalog & Analytics...</div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 24px' }}>
       {/* Header */}
