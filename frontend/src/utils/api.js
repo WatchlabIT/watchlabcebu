@@ -1,6 +1,7 @@
 const DEFAULT_RAILWAY_URL = 'https://watchlabcebu-production.up.railway.app';
-const RAW_API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? DEFAULT_RAILWAY_URL : '');
-const API_BASE = RAW_API_URL ? `${RAW_API_URL.replace(/\/+$/, '')}/api` : '/api';
+const ENV_URL = import.meta.env.VITE_API_URL;
+const RAW_API_URL = (ENV_URL && ENV_URL.trim() !== '') ? ENV_URL.trim() : DEFAULT_RAILWAY_URL;
+const API_BASE = `${RAW_API_URL.replace(/\/+$/, '')}/api`;
 
 function getAuthHeaders() {
   const token = sessionStorage.getItem('watchlab_token') || localStorage.getItem('watchlab_token');
