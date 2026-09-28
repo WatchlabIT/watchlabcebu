@@ -17,6 +17,9 @@ async function parseJsonResponse(res, fallbackErrorMsg = 'Request failed.') {
     if (res.status === 413) {
       throw new Error('Uploaded image or payload size is too large (413 Payload Too Large). Please upload a smaller image.');
     }
+    if (res.status === 405 || res.status === 404) {
+      throw new Error(`API Connection Error (${res.status}). Please set VITE_API_URL in Vercel Environment Variables to your Railway backend URL.`);
+    }
     throw new Error(`API Connection Error (${res.status}). Please verify API deployment.`);
   }
   return {};
