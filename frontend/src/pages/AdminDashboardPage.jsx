@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, Sheet, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction, pullFromGoogleSheets, syncToGoogleSheets } from '../utils/api';
+import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import { compressImageFile } from '../utils/imageCompressor';
 import ConfirmModal from '../components/ConfirmModal';
 import ProtectedImage from '../components/ProtectedImage';
-import GoogleSheetsSyncCard from '../components/GoogleSheetsSyncCard';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
@@ -72,32 +71,11 @@ export default function AdminDashboardPage() {
   const [deleteTxTitle, setDeleteTxTitle] = useState('');
   const [deletingTx, setDeletingTx] = useState(false);
 
-  // Google Sheets Sync State
-  const [syncing, setSyncing] = useState(false);
-  const [syncSuccessMsg, setSyncSuccessMsg] = useState(null);
-  const [showSheetsCard, setShowSheetsCard] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleGoogleSync = async () => {
-    setSyncing(true);
-    setSyncSuccessMsg(null);
-    try {
-      const res = await pullFromGoogleSheets();
-      await loadData(false);
-      const importedCount = res?.importedCount || 0;
-      setSyncSuccessMsg(`Sync & Refresh successful! ${importedCount > 0 ? `Loaded ${importedCount} items directly from Google Sheets.` : 'Latest items loaded from Google Sheets.'}`);
-      setTimeout(() => setSyncSuccessMsg(null), 5000);
-    } catch (err) {
-      console.error('Refresh from Google Sheets error:', err);
-      alert('Sync & Refresh issue: ' + (err.message || 'Server error'));
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const loadData = async (shouldPullFromSheets = false) => {
+  const loadData = async () => {
     setLoading(true);
     try {
-      // 1. Instantly fetch and render inventory & stats in parallel (sub-second response!)
       const [statsRes, watchesRes, txRes] = await Promise.all([
         fetchAdminStats(),
         fetchWatches(),
@@ -111,17 +89,12 @@ export default function AdminDashboardPage() {
     } finally {
       setLoading(false);
     }
+  };
 
-    // 2. Perform background Google Sheets pull asynchronously only when explicitly requested
-    if (shouldPullFromSheets) {
-      pullFromGoogleSheets().then(() => {
-        Promise.all([fetchAdminStats(), fetchWatches(), fetchTransactions()]).then(([sRes, wRes, tRes]) => {
-          if (sRes?.stats) setStats(sRes.stats);
-          if (wRes?.watches) setWatches(wRes.watches);
-          if (tRes?.transactions) setTransactions(tRes.transactions);
-        }).catch(e => console.warn('Background sync fetch update notice:', e));
-      }).catch(e => console.warn('Background Google Sheets pull notice:', e));
-    }
+  const handleRefreshData = async () => {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
   };
 
   useEffect(() => {
@@ -459,8 +432,8 @@ export default function AdminDashboardPage() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
           <button
             type="button"
-            onClick={handleGoogleSync}
-            disabled={syncing}
+            onClick={handleRefreshData}
+            disabled={refreshing}
             className="btn btn-secondary"
             style={{
               padding: '12px 20px',
@@ -472,10 +445,10 @@ export default function AdminDashboardPage() {
               border: '1px solid var(--border-subtle)',
               background: '#FFFFFF'
             }}
-            title="Sync with Google Sheets and refresh latest inventory & transactions"
+            title="Refresh latest inventory & transactions"
           >
-            <RefreshCw size={18} className={syncing ? 'spin' : ''} color="var(--maroon-primary)" />
-            {syncing ? 'Syncing...' : 'Sync & Refresh'}
+            <RefreshCw size={18} className={refreshing ? 'spin' : ''} color="var(--maroon-primary)" />
+            {refreshing ? 'Refreshing...' : 'Refresh Catalog'}
           </button>
 
           {/* Add Dropdown Menu */}

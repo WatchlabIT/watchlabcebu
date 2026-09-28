@@ -9,9 +9,6 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const watchRoutes = require('./routes/watches');
 const transactionRoutes = require('./routes/transactions');
-const googleSheetsRoutes = require('./routes/googleSheets');
-const { pullFromSheets } = require('./services/googleSheetsService');
-const dbOps = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -38,9 +35,6 @@ app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
-
-app.use('/api', googleSheetsRoutes);
-app.use('/', googleSheetsRoutes);
 
 app.use('/api', watchRoutes);
 app.use('/', watchRoutes);
@@ -69,25 +63,11 @@ app.use((err, req, res, next) => {
 });
 
 // Start Express HTTP Server
-app.listen(PORT, async () => {
+app.listen(PORT, () => {
   console.log(`====================================================`);
   console.log(` 🚀 Watch Lab Cebu API Server running on port ${PORT}`);
   console.log(` Health Check: http://localhost:${PORT}/api/health`);
   console.log(`====================================================`);
-
-  // Auto-sync Google Sheets data on startup if configured or if DB has 0 watches
-  const autoPull = process.env.AUTO_PULL_SHEETS === 'true';
-  const watches = await dbOps.getAllWatches();
-  
-  if (autoPull || watches.length === 0) {
-    try {
-      console.log('🔄 Performing automatic Google Sheets data pull on startup...');
-      const result = await pullFromSheets();
-      console.log(`✅ Startup sync complete: ${result.importedCount} items loaded from Google Sheets.`);
-    } catch (err) {
-      console.warn('⚠️ Startup Google Sheets sync skipped/failed:', err.message);
-    }
-  }
 });
 
 module.exports = app;

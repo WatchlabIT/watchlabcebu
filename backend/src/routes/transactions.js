@@ -4,7 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const dbOps = require('../db');
 const { requireAdminAuth } = require('../middleware/auth');
-const { triggerAutoSync } = require('../services/googleSheetsService');
+
 
 const router = express.Router();
 
@@ -89,8 +89,7 @@ router.post('/transactions', requireAdminAuth, upload.single('image'), async (re
       is_featured: isFeaturedBool
     });
 
-    // Auto-sync to Google Sheets in "Transactions" tab
-    await triggerAutoSync('upsert_transaction', newTx);
+
 
     res.status(201).json({ message: 'Featured transaction added successfully.', transaction: newTx });
   } catch (err) {
@@ -131,8 +130,7 @@ router.put('/transactions/:id', requireAdminAuth, upload.single('image'), async 
       is_featured: isFeaturedBool
     });
 
-    // Auto-sync update to Google Sheets "Transactions" tab
-    await triggerAutoSync('upsert_transaction', updatedTx);
+
 
     res.json({ message: 'Featured transaction updated successfully.', transaction: updatedTx });
   } catch (err) {
@@ -146,12 +144,7 @@ router.delete('/transactions/:id', requireAdminAuth, async (req, res) => {
   try {
     const txId = req.params.id;
 
-    // Auto-sync deletion to Google Sheets "Transactions" tab
-    try {
-      await triggerAutoSync('delete_transaction', txId);
-    } catch (syncErr) {
-      console.error('Google Sheets delete transaction error:', syncErr.message);
-    }
+
 
     const deleted = dbOps.deleteTransaction(txId);
 

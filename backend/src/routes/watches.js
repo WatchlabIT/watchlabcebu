@@ -106,7 +106,7 @@ router.post('/upload', requireAdminAuth, upload.single('image'), (req, res) => {
   res.json({ message: 'Image uploaded successfully.', image_url: imageUrl });
 });
 
-const { triggerAutoSync } = require('../services/googleSheetsService');
+
 
 // POST /api/watches - Admin create watch listing (Protected, supports JSON or multipart)
 router.post('/watches', requireAdminAuth, upload.single('image'), async (req, res) => {
@@ -163,8 +163,7 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
       image_url
     });
 
-    // Auto-sync to Google Sheets (await to prevent serverless cancellation)
-    await triggerAutoSync('upsert', newWatch);
+
 
     res.status(201).json({ message: 'Watch created successfully.', watch: newWatch });
   } catch (err) {
@@ -210,8 +209,7 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       is_featured: is_featured !== undefined ? isFeaturedBool : undefined
     });
 
-    // Auto-sync to Google Sheets (await to prevent serverless cancellation)
-    await triggerAutoSync('upsert', updatedWatch);
+
 
     res.json({ message: 'Watch updated successfully.', watch: updatedWatch });
   } catch (err) {
@@ -225,12 +223,7 @@ router.delete('/watches/:id', requireAdminAuth, async (req, res) => {
   try {
     const watchId = req.params.id;
 
-    // Guaranteed Google Sheets Auto-Sync Deletion
-    try {
-      await triggerAutoSync('delete', watchId);
-    } catch (syncErr) {
-      console.error('Google Sheets delete auto-sync error:', syncErr.message);
-    }
+
 
     const deleted = dbOps.deleteWatch(watchId);
 
