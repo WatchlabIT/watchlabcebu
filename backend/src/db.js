@@ -2,14 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
-// Determine writable DB path (support Vercel read-only filesystem via /tmp)
-let dbPath = path.join(__dirname, '..', 'watchlab.json');
-const isVercel = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-if (isVercel) {
-  dbPath = path.join('/tmp', 'watchlab.json');
-}
+// Determine writable DB path (supports custom DB_PATH environment variable on Railway)
+const dbPath = process.env.DB_PATH || path.join(__dirname, '..', 'watchlab.json');
 
-// In-memory fallback cache for serverless environments
+// In-memory cache
 let memoryDb = null;
 
 let seedData = null;
@@ -73,7 +69,7 @@ function loadDatabase() {
         return memoryDb;
       }
     }
-    // Check seed JSON file if /tmp/watchlab.json does not exist yet on Vercel
+    // Check seed JSON file if database file does not exist yet
     const seedPath = path.join(__dirname, '..', 'watchlab.json');
     if (fs.existsSync(seedPath)) {
       const raw = fs.readFileSync(seedPath, 'utf8');

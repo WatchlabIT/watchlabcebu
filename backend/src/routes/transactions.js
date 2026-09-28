@@ -8,23 +8,20 @@ const { triggerAutoSync } = require('../services/googleSheetsService');
 
 const router = express.Router();
 
-const isVercel = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-const uploadsDir = isVercel ? path.join('/tmp', 'uploads') : path.join(__dirname, '..', '..', 'uploads');
+const uploadsDir = process.env.UPLOADS_DIR || path.join(__dirname, '..', '..', 'uploads');
 
 if (!fs.existsSync(uploadsDir)) {
   try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (e) {}
 }
 
-const storage = isVercel
-  ? multer.memoryStorage()
-  : multer.diskStorage({
-      destination: (req, file, cb) => cb(null, uploadsDir),
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-        cb(null, 'tx-' + uniqueSuffix + ext);
-      }
-    });
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    cb(null, 'tx-' + uniqueSuffix + ext);
+  }
+});
 
 const upload = multer({
   storage,

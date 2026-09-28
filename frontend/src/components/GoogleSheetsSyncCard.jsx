@@ -79,7 +79,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
       setLastSynced(new Date().toISOString());
       if (onSyncSuccess) onSyncSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Sync failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Vercel Environment Variables.');
+      setErrorMessage(err.message || 'Sync failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Railway Environment Variables.');
     } finally {
       setSyncing(false);
     }
@@ -96,7 +96,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
       setLastSynced(new Date().toISOString());
       if (onSyncSuccess) onSyncSuccess();
     } catch (err) {
-      setErrorMessage(err.message || 'Import failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Vercel Environment Variables.');
+      setErrorMessage(err.message || 'Import failed. Ensure GOOGLE_SHEET_WEBHOOK_URL is set in Railway Environment Variables.');
     } finally {
       setPulling(false);
     }
@@ -138,11 +138,11 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
               border: `1px solid ${isConfigured ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
             }}>
               {isConfigured ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-              {isConfigured ? 'Connected via Vercel ENV' : 'GOOGLE_SHEET_WEBHOOK_URL Not Set'}
+              {isConfigured ? 'Connected via Railway ENV' : 'GOOGLE_SHEET_WEBHOOK_URL Not Set'}
             </span>
           </div>
           <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px', marginBottom: 0 }}>
-            Automatically sync watch inventory to Google Sheets securely using Vercel Environment Variables.
+            Automatically sync watch inventory to Google Sheets securely using Railway Environment Variables.
           </p>
         </div>
 
@@ -208,7 +208,7 @@ export default function GoogleSheetsSyncCard({ onSyncSuccess }) {
           <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: '16px' }}>
             1. Paste this code into <strong>Google Sheets &gt; Extensions &gt; Apps Script</strong>.<br />
             2. Click <strong>Deploy &gt; New deployment &gt; Web App</strong> (Execute as: <i>Me</i>, Access: <i>Anyone</i>).<br />
-            3. Copy the generated Web App URL and add it to Vercel project environment variables as <code>GOOGLE_SHEET_WEBHOOK_URL</code>.
+            3. Copy the generated Web App URL and add it to Railway project environment variables as <code>GOOGLE_SHEET_WEBHOOK_URL</code>.
           </p>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>

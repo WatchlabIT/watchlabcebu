@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const dotenv = require('dotenv');
 
 dotenv.config();
@@ -9,6 +10,8 @@ const authRoutes = require('./routes/auth');
 const watchRoutes = require('./routes/watches');
 const transactionRoutes = require('./routes/transactions');
 const googleSheetsRoutes = require('./routes/googleSheets');
+const { pullFromSheets } = require('./services/googleSheetsService');
+const dbOps = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -20,29 +23,19 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Serve static watch image uploads if exists
-const fs = require('fs');
-const uploadsPath = path.join(__dirname, '..', 'uploads');
-if (fs.existsSync(uploadsPath)) {
-  app.use('/uploads', express.static(uploadsPath));
+// Serve static watch image uploads
+const uploadsPath = process.env.UPLOADS_DIR || path.join(__dirname, '..', '..', 'uploads');
+if (!fs.existsSync(uploadsPath)) {
+  try { fs.mkdirSync(uploadsPath, { recursive: true }); } catch (e) {}
 }
+app.use('/uploads', express.static(uploadsPath));
 
-// Middleware to normalize Vercel serverless request URLs
-app.use((req, res, next) => {
-  if (req.url.startsWith('/api/index.js')) {
-    req.url = req.url.replace('/api/index.js', '') || '/';
-  } else if (req.url.startsWith('/api/index')) {
-    req.url = req.url.replace('/api/index', '') || '/';
-  }
-  next();
-});
-
-// Health check endpoint (supports /api/health, /health, /api, and root /)
+// Health check endpoint
 app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   res.json({ status: 'ok', business: 'Watch Lab Cebu', time: new Date().toISOString() });
 });
 
-// API Routes (supports both /api/auth and /auth for Vercel Serverless Function compatibility)
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/auth', authRoutes);
 
@@ -75,15 +68,26 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Express HTTP Server locally if run directly outside Vercel
-const isVercelEnvironment = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
-if (!isVercelEnvironment && require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`====================================================`);
-    console.log(` Watch Lab Cebu API Server running on port ${PORT}`);
-    console.log(` Health Check: http://localhost:${PORT}/api/health`);
-    console.log(`====================================================`);
-  });
-}
+// Start Express HTTP Server
+app.listen(PORT, async () => {
+  console.log(`====================================================`);
+  console.log(` 🚀 Watch Lab Cebu API Server running on port ${PORT}`);
+  console.log(` Health Check: http://localhost:${PORT}/api/health`);
+  console.log(`====================================================`);
+
+  // Auto-sync Google Sheets data on startup if configured or if DB has 0 watches
+  const autoPull = process.env.AUTO_PULL_SHEETS === 'true';
+  const watches = await dbOps.getAllWatches();
+  
+  if (autoPull || watches.length === 0) {
+    try {
+      console.log('🔄 Performing automatic Google Sheets data pull on startup...');
+      const result = await pullFromSheets();
+      console.log(`✅ Startup sync complete: ${result.importedCount} items loaded from Google Sheets.`);
+    } catch (err) {
+      console.warn('⚠️ Startup Google Sheets sync skipped/failed:', err.message);
+    }
+  }
+});
 
 module.exports = app;

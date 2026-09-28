@@ -314,7 +314,7 @@ async function syncAllToSheets(customUrl = null) {
   const url = customUrl || getWebhookUrl();
 
   if (!url) {
-    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
+    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured.');
   }
 
   const watches = await dbOps.getAllWatches();
@@ -373,7 +373,7 @@ async function pullFromSheets(customUrl = null) {
   const url = customUrl || getWebhookUrl();
 
   if (!url) {
-    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured in Vercel.');
+    throw new Error('GOOGLE_SHEET_WEBHOOK_URL environment variable is not configured.');
   }
 
   const controller = new AbortController();

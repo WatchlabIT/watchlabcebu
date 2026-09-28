@@ -3,10 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "description": "WatchLab Cebu - Luxury Watch Catalog & Customer Inquiry System",
+  "main": "backend/src/server.js",
   "scripts": {
+    "start": "node backend/src/server.js",
     "start:backend": "npm --prefix backend start",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
+    "sync:sheets": "npm --prefix backend run sync:sheets",
     "build": "npm --prefix frontend install && npm --prefix frontend run build && node -e \"const fs = require('fs'); fs.cpSync('frontend/dist', 'dist', { recursive: true });\""
   },
   "dependencies": {
@@ -15,8 +18,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "multer": "^1.4.5-lts.1",
-    "serverless-http": "^4.0.0"
+    "multer": "^1.4.5-lts.1"
   },
   "allowScripts": {
     "esbuild": true

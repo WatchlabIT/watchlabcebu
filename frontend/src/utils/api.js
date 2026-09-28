@@ -1,4 +1,5 @@
-const API_BASE = '/api';
+const RAW_API_URL = import.meta.env.VITE_API_URL || '';
+const API_BASE = RAW_API_URL ? `${RAW_API_URL.replace(/\/+$/, '')}/api` : '/api';
 
 function getAuthHeaders() {
   const token = sessionStorage.getItem('watchlab_token') || localStorage.getItem('watchlab_token');
