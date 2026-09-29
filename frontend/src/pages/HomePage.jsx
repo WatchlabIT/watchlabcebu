@@ -511,11 +511,6 @@ export default function HomePage() {
             </div>
           </ScrollReveal>
 
-          {/* Swipe Hint Label (Mobile only) */}
-          <div className="mobile-swipe-hint" style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>‹ Slide left & right to browse new arrivals ›</span>
-          </div>
-
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
               Loading new arrivals...
@@ -597,11 +592,6 @@ export default function HomePage() {
               </div>
             </div>
           </ScrollReveal>
-
-          {/* Swipe Hint */}
-          <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span>‹ Slide left & right to browse client handovers ›</span>
-          </div>
 
           {loading ? (
             <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
