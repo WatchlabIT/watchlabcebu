@@ -5,11 +5,13 @@ import WatchCard from '../components/WatchCard';
 import ProtectedImage from '../components/ProtectedImage';
 import ScrollReveal from '../components/ScrollReveal';
 import { fetchNewArrivals, fetchWatches, fetchTransactions } from '../utils/api';
-import { getImageUrl, getMessengerUrl } from '../utils/format';
+import { getImageUrl, getMessengerUrl, formatPrice } from '../utils/format';
 
 export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
-  const [featuredWatch, setFeaturedWatch] = useState(null);
+  const [heroWatches, setHeroWatches] = useState([]);
+  const [heroIndex, setHeroIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const [featuredTransactions, setFeaturedTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +37,9 @@ export default function HomePage() {
         setNewArrivals(arrivalsData.watches || []);
 
         const watchesList = allWatchesData.watches || [];
-        const featured = watchesList.find(w => w.is_featured === true || w.is_featured === 'true' || w.is_featured === 'TRUE' || w.is_featured === 1) || watchesList[0] || null;
-        setFeaturedWatch(featured);
+        const featuredList = watchesList.filter(w => w && (w.is_featured === true || w.is_featured === 'true' || w.is_featured === 'TRUE' || w.is_featured === 1));
+        const finalHeroList = featuredList.length > 0 ? featuredList : (watchesList.length > 0 ? [watchesList[0]] : []);
+        setHeroWatches(finalHeroList);
 
         const txList = txData.transactions || [];
         setFeaturedTransactions(txList.filter(t => t.is_featured !== false));
@@ -48,6 +51,17 @@ export default function HomePage() {
     }
     load();
   }, []);
+
+  // Auto-play timer for Hero Slideshow (cycles every 5s unless hovered)
+  useEffect(() => {
+    if (heroWatches.length <= 1 || isPaused) return;
+    const interval = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % heroWatches.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroWatches.length, isPaused]);
+
+  const currentHero = heroWatches[heroIndex] || heroWatches[0] || null;
 
   return (
     <div className="page-fade-in">
@@ -142,57 +156,182 @@ export default function HomePage() {
               </div>
             </ScrollReveal>
 
-            {/* Right Hero Image Card - Dynamically Changeable Admin Featured Watch */}
+            {/* Right Hero Image Card - Dynamic Hero Slideshow */}
             <ScrollReveal animation="right" delay={150}>
-              <div style={{ position: 'relative' }}>
+              <div 
+                style={{ position: 'relative' }}
+                onMouseEnter={() => setIsPaused(true)}
+                onMouseLeave={() => setIsPaused(false)}
+              >
                 <div className="glass-card" style={{
                   padding: '16px',
                   position: 'relative',
                   borderRadius: '24px',
                   overflow: 'hidden'
                 }}>
-                  <ProtectedImage
-                    src={featuredWatch ? getImageUrl(featuredWatch.image_url) : "https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop"}
-                    alt={featuredWatch ? featuredWatch.name : "Watch Lab Cebu Featured Timepiece"}
-                    style={{
-                      width: '100%',
-                      height: '420px',
-                      objectFit: 'cover',
-                      borderRadius: '16px',
-                      display: 'block'
-                    }}
-                  />
+                  {/* Current Active Watch Image */}
+                  <div style={{ position: 'relative', height: '420px', borderRadius: '16px', overflow: 'hidden' }}>
+                    {currentHero ? (
+                      <ProtectedImage
+                        key={currentHero.id || heroIndex}
+                        src={getImageUrl(currentHero.image_url)}
+                        alt={currentHero.name}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '16px',
+                          display: 'block'
+                        }}
+                      />
+                    ) : (
+                      <ProtectedImage
+                        src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1200&auto=format&fit=crop"
+                        alt="Watch Lab Cebu Featured Timepiece"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }}
+                      />
+                    )}
 
-                  {/* Floating Feature Badge */}
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '32px',
-                    left: '32px',
-                    right: '32px',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(12px)',
-                    padding: '16px 20px',
-                    borderRadius: '16px',
-                    border: '1px solid var(--border-subtle)',
-                    boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}>
-                    <div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--red-primary)', fontWeight: 700, letterSpacing: '1px' }}>
-                        FEATURED TIMEPIECE
-                      </div>
-                      <div className="font-serif" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                        {featuredWatch ? featuredWatch.name : "Rolex Submariner Date"}
-                      </div>
-                    </div>
-                    {featuredWatch && (
-                      <span className={featuredWatch.condition === 'Brand New' ? 'badge badge-brand-new' : 'badge badge-pre-owned'}>
-                        {featuredWatch.condition}
-                      </span>
+                    {/* Slideshow Arrow Navigation (Show if more than 1 hero watch) */}
+                    {heroWatches.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setHeroIndex(prev => (prev - 1 + heroWatches.length) % heroWatches.length);
+                          }}
+                          aria-label="Previous Slide"
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '12px',
+                            transform: 'translateY(-50%)',
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.88)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            color: 'var(--text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 10,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <ChevronLeft size={20} />
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setHeroIndex(prev => (prev + 1) % heroWatches.length);
+                          }}
+                          aria-label="Next Slide"
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            right: '12px',
+                            transform: 'translateY(-50%)',
+                            width: '38px',
+                            height: '38px',
+                            borderRadius: '50%',
+                            background: 'rgba(255, 255, 255, 0.88)',
+                            backdropFilter: 'blur(8px)',
+                            border: '1px solid rgba(0,0,0,0.08)',
+                            color: 'var(--text-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            zIndex: 10,
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
+                          <ChevronRight size={20} />
+                        </button>
+                      </>
                     )}
                   </div>
+
+                  {/* Floating Feature Badge Overlay */}
+                  {currentHero && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '28px',
+                      left: '28px',
+                      right: '28px',
+                      background: 'rgba(255, 255, 255, 0.95)',
+                      backdropFilter: 'blur(12px)',
+                      padding: '16px 20px',
+                      borderRadius: '16px',
+                      border: '1px solid var(--border-subtle)',
+                      boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
+                      zIndex: 8
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--maroon-primary)', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
+                          FEATURED TIMEPIECE {heroWatches.length > 1 ? `(${heroIndex + 1}/${heroWatches.length})` : ''}
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          {currentHero.condition && (
+                            <span className={currentHero.condition === 'Brand New' ? 'badge badge-brand-new' : 'badge badge-pre-owned'} style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                              {currentHero.condition}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                        <div>
+                          <Link to={`/watch/${currentHero.id}`} className="font-serif hover-underline" style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', textDecoration: 'none' }}>
+                            {currentHero.name}
+                          </Link>
+                          <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--maroon-primary)', marginTop: '2px' }}>
+                            {formatPrice(currentHero.price)}
+                          </div>
+                        </div>
+
+                        <Link
+                          to={`/watch/${currentHero.id}`}
+                          className="btn btn-secondary"
+                          style={{ fontSize: '0.8rem', padding: '8px 14px', flexShrink: 0 }}
+                        >
+                          View Details <ArrowRight size={14} />
+                        </Link>
+                      </div>
+
+                      {/* Pagination Indicator Dots */}
+                      {heroWatches.length > 1 && (
+                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
+                          {heroWatches.map((_, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => setHeroIndex(idx)}
+                              aria-label={`Go to slide ${idx + 1}`}
+                              style={{
+                                width: idx === heroIndex ? '20px' : '6px',
+                                height: '6px',
+                                borderRadius: '3px',
+                                background: idx === heroIndex ? 'var(--maroon-primary)' : '#D1D5DB',
+                                border: 'none',
+                                padding: 0,
+                                cursor: 'pointer',
+                                transition: 'all 0.3s ease'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             </ScrollReveal>

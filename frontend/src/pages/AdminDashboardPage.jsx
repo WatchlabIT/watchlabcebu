@@ -101,15 +101,17 @@ export default function AdminDashboardPage() {
     loadData();
   }, []);
 
-  const handleSetFeaturedWatch = async (watch) => {
+  const handleToggleFeaturedWatch = async (watch) => {
     try {
-      await updateWatch(watch.id, { is_featured: true });
-      setWatches(prev => prev.map(w => ({
-        ...w,
-        is_featured: (Number(w.id) === Number(watch.id) || String(w.id).trim() === String(watch.id).trim())
-      })));
+      const nextFeatured = !watch.is_featured;
+      await updateWatch(watch.id, { is_featured: nextFeatured });
+      setWatches(prev => prev.map(w => (
+        (Number(w.id) === Number(watch.id) || String(w.id).trim() === String(watch.id).trim())
+          ? { ...w, is_featured: nextFeatured }
+          : w
+      )));
     } catch (err) {
-      alert('Failed to update hero featured watch: ' + err.message);
+      alert('Failed to update hero featured status: ' + err.message);
     }
   };
 
@@ -819,30 +821,29 @@ export default function AdminDashboardPage() {
                         </td>
 
                         <td style={{ padding: '12px' }}>
-                          {w.is_featured ? (
-                            <span style={{
+                          <button
+                            type="button"
+                            onClick={() => handleToggleFeaturedWatch(w)}
+                            className={`btn ${w.is_featured ? 'btn-primary' : 'btn-secondary'}`}
+                            style={{
+                              padding: '5px 12px',
+                              fontSize: '0.78rem',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '4px',
-                              padding: '4px 10px',
-                              borderRadius: '12px',
-                              background: 'rgba(220, 38, 38, 0.1)',
-                              color: 'var(--red-primary)',
-                              border: '1px solid var(--red-primary)',
-                              fontSize: '0.78rem',
-                              fontWeight: 700
-                            }}>
-                              <Star size={12} fill="var(--red-primary)" /> Hero Featured
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleSetFeaturedWatch(w)}
-                              className="btn btn-secondary"
-                              style={{ padding: '4px 10px', fontSize: '0.78rem' }}
-                            >
-                              Set as Hero
-                            </button>
-                          )}
+                              gap: '6px',
+                              borderRadius: '16px',
+                              background: w.is_featured ? 'linear-gradient(135deg, #800020 0%, #4A0012 100%)' : '#F3F4F6',
+                              color: w.is_featured ? '#FFFFFF' : 'var(--text-secondary)',
+                              border: w.is_featured ? 'none' : '1px solid var(--border-glass)',
+                              fontWeight: w.is_featured ? 700 : 600,
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                            title={w.is_featured ? "Click to remove from Hero Slideshow" : "Click to include in Hero Slideshow"}
+                          >
+                            <Star size={13} fill={w.is_featured ? "#FFFFFF" : "none"} stroke={w.is_featured ? "#FFFFFF" : "currentColor"} />
+                            {w.is_featured ? 'Hero Featured' : 'Set as Hero'}
+                          </button>
                         </td>
 
                         <td style={{ padding: '12px', textAlign: 'right' }}>

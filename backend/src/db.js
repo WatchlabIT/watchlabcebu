@@ -195,8 +195,8 @@ const dbOps = {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-    if (newWatch.is_featured) {
-      db.watches.forEach(w => { w.is_featured = false; });
+    if (watchData.is_featured) {
+      newWatch.is_featured = true;
     }
     db.watches.unshift(newWatch);
     saveDatabase(db);
@@ -209,12 +209,6 @@ const dbOps = {
     const targetId = Number(id);
     const index = db.watches.findIndex(w => Number(w.id) === targetId || String(w.id).trim() === String(id).trim());
     if (index === -1) return null;
-
-    if (watchData.is_featured === true) {
-      db.watches.forEach(w => {
-        w.is_featured = false;
-      });
-    }
 
     const existing = db.watches[index];
     const updatedWatch = {
