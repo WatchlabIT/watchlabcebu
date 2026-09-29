@@ -50,6 +50,35 @@ export default function AdminDashboardPage() {
   const [importError, setImportError] = useState(null);
   const [importSuccess, setImportSuccess] = useState(null);
 
+  // Reliable browser blob download for Excel/CSV files
+  const triggerExcelDownload = (workbook, fileName) => {
+    try {
+      const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      console.error('Excel download fallback to CSV:', err);
+      const firstSheetName = workbook.SheetNames[0];
+      const csvContent = XLSX.utils.sheet_to_csv(workbook.Sheets[firstSheetName]);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName.replace(/\.xlsx$/, '.csv');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  };
+
   const handleExportExcel = () => {
     if (!watches || watches.length === 0) {
       alert('No watch inventory data available to export.');
@@ -73,7 +102,7 @@ export default function AdminDashboardPage() {
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Watch Catalog');
-    XLSX.writeFile(workbook, `WatchLab_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
+    triggerExcelDownload(workbook, `WatchLab_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const handleDownloadTemplate = () => {
@@ -99,13 +128,24 @@ export default function AdminDashboardPage() {
         'Description': 'Co-Axial Master Chronometer Chronograph 42mm with hesalite glass.',
         'Image Link': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1000',
         'Featured': 'No'
+      },
+      {
+        'Name': 'Seiko Presage Automatic 40mm',
+        'Brand': 'Seiko',
+        'Price': 45000,
+        'Stock': 5,
+        'Condition': 'Brand New',
+        'Gender': 'Men',
+        'Description': 'Japanese automatic movement with ice blue dial and leather strap.',
+        'Image Link': 'https://images.unsplash.com/photo-1524805444758-089113d48a6d?q=80&w=1000',
+        'Featured': 'No'
       }
     ];
 
     const worksheet = XLSX.utils.json_to_sheet(sampleData);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Import Template');
-    XLSX.writeFile(workbook, 'WatchLab_Import_Template.xlsx');
+    triggerExcelDownload(workbook, 'WatchLab_Import_Template.xlsx');
   };
 
   const handleImportFile = async (e) => {
@@ -126,22 +166,66 @@ export default function AdminDashboardPage() {
         throw new Error('The selected Excel file contains no data rows.');
       }
 
-      const itemsToImport = jsonRows.map(row => ({
-        name: row['Name'] || row['name'] || row['Watch Name'] || '',
-        brand: row['Brand'] || row['brand'] || '',
-        price: Number(row['Price'] || row['price'] || row['Price (PHP)'] || 0),
-        stock: Number(row['Stock'] || row['stock'] || 1),
-        condition: row['Condition'] || row['condition'] || 'Brand New',
-        gender: row['Gender'] || row['gender'] || 'Unisex',
-        description: row['Description'] || row['description'] || 'Imported via Excel.',
-        image_url: row['Image Link'] || row['Image URL'] || row['image_url'] || row['Image'] || '',
-        is_featured: (row['Featured'] || row['featured'] || '').toString().toLowerCase() === 'yes' || row['Featured'] === true
-      }));
+      // Parse standard horizontal rows
+      const parsedItems = jsonRows.map(row => {
+        const getVal = (keys) => {
+          for (const k of Object.keys(row)) {
+            const cleanK = k.trim().toLowerCase();
+            if (keys.some(target => cleanK === target.toLowerCase())) {
+              return row[k];
+            }
+          }
+          return '';
+        };
 
-      const validItems = itemsToImport.filter(item => item.name && item.brand && !isNaN(item.price));
+        return {
+          name: getVal(['name', 'watch name', 'model', 'title']),
+          brand: getVal(['brand', 'watch brand', 'make']),
+          price: Number(getVal(['price', 'price (php)', 'php price', 'amount'])),
+          stock: Number(getVal(['stock', 'quantity', 'units', 'stock quantity']) || 1),
+          condition: getVal(['condition', 'watch condition', 'status']) || 'Brand New',
+          gender: getVal(['gender', 'sex']) || 'Unisex',
+          description: getVal(['description', 'desc', 'details', 'specs']) || 'Imported via Excel.',
+          image_url: getVal(['image link', 'image url', 'image_url', 'image', 'photo link', 'photo url', 'picture']) || '',
+          is_featured: (getVal(['featured', 'is_featured', 'set as hero']) || '').toString().toLowerCase() === 'yes' || getVal(['featured']) === true
+        };
+      });
+
+      let validItems = parsedItems.filter(item => item.name && item.brand && !isNaN(item.price) && item.price > 0);
+
+      // Fallback: If horizontal rows gave 0 items, check if sheet was transposed vertically (headers in column A)
+      if (validItems.length === 0) {
+        const rawMatrix = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+        if (Array.isArray(rawMatrix) && rawMatrix.length > 0) {
+          const colCount = Math.max(...rawMatrix.map(r => Array.isArray(r) ? r.length : 0));
+          for (let c = 1; c < colCount; c++) {
+            const itemObj = {};
+            for (let r = 0; r < rawMatrix.length; r++) {
+              const rowArr = rawMatrix[r] || [];
+              const key = String(rowArr[0] || '').trim().toLowerCase();
+              const val = rowArr[c];
+              if (key && val !== undefined) itemObj[key] = val;
+            }
+
+            const name = itemObj['name'] || itemObj['watch name'] || itemObj['title'] || '';
+            const brand = itemObj['brand'] || itemObj['make'] || '';
+            const price = Number(itemObj['price'] || itemObj['price (php)'] || 0);
+            const stock = Number(itemObj['stock'] || itemObj['quantity'] || 1);
+            const condition = itemObj['condition'] || 'Brand New';
+            const gender = itemObj['gender'] || 'Unisex';
+            const description = itemObj['description'] || itemObj['details'] || 'Imported via Excel.';
+            const image_url = itemObj['image link'] || itemObj['image url'] || itemObj['image_url'] || itemObj['image'] || '';
+            const is_featured = (itemObj['featured'] || '').toString().toLowerCase() === 'yes' || itemObj['featured'] === true;
+
+            if (name && brand && !isNaN(price) && price > 0) {
+              validItems.push({ name, brand, price, stock, condition, gender, description, image_url, is_featured });
+            }
+          }
+        }
+      }
 
       if (validItems.length === 0) {
-        throw new Error('No valid watch rows found. Please check column headers: Name, Brand, Price, Stock, Condition, Gender, Description, Image Link');
+        throw new Error('No valid watch items found. Please check column headers: Name, Brand, Price, Stock, Condition, Gender, Description, Image Link');
       }
 
       const res = await batchImportWatches(validItems);
@@ -1644,78 +1728,77 @@ export default function AdminDashboardPage() {
 
             {/* Format Instructions Table */}
             <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Excel Import Table Format Guide:
-                </span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                <div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                    Excel Table Format Guide (Multiple Watches as Rows):
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Row 1 is Column Headers. Add 1 or more watch listings by adding more rows underneath!
+                  </div>
+                </div>
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
                   className="btn btn-secondary"
-                  style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  style={{ padding: '6px 14px', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
                 >
-                  <Download size={13} /> Download Template
+                  <Download size={14} color="var(--maroon-primary)" /> Download Template
                 </button>
               </div>
 
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.4' }}>
-                Upload an Excel file (<code>.xlsx</code> or <code>.csv</code>) with the following exact column header names:
-              </p>
-
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', fontSize: '0.78rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <div style={{ overflowX: 'auto', border: '1px solid #CBD5E1', borderRadius: '8px' }}>
+                <table style={{ width: '100%', fontSize: '0.75rem', borderCollapse: 'collapse', textAlign: 'left', background: '#FFFFFF' }}>
                   <thead>
-                    <tr style={{ background: '#EEF2F6', color: 'var(--text-primary)' }}>
-                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Column Header</th>
-                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Required?</th>
-                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Example</th>
+                    <tr style={{ background: '#EEF2F6', color: 'var(--text-primary)', borderBottom: '2px solid #CBD5E1' }}>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1' }}>Row #</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Name *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Brand *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Price *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Stock *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Condition *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1' }}>Gender</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Description *</th>
+                      <th style={{ padding: '8px', borderRight: '1px solid #CBD5E1', color: '#EF4444' }}>Image Link *</th>
+                      <th style={{ padding: '8px' }}>Featured</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Name</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Rolex Submariner Date 41mm</td>
+                    <tr style={{ borderBottom: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+                      <td style={{ padding: '8px', fontWeight: 700, borderRight: '1px solid #E2E8F0', color: 'var(--maroon-primary)' }}>Row 2 (Watch 1)</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Rolex Submariner Date 41mm</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Rolex</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>650000</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>2</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Brand New</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Men</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Oystersteel case...</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0', color: '#2563EB' }}>https://images.unsplash.com/...</td>
+                      <td style={{ padding: '8px' }}>Yes</td>
                     </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Brand</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Rolex</td>
+                    <tr style={{ borderBottom: '1px solid #E2E8F0' }}>
+                      <td style={{ padding: '8px', fontWeight: 700, borderRight: '1px solid #E2E8F0', color: 'var(--maroon-primary)' }}>Row 3 (Watch 2)</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Omega Speedmaster Moonwatch</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Omega</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>380000</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>1</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Pre-Owned</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Unisex</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Co-Axial Master Chronometer...</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0', color: '#2563EB' }}>https://images.unsplash.com/...</td>
+                      <td style={{ padding: '8px' }}>No</td>
                     </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Price</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>650000</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Stock</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>1</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Condition</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Brand New or Pre-Owned</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Gender</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: 'var(--text-muted)' }}>Optional</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Unisex, Men, or Women</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Description</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Oystersteel case with black dial...</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Image Link</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>https://... (direct URL to image)</td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Featured</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: 'var(--text-muted)' }}>Optional</td>
-                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Yes or No</td>
+                    <tr style={{ background: '#F8FAFC' }}>
+                      <td style={{ padding: '8px', fontWeight: 700, borderRight: '1px solid #E2E8F0', color: 'var(--maroon-primary)' }}>Row 4 (Watch 3)</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Seiko Presage Cocktail Time</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Seiko</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>45000</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>5</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Brand New</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Men</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0' }}>Automatic dial with leather strap...</td>
+                      <td style={{ padding: '8px', borderRight: '1px solid #E2E8F0', color: '#2563EB' }}>https://images.unsplash.com/...</td>
+                      <td style={{ padding: '8px' }}>No</td>
                     </tr>
                   </tbody>
                 </table>
