@@ -14,8 +14,8 @@ import AdminLoginPage from './pages/AdminLoginPage';
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminWatchFormPage from './pages/AdminWatchFormPage';
 
-// Secret custom URL route for brand owner access only
-export const OWNER_SECRET_PATH = '/watchlab-portal-x99';
+// Secret custom URL route for brand owner access only - STRICTLY ONLY THIS LINK
+export const OWNER_SECRET_PATH = '/watchlab-portal-bea-cebu-access-x99';
 
 // Protected Route Guard for Admin pages
 function ProtectedAdminRoute({ children }) {
@@ -72,9 +72,8 @@ export default function App() {
             <Route path="/watch/:id" element={<WatchDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Secret Admin Login Routes - ONLY accessible via secret link */}
+            {/* Secret Admin Login Route - STRICTLY ONLY accessible via secret link */}
             <Route path={OWNER_SECRET_PATH} element={<AdminLoginPage />} />
-            <Route path="/secret-admin-portal" element={<AdminLoginPage />} />
 
             {/* Block generic /admin, /admin/login, /admin-login (redirects to Home Page) */}
             <Route path="/admin/login" element={<Navigate to="/" replace />} />
