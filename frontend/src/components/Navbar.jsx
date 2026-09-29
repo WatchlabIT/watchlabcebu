@@ -160,40 +160,8 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Action Controls & Admin (Only visible when logged in) */}
+        {/* Action Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          {isAuthenticated && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <Link to="/admin/dashboard" className="btn" style={{
-                padding: '8px 16px',
-                fontSize: '0.85rem',
-                color: '#FFFFFF',
-                borderRadius: '20px',
-                border: '1px solid rgba(255, 255, 255, 0.4)',
-                background: 'rgba(255, 255, 255, 0.15)',
-                backdropFilter: 'blur(8px)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
-              }}>
-                <LayoutDashboard size={15} /> Admin Portal
-              </Link>
-              <button
-                onClick={logout}
-                className="btn"
-                style={{
-                  padding: '8px 12px',
-                  fontSize: '0.85rem',
-                  color: '#FFFFFF',
-                  borderRadius: '20px',
-                  background: 'rgba(0, 0, 0, 0.3)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)'
-                }}
-                title="Log out admin session"
-              >
-                <LogOut size={15} />
-              </button>
-            </div>
-          )}
-
           {/* Mobile Hamburger Toggle */}
           <button
             onClick={toggleMobileMenu}
@@ -290,16 +258,6 @@ export default function Navbar() {
                 </Link>
               );
             })}
-            {isAuthenticated && (
-              <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <Link to="/admin/dashboard" onClick={closeMobileMenu} className="btn btn-maroon">
-                  <LayoutDashboard size={18} /> Admin Dashboard
-                </Link>
-                <button onClick={() => { logout(); closeMobileMenu(); }} className="btn btn-secondary">
-                  <LogOut size={18} /> Logout Admin Account
-                </button>
-              </div>
-            )}
           </div>
         </>
       )}
