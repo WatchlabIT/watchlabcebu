@@ -125,30 +125,10 @@ const dbOps = {
     return admins.find(a => a && a.id === Number(id));
   },
 
-  // Watches (Google Sheets as primary live database with ultra-fast local memory cache)
-  getRawWatchesList: async (forceRefresh = false) => {
+  // Watches list from Railway database
+  getRawWatchesList: async () => {
     const db = loadDatabase();
-    const now = Date.now();
-
-    // Serve instantly from local DB if cache is fresh and not forced
-    if (!forceRefresh && lastWatchesFetchTime > 0 && (now - lastWatchesFetchTime < CACHE_TTL_MS)) {
-      return (db && Array.isArray(db.watches)) ? db.watches : [];
-    }
-
-    try {
-      const { fetchLiveWatchesFromSheets } = require('./services/googleSheetsService');
-      const liveWatches = await fetchLiveWatchesFromSheets();
-      if (liveWatches && Array.isArray(liveWatches)) {
-        db.watches = liveWatches;
-        saveDatabase(db);
-        lastWatchesFetchTime = Date.now();
-        return liveWatches;
-      }
-    } catch (err) {
-      console.warn('Google Sheets live fetch fallback to local DB:', err.message);
-    }
-    const dbData = loadDatabase();
-    return (dbData && Array.isArray(dbData.watches)) ? dbData.watches : [];
+    return (db && Array.isArray(db.watches)) ? db.watches : [];
   },
 
   getAllWatches: async ({ brand, condition, search } = {}) => {
@@ -313,28 +293,9 @@ const dbOps = {
   },
 
   // Transactions CRUD Operations
-  getAllTransactions: async (forceRefresh = false) => {
+  getAllTransactions: async () => {
     const db = loadDatabase();
-    const now = Date.now();
-
-    if (!forceRefresh && lastTxFetchTime > 0 && (now - lastTxFetchTime < CACHE_TTL_MS)) {
-      return (db && Array.isArray(db.transactions)) ? db.transactions : [];
-    }
-
-    try {
-      const { fetchLiveTransactionsFromSheets } = require('./services/googleSheetsService');
-      const liveTx = await fetchLiveTransactionsFromSheets();
-      if (liveTx && Array.isArray(liveTx)) {
-        db.transactions = liveTx;
-        saveDatabase(db);
-        lastTxFetchTime = Date.now();
-        return liveTx;
-      }
-    } catch (err) {
-      console.warn('Google Sheets live transaction fetch fallback:', err.message);
-    }
-    const dbData = loadDatabase();
-    return (dbData && Array.isArray(dbData.transactions)) ? dbData.transactions : [];
+    return (db && Array.isArray(db.transactions)) ? db.transactions : [];
   },
 
   getTransactionById: async (id) => {
