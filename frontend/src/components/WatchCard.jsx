@@ -4,24 +4,28 @@ import { MessageSquare, Eye } from 'lucide-react';
 import { formatPrice, getWhatsAppUrl, getImageUrl, getMessengerUrl } from '../utils/format';
 import ProtectedImage from './ProtectedImage';
 
-export default function WatchCard({ watch }) {
+export default function WatchCard({ watch, viewMode }) {
   const isAvailable = watch.stock > 0;
+  const isList = viewMode === 'list';
 
   return (
-    <div className="glass-card watch-card" style={{
+    <div className={`glass-card watch-card ${isList ? 'watch-card-list' : ''}`} style={{
       display: 'flex',
-      flexDirection: 'column',
+      flexDirection: isList ? 'row' : 'column',
       overflow: 'hidden',
       height: '100%',
       position: 'relative'
     }}>
       {/* Top Image Container - Clean Unobstructed Photo */}
-      <div style={{
+      <div className="watch-card-img-container" style={{
         position: 'relative',
-        width: '100%',
-        paddingTop: '80%', // 4:3 Aspect Ratio
+        width: isList ? '130px' : '100%',
+        minWidth: isList ? '130px' : undefined,
+        height: isList ? '130px' : undefined,
+        paddingTop: isList ? 0 : '80%', // 4:3 Aspect Ratio for Grid
         background: '#F9FAFB',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        flexShrink: 0
       }}>
         <ProtectedImage
           src={getImageUrl(watch.image_url)}
@@ -38,22 +42,22 @@ export default function WatchCard({ watch }) {
       </div>
 
       {/* Card Content Body */}
-      <div style={{
-        padding: '20px',
+      <div className="watch-card-body" style={{
+        padding: isList ? '14px 18px' : '20px',
         display: 'flex',
         flexDirection: 'column',
         flexGrow: 1,
         justifyContent: 'space-between',
-        gap: '14px'
+        gap: isList ? '8px' : '14px'
       }}>
         <div>
           {/* Top Line: Brand & Gender */}
-          <div style={{
+          <div className="watch-card-header" style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: '8px',
-            marginBottom: '6px'
+            marginBottom: '4px'
           }}>
             <div style={{
               fontSize: '0.75rem',
@@ -83,14 +87,14 @@ export default function WatchCard({ watch }) {
           </div>
 
           {/* Watch Title */}
-          <h3 className="font-serif" style={{
-            fontSize: '1.15rem',
+          <h3 className="font-serif watch-card-title" style={{
+            fontSize: isList ? '1.05rem' : '1.15rem',
             fontWeight: 700,
             color: 'var(--text-primary)',
             lineHeight: '1.35',
-            marginBottom: '6px',
+            marginBottom: '4px',
             display: '-webkit-box',
-            WebkitLineClamp: 2,
+            WebkitLineClamp: isList ? 1 : 2,
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden'
           }}>
@@ -98,17 +102,17 @@ export default function WatchCard({ watch }) {
           </h3>
 
           {/* Price */}
-          <div style={{
-            fontSize: '1.35rem',
+          <div className="watch-card-price" style={{
+            fontSize: isList ? '1.2rem' : '1.35rem',
             fontWeight: 800,
             color: 'var(--maroon-primary)',
-            marginBottom: '10px'
+            marginBottom: isList ? '6px' : '10px'
           }}>
             {formatPrice(watch.price)}
           </div>
 
           {/* Creative Badges Container inside Card Body */}
-          <div style={{
+          <div className="watch-card-badges" style={{
             display: 'flex',
             flexWrap: 'wrap',
             gap: '6px',
@@ -139,18 +143,18 @@ export default function WatchCard({ watch }) {
         </div>
 
         {/* Action Buttons */}
-        <div style={{
+        <div className="watch-card-actions" style={{
           display: 'grid',
           gridTemplateColumns: '1fr 1fr',
           gap: '10px',
           marginTop: 'auto',
-          paddingTop: '12px',
+          paddingTop: isList ? '8px' : '12px',
           borderTop: '1px solid var(--border-glass)'
         }}>
           <Link
             to={`/watch/${watch.id}`}
             className="btn btn-secondary"
-            style={{ fontSize: '0.82rem', padding: '10px 8px' }}
+            style={{ fontSize: '0.82rem', padding: isList ? '8px 6px' : '10px 8px' }}
           >
             <Eye size={15} /> Details
           </Link>
@@ -162,7 +166,7 @@ export default function WatchCard({ watch }) {
             className="btn"
             style={{
               fontSize: '0.82rem',
-              padding: '10px 8px',
+              padding: isList ? '8px 6px' : '10px 8px',
               background: 'linear-gradient(135deg, #0084FF 0%, #00C6FF 100%)',
               color: '#FFFFFF'
             }}

@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, RefreshCw, X, SlidersHorizontal } from 'lucide-react';
+import { Search, Filter, RefreshCw, X, SlidersHorizontal, LayoutGrid, List } from 'lucide-react';
 import WatchCard from '../components/WatchCard';
 import ScrollReveal from '../components/ScrollReveal';
 import { fetchWatches, fetchBrands } from '../utils/api';
 
 export default function CollectionPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  
+
   const [watches, setWatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState(() => (typeof window !== 'undefined' && window.innerWidth <= 768 ? 'list' : 'grid'));
 
   const selectedCondition = searchParams.get('condition') || 'All';
   const selectedGender = searchParams.get('gender') || 'All';
@@ -227,18 +228,83 @@ export default function CollectionPage() {
           </div>
         ) : (
           <div>
-            <div style={{ marginBottom: '20px', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              Showing <strong style={{ color: 'var(--maroon-primary)' }}>{filteredWatches.length}</strong> watch{filteredWatches.length === 1 ? '' : 'es'} in inventory
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: '20px',
+              flexWrap: 'wrap',
+              gap: '12px'
+            }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                Showing <strong style={{ color: 'var(--maroon-primary)' }}>{filteredWatches.length}</strong> watch{filteredWatches.length === 1 ? '' : 'es'} in inventory
+              </div>
+
+              {/* View Mode Toggle: Grid vs List */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: '#FFFFFF',
+                border: '1px solid #E5E7EB',
+                borderRadius: '20px',
+                padding: '3px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('grid')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '16px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: viewMode === 'grid' ? 'var(--maroon-gradient)' : 'transparent',
+                    color: viewMode === 'grid' ? '#FFFFFF' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <LayoutGrid size={15} /> Grid
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('list')}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 14px',
+                    borderRadius: '16px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    background: viewMode === 'list' ? 'var(--maroon-gradient)' : 'transparent',
+                    color: viewMode === 'list' ? '#FFFFFF' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <List size={15} /> List
+                </button>
+              </div>
             </div>
 
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
-              gap: '24px'
-            }}>
+            <div
+              className={viewMode === 'list' ? 'watch-list-container' : 'watch-grid-container'}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: viewMode === 'list' ? '1fr' : 'repeat(auto-fill, minmax(250px, 1fr))',
+                gap: viewMode === 'list' ? '14px' : '24px'
+              }}
+            >
               {filteredWatches.map((watch, idx) => (
-                <ScrollReveal key={watch.id} animation="up" delay={(idx % 4) * 80}>
-                  <WatchCard watch={watch} />
+                <ScrollReveal key={watch.id} animation="up" delay={(idx % 4) * 60}>
+                  <WatchCard watch={watch} viewMode={viewMode} />
                 </ScrollReveal>
               ))}
             </div>

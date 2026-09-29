@@ -568,6 +568,64 @@ img, .protected-image {
   will-change: transform, opacity;
 }
 
+/* Responsive Mobile Watch Collection List View */
+@media (max-width: 768px) {
+  .watch-card-list {
+    flex-direction: row !important;
+    align-items: center !important;
+    padding: 10px 12px !important;
+    gap: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .watch-card-list .watch-card-img-container {
+    width: 95px !important;
+    min-width: 95px !important;
+    height: 95px !important;
+    padding-top: 0 !important;
+    border-radius: 12px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .watch-card-list .watch-card-body {
+    padding: 0 !important;
+    gap: 4px !important;
+    justify-content: center !important;
+    flex-grow: 1 !important;
+  }
+
+  .watch-card-list .watch-card-header {
+    margin-bottom: 2px !important;
+  }
+
+  .watch-card-list .watch-card-title {
+    font-size: 0.95rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 2px !important;
+    -webkit-line-clamp: 1 !important;
+  }
+
+  .watch-card-list .watch-card-price {
+    font-size: 1.1rem !important;
+    margin-bottom: 4px !important;
+  }
+
+  .watch-card-list .watch-card-badges {
+    margin-bottom: 4px !important;
+  }
+
+  .watch-card-list .watch-card-actions {
+    margin-top: 4px !important;
+    padding-top: 6px !important;
+    gap: 6px !important;
+  }
+
+  .watch-card-list .watch-card-actions .btn {
+    padding: 6px 10px !important;
+    font-size: 0.76rem !important;
+  }
+}
+
 
 
 
