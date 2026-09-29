@@ -521,6 +521,28 @@ img, .protected-image {
   }
 }
 
+@keyframes heroFadeOut {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.96) translateX(-12px);
+  }
+}
+
+@keyframes heroTextFadeOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
 .hero-animate-next {
   animation: heroSlideFadeInNext 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
@@ -531,10 +553,21 @@ img, .protected-image {
   will-change: transform, opacity;
 }
 
+.hero-animate-fade-out {
+  animation: heroFadeOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
 .hero-text-animate {
   animation: heroTextFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   will-change: transform, opacity;
 }
+
+.hero-text-fade-out {
+  animation: heroTextFadeOut 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
 
 
 

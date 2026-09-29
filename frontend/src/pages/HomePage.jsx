@@ -11,6 +11,7 @@ export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [heroWatches, setHeroWatches] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
+  const [outgoingHero, setOutgoingHero] = useState(null);
   const [slideDirection, setSlideDirection] = useState('next');
   const [isPaused, setIsPaused] = useState(false);
   const [featuredTransactions, setFeaturedTransactions] = useState([]);
@@ -53,33 +54,52 @@ export default function HomePage() {
     load();
   }, []);
 
+  const triggerSlideChange = (newIndex, direction) => {
+    if (newIndex === heroIndex || heroWatches.length <= 1) return;
+    setOutgoingHero(heroWatches[heroIndex] || null);
+    setSlideDirection(direction);
+    setHeroIndex(newIndex);
+  };
+
   const handleNextSlide = () => {
     if (heroWatches.length <= 1) return;
-    setSlideDirection('next');
-    setHeroIndex(prev => (prev + 1) % heroWatches.length);
+    const nextIdx = (heroIndex + 1) % heroWatches.length;
+    triggerSlideChange(nextIdx, 'next');
   };
 
   const handlePrevSlide = () => {
     if (heroWatches.length <= 1) return;
-    setSlideDirection('prev');
-    setHeroIndex(prev => (prev - 1 + heroWatches.length) % heroWatches.length);
+    const prevIdx = (heroIndex - 1 + heroWatches.length) % heroWatches.length;
+    triggerSlideChange(prevIdx, 'prev');
   };
 
   const handleDotClick = (idx) => {
     if (idx === heroIndex) return;
-    setSlideDirection(idx > heroIndex ? 'next' : 'prev');
-    setHeroIndex(idx);
+    triggerSlideChange(idx, idx > heroIndex ? 'next' : 'prev');
   };
+
+  // Clear outgoing hero after cross-fade animation completes (500ms)
+  useEffect(() => {
+    if (!outgoingHero) return;
+    const timer = setTimeout(() => {
+      setOutgoingHero(null);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [outgoingHero]);
 
   // Auto-play timer for Hero Slideshow (cycles every 5s unless hovered)
   useEffect(() => {
     if (heroWatches.length <= 1 || isPaused) return;
     const interval = setInterval(() => {
-      setSlideDirection('next');
-      setHeroIndex(prev => (prev + 1) % heroWatches.length);
+      setHeroIndex(currentIdx => {
+        const nextIdx = (currentIdx + 1) % heroWatches.length;
+        setOutgoingHero(heroWatches[currentIdx] || null);
+        setSlideDirection('next');
+        return nextIdx;
+      });
     }, 5000);
     return () => clearInterval(interval);
-  }, [heroWatches.length, isPaused]);
+  }, [heroWatches, isPaused]);
 
   const currentHero = heroWatches[heroIndex] || heroWatches[0] || null;
 
@@ -189,8 +209,30 @@ export default function HomePage() {
                   borderRadius: '24px',
                   overflow: 'hidden'
                 }}>
-                  {/* Current Active Watch Image */}
+                  {/* Current Active Watch Image with Smooth Cross-Fade */}
                   <div style={{ position: 'relative', height: '420px', borderRadius: '16px', overflow: 'hidden' }}>
+                    {/* Outgoing Slide (Fading Out) */}
+                    {outgoingHero && (
+                      <ProtectedImage
+                        key={`outgoing-hero-${outgoingHero.id || 'out'}`}
+                        src={getImageUrl(outgoingHero.image_url)}
+                        alt={outgoingHero.name}
+                        className="hero-animate-fade-out"
+                        style={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          borderRadius: '16px',
+                          display: 'block',
+                          zIndex: 1
+                        }}
+                      />
+                    )}
+
+                    {/* Incoming Slide (Fading / Sliding In) */}
                     {currentHero ? (
                       <ProtectedImage
                         key={`hero-img-${currentHero.id || heroIndex}-${heroIndex}`}
@@ -198,11 +240,13 @@ export default function HomePage() {
                         alt={currentHero.name}
                         className={slideDirection === 'next' ? 'hero-animate-next' : 'hero-animate-prev'}
                         style={{
+                          position: 'relative',
                           width: '100%',
                           height: '100%',
                           objectFit: 'cover',
                           borderRadius: '16px',
-                          display: 'block'
+                          display: 'block',
+                          zIndex: 2
                         }}
                       />
                     ) : (
