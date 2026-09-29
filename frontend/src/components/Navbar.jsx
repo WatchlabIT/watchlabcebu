@@ -144,16 +144,6 @@ export default function Navbar() {
                   backdropFilter: active ? 'blur(8px)' : 'none'
                 }}
               >
-                {active && (
-                  <span style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    background: '#FFD700',
-                    boxShadow: '0 0 8px #FFD700',
-                    display: 'inline-block'
-                  }} />
-                )}
                 {link.name}
               </Link>
             );
