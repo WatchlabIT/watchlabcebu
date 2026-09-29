@@ -139,7 +139,7 @@ export default function AdminWatchFormPage() {
       if (imageFile) {
         formData.append('image', imageFile);
       } else {
-        formData.append('image_url', imageUrlInput);
+        formData.append('image_url', getImageUrl(imageUrlInput));
       }
 
       if (isEditMode) {

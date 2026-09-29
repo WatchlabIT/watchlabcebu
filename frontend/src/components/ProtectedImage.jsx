@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-export default function ProtectedImage({ src, alt, style = {}, className = '', ...props }) {
+const DEFAULT_FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000';
+
+export default function ProtectedImage({ src, alt, style = {}, className = '', fallbackSrc = DEFAULT_FALLBACK_IMAGE, ...props }) {
+  const [imgSrc, setImgSrc] = useState(src || fallbackSrc);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(src || fallbackSrc);
+    setHasError(false);
+  }, [src, fallbackSrc]);
+
   const handlePrevent = (e) => {
     e.preventDefault();
     e.stopPropagation();
     return false;
+  };
+
+  const handleError = () => {
+    if (!hasError) {
+      setHasError(true);
+      setImgSrc(fallbackSrc);
+    }
   };
 
   return (
@@ -26,8 +43,9 @@ export default function ProtectedImage({ src, alt, style = {}, className = '', .
     >
       {/* Image Element with Inline Protection Props */}
       <img
-        src={src}
+        src={imgSrc}
         alt={alt}
+        onError={handleError}
         draggable={false}
         onContextMenu={handlePrevent}
         onDragStart={handlePrevent}

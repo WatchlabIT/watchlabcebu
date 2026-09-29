@@ -219,7 +219,7 @@ export default function AdminDashboardPage() {
       if (watchImageFile) {
         formData.append('image', watchImageFile);
       } else {
-        formData.append('image_url', watchImageUrlInput);
+        formData.append('image_url', getImageUrl(watchImageUrlInput));
       }
 
       if (editingWatch) {
@@ -281,7 +281,7 @@ export default function AdminDashboardPage() {
       if (txImageFile) {
         formData.append('image', txImageFile);
       } else {
-        formData.append('image_url', txImageUrl);
+        formData.append('image_url', getImageUrl(txImageUrl));
       }
 
       if (editingTx) {

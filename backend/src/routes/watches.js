@@ -143,6 +143,13 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
     if (req.file) {
       if (req.file.buffer) {
         image_url = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      } else if (req.file.path && fs.existsSync(req.file.path)) {
+        try {
+          const fileBuf = fs.readFileSync(req.file.path);
+          image_url = `data:${req.file.mimetype};base64,${fileBuf.toString('base64')}`;
+        } catch (e) {
+          image_url = `/uploads/${req.file.filename}`;
+        }
       } else {
         image_url = `/uploads/${req.file.filename}`;
       }
@@ -186,6 +193,13 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
     if (req.file) {
       if (req.file.buffer) {
         image_url = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+      } else if (req.file.path && fs.existsSync(req.file.path)) {
+        try {
+          const fileBuf = fs.readFileSync(req.file.path);
+          image_url = `data:${req.file.mimetype};base64,${fileBuf.toString('base64')}`;
+        } catch (e) {
+          image_url = `/uploads/${req.file.filename}`;
+        }
       } else {
         image_url = `/uploads/${req.file.filename}`;
       }
