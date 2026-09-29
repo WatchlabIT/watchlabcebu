@@ -85,7 +85,9 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    const exportRows = watches.map(w => ({
+    const sortedWatches = [...watches].sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
+
+    const exportRows = sortedWatches.map(w => ({
       'ID': w.id,
       'Name': w.name || '',
       'Brand': w.brand || '',
@@ -591,10 +593,12 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const filteredWatches = watches.filter(w =>
-    w.name.toLowerCase().includes(search.toLowerCase()) ||
-    w.brand.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredWatches = watches
+    .filter(w =>
+      w.name.toLowerCase().includes(search.toLowerCase()) ||
+      w.brand.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
 
   if (loading) {
     return (

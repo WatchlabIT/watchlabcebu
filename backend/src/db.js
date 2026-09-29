@@ -158,7 +158,7 @@ const dbOps = {
       );
     }
 
-    result.sort((a, b) => new Date(b.created_at || b.updated_at || 0) - new Date(a.created_at || a.updated_at || 0));
+    result.sort((a, b) => Number(a.id || 0) - Number(b.id || 0));
     return result;
   },
 
@@ -207,7 +207,7 @@ const dbOps = {
     if (watchData.is_featured) {
       newWatch.is_featured = true;
     }
-    db.watches.unshift(newWatch);
+    db.watches.push(newWatch);
     saveDatabase(db);
     lastWatchesFetchTime = Date.now();
     return newWatch;
