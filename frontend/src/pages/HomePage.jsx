@@ -192,6 +192,18 @@ export default function HomePage() {
                       />
                     )}
 
+                    {/* Gradual Bottom Gradient Overlay for Seamless Text Readability */}
+                    <div style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: '60%',
+                      background: 'linear-gradient(to top, rgba(12, 14, 18, 0.95) 0%, rgba(12, 14, 18, 0.72) 55%, rgba(0, 0, 0, 0) 100%)',
+                      pointerEvents: 'none',
+                      zIndex: 5
+                    }} />
+
                     {/* Slideshow Arrow Navigation (Show if more than 1 hero watch) */}
                     {heroWatches.length > 1 && (
                       <>
@@ -204,22 +216,22 @@ export default function HomePage() {
                           aria-label="Previous Slide"
                           style={{
                             position: 'absolute',
-                            top: '50%',
+                            top: '40%',
                             left: '12px',
                             transform: 'translateY(-50%)',
                             width: '38px',
                             height: '38px',
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.88)',
+                            background: 'rgba(255, 255, 255, 0.85)',
                             backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(0,0,0,0.08)',
+                            border: '1px solid rgba(255,255,255,0.2)',
                             color: 'var(--text-primary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             zIndex: 10,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
                             transition: 'all 0.2s ease'
                           }}
                         >
@@ -235,22 +247,22 @@ export default function HomePage() {
                           aria-label="Next Slide"
                           style={{
                             position: 'absolute',
-                            top: '50%',
+                            top: '40%',
                             right: '12px',
                             transform: 'translateY(-50%)',
                             width: '38px',
                             height: '38px',
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.88)',
+                            background: 'rgba(255, 255, 255, 0.85)',
                             backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(0,0,0,0.08)',
+                            border: '1px solid rgba(255,255,255,0.2)',
                             color: 'var(--text-primary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             zIndex: 10,
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
                             transition: 'all 0.2s ease'
                           }}
                         >
@@ -258,80 +270,120 @@ export default function HomePage() {
                         </button>
                       </>
                     )}
-                  </div>
 
-                  {/* Floating Feature Badge Overlay */}
-                  {currentHero && (
-                    <div style={{
-                      position: 'absolute',
-                      bottom: '28px',
-                      left: '28px',
-                      right: '28px',
-                      background: 'rgba(255, 255, 255, 0.95)',
-                      backdropFilter: 'blur(12px)',
-                      padding: '16px 20px',
-                      borderRadius: '16px',
-                      border: '1px solid var(--border-subtle)',
-                      boxShadow: '0 10px 25px rgba(0,0,0,0.12)',
-                      zIndex: 8
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--maroon-primary)', fontWeight: 800, letterSpacing: '1px', textTransform: 'uppercase' }}>
-                          FEATURED TIMEPIECE {heroWatches.length > 1 ? `(${heroIndex + 1}/${heroWatches.length})` : ''}
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                    {/* Gradual Overlay Text & Content */}
+                    {currentHero && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        padding: '20px 24px',
+                        zIndex: 8,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px'
+                      }}>
+                        {/* Top Line: Label & Condition Badge */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                          <div style={{
+                            fontSize: '0.72rem',
+                            color: '#FCA5A5',
+                            fontWeight: 800,
+                            letterSpacing: '1.2px',
+                            textTransform: 'uppercase'
+                          }}>
+                            FEATURED TIMEPIECE {heroWatches.length > 1 ? `(${heroIndex + 1}/${heroWatches.length})` : ''}
+                          </div>
+
                           {currentHero.condition && (
-                            <span className={currentHero.condition === 'Brand New' ? 'badge badge-brand-new' : 'badge badge-pre-owned'} style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                            <span style={{
+                              fontSize: '0.68rem',
+                              fontWeight: 700,
+                              padding: '3px 10px',
+                              borderRadius: '12px',
+                              background: currentHero.condition === 'Brand New' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.2)',
+                              color: '#FFFFFF',
+                              backdropFilter: 'blur(6px)',
+                              border: '1px solid rgba(255, 255, 255, 0.25)',
+                              letterSpacing: '0.5px'
+                            }}>
                               {currentHero.condition}
                             </span>
                           )}
                         </div>
-                      </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                        <div>
-                          <Link to={`/watch/${currentHero.id}`} className="font-serif hover-underline" style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)', display: 'block', textDecoration: 'none' }}>
-                            {currentHero.name}
-                          </Link>
-                          <div style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--maroon-primary)', marginTop: '2px' }}>
-                            {formatPrice(currentHero.price)}
-                          </div>
-                        </div>
-
-                        <Link
-                          to={`/watch/${currentHero.id}`}
-                          className="btn btn-secondary"
-                          style={{ fontSize: '0.8rem', padding: '8px 14px', flexShrink: 0 }}
-                        >
-                          View Details <ArrowRight size={14} />
-                        </Link>
-                      </div>
-
-                      {/* Pagination Indicator Dots */}
-                      {heroWatches.length > 1 && (
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '12px' }}>
-                          {heroWatches.map((_, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => setHeroIndex(idx)}
-                              aria-label={`Go to slide ${idx + 1}`}
+                        {/* Title & Price Row */}
+                        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: '12px' }}>
+                          <div>
+                            <Link
+                              to={`/watch/${currentHero.id}`}
+                              className="font-serif"
                               style={{
-                                width: idx === heroIndex ? '20px' : '6px',
-                                height: '6px',
-                                borderRadius: '3px',
-                                background: idx === heroIndex ? 'var(--maroon-primary)' : '#D1D5DB',
-                                border: 'none',
-                                padding: 0,
-                                cursor: 'pointer',
-                                transition: 'all 0.3s ease'
+                                fontSize: '1.25rem',
+                                fontWeight: 700,
+                                color: '#FFFFFF',
+                                display: 'block',
+                                textDecoration: 'none',
+                                lineHeight: '1.3'
                               }}
-                            />
-                          ))}
+                            >
+                              {currentHero.name}
+                            </Link>
+                            <div style={{
+                              fontSize: '1.2rem',
+                              fontWeight: 800,
+                              color: '#FBBF24',
+                              marginTop: '2px'
+                            }}>
+                              {formatPrice(currentHero.price)}
+                            </div>
+                          </div>
+
+                          <Link
+                            to={`/watch/${currentHero.id}`}
+                            className="btn"
+                            style={{
+                              fontSize: '0.82rem',
+                              padding: '8px 16px',
+                              borderRadius: '20px',
+                              background: '#FFFFFF',
+                              color: '#111827',
+                              fontWeight: 700,
+                              flexShrink: 0,
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                            }}
+                          >
+                            View Details <ArrowRight size={14} />
+                          </Link>
                         </div>
-                      )}
-                    </div>
-                  )}
+
+                        {/* Pagination Indicator Dots */}
+                        {heroWatches.length > 1 && (
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '6px' }}>
+                            {heroWatches.map((_, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => setHeroIndex(idx)}
+                                aria-label={`Go to slide ${idx + 1}`}
+                                style={{
+                                  width: idx === heroIndex ? '22px' : '6px',
+                                  height: '6px',
+                                  borderRadius: '3px',
+                                  background: idx === heroIndex ? '#FFFFFF' : 'rgba(255, 255, 255, 0.35)',
+                                  border: 'none',
+                                  padding: 0,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.3s ease'
+                                }}
+                              />
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
