@@ -94,7 +94,6 @@ export default function AdminDashboardPage() {
       'Condition': w.condition || 'Brand New',
       'Gender': w.gender || 'Unisex',
       'Description': w.description || '',
-      'Image Link': w.image_url || (Array.isArray(w.images) && w.images[0]) || '',
       'Featured': w.is_featured ? 'Yes' : 'No',
       'Created At': w.created_at || ''
     }));
