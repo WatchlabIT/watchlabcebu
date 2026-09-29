@@ -185,6 +185,10 @@ const dbOps = {
   createWatch: (watchData) => {
     const db = loadDatabase();
     const maxId = db.watches.reduce((max, w) => (Number(w.id) > max ? Number(w.id) : max), 0);
+    const imagesArray = Array.isArray(watchData.images) && watchData.images.length > 0
+      ? watchData.images
+      : (watchData.image_url ? [watchData.image_url] : []);
+
     const newWatch = {
       id: maxId + 1,
       name: watchData.name,
@@ -194,7 +198,8 @@ const dbOps = {
       condition: watchData.condition,
       gender: watchData.gender || 'Unisex',
       description: watchData.description,
-      image_url: watchData.image_url,
+      image_url: imagesArray[0] || watchData.image_url || '',
+      images: imagesArray,
       is_featured: watchData.is_featured ? true : false,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -215,6 +220,10 @@ const dbOps = {
     if (index === -1) return null;
 
     const existing = db.watches[index];
+    const newImages = watchData.images !== undefined
+      ? (Array.isArray(watchData.images) ? watchData.images : [watchData.images])
+      : (existing.images || (existing.image_url ? [existing.image_url] : []));
+
     const updatedWatch = {
       ...existing,
       name: watchData.name !== undefined ? watchData.name : existing.name,
@@ -224,7 +233,8 @@ const dbOps = {
       condition: watchData.condition !== undefined ? watchData.condition : existing.condition,
       gender: watchData.gender !== undefined ? watchData.gender : (existing.gender || 'Unisex'),
       description: watchData.description !== undefined ? watchData.description : existing.description,
-      image_url: watchData.image_url !== undefined ? watchData.image_url : existing.image_url,
+      images: newImages,
+      image_url: newImages[0] || (watchData.image_url !== undefined ? watchData.image_url : existing.image_url),
       is_featured: watchData.is_featured !== undefined ? !!watchData.is_featured : (existing.is_featured || false),
       updated_at: new Date().toISOString()
     };

@@ -11,6 +11,7 @@ export default function WatchDetailPage() {
   const [watch, setWatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedImgIndex, setSelectedImgIndex] = useState(0);
 
   useEffect(() => {
     async function load() {
@@ -19,6 +20,7 @@ export default function WatchDetailPage() {
         const res = await fetchWatchById(id);
         if (res && res.watch) {
           setWatch(res.watch);
+          setSelectedImgIndex(0);
         } else {
           setError('Watch listing not found.');
         }
@@ -87,30 +89,79 @@ export default function WatchDetailPage() {
           gap: '48px',
           alignItems: 'start'
         }}>
-          {/* Left: Large Watch Image */}
-          <div className="glass-card" style={{ padding: '16px', borderRadius: '24px', overflow: 'hidden' }}>
-            <div style={{
-              width: '100%',
-              paddingTop: '100%', // 1:1 Square Ratio
-              position: 'relative',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              background: '#F3F4F6'
-            }}>
-              <ProtectedImage
-                src={getImageUrl(watch.image_url)}
-                alt={watch.name}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
+          {/* Left: Watch Images & Gallery Thumbnails */}
+          {(() => {
+            const watchImages = Array.isArray(watch.images) && watch.images.length > 0
+              ? watch.images
+              : [watch.image_url];
+            const currentImg = watchImages[selectedImgIndex] || watch.image_url;
+
+            return (
+              <div className="glass-card" style={{ padding: '16px', borderRadius: '24px', overflow: 'hidden' }}>
+                <div style={{
                   width: '100%',
-                  height: '100%',
-                  objectFit: 'cover'
-                }}
-              />
-            </div>
-          </div>
+                  paddingTop: '100%', // 1:1 Square Ratio
+                  position: 'relative',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  background: '#F3F4F6'
+                }}>
+                  <ProtectedImage
+                    src={getImageUrl(currentImg)}
+                    alt={watch.name}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      transition: 'all 0.3s ease'
+                    }}
+                  />
+                </div>
+
+                {/* Gallery Thumbnails if multiple photos */}
+                {watchImages.length > 1 && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    marginTop: '16px',
+                    overflowX: 'auto',
+                    paddingBottom: '4px'
+                  }}>
+                    {watchImages.map((img, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setSelectedImgIndex(idx)}
+                        style={{
+                          width: '64px',
+                          height: '64px',
+                          borderRadius: '12px',
+                          overflow: 'hidden',
+                          border: selectedImgIndex === idx ? '2px solid var(--maroon-primary)' : '2px solid transparent',
+                          padding: 0,
+                          background: 'none',
+                          cursor: 'pointer',
+                          flexShrink: 0,
+                          opacity: selectedImgIndex === idx ? 1 : 0.6,
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        <ProtectedImage
+                          src={getImageUrl(img)}
+                          alt={`${watch.name} view ${idx + 1}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Right: Watch Info */}
           <div>

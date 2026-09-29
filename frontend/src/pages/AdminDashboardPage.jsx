@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, ChevronDown, Image as ImageIcon, AlertCircle } from 'lucide-react';
-import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, ChevronDown, Image as ImageIcon, AlertCircle, Download, FileSpreadsheet } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, batchImportWatches, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import { compressImageFile } from '../utils/imageCompressor';
 import ConfirmModal from '../components/ConfirmModal';
@@ -42,6 +43,117 @@ export default function AdminDashboardPage() {
   const [watchError, setWatchError] = useState(null);
 
   const brandOptions = ['Rolex', 'Omega', 'Seiko', 'Tissot', 'Casio', 'Audemars Piguet', 'Patek Philippe', 'Cartier', 'Tag Heuer', 'Other'];
+
+  // Excel Import & Export States
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState(null);
+  const [importSuccess, setImportSuccess] = useState(null);
+
+  const handleExportExcel = () => {
+    if (!watches || watches.length === 0) {
+      alert('No watch inventory data available to export.');
+      return;
+    }
+
+    const exportRows = watches.map(w => ({
+      'ID': w.id,
+      'Name': w.name || '',
+      'Brand': w.brand || '',
+      'Price (PHP)': w.price || 0,
+      'Stock': w.stock || 0,
+      'Condition': w.condition || 'Brand New',
+      'Gender': w.gender || 'Unisex',
+      'Description': w.description || '',
+      'Image Link': w.image_url || (Array.isArray(w.images) && w.images[0]) || '',
+      'Featured': w.is_featured ? 'Yes' : 'No',
+      'Created At': w.created_at || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportRows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Watch Catalog');
+    XLSX.writeFile(workbook, `WatchLab_Inventory_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
+  const handleDownloadTemplate = () => {
+    const sampleData = [
+      {
+        'Name': 'Rolex Submariner Date 41mm',
+        'Brand': 'Rolex',
+        'Price': 650000,
+        'Stock': 2,
+        'Condition': 'Brand New',
+        'Gender': 'Men',
+        'Description': 'Oystersteel case with black Cerachrom bezel and oyster bracelet. Complete box & papers.',
+        'Image Link': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000',
+        'Featured': 'Yes'
+      },
+      {
+        'Name': 'Omega Speedmaster Professional Moonwatch',
+        'Brand': 'Omega',
+        'Price': 380000,
+        'Stock': 1,
+        'Condition': 'Pre-Owned',
+        'Gender': 'Unisex',
+        'Description': 'Co-Axial Master Chronometer Chronograph 42mm with hesalite glass.',
+        'Image Link': 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1000',
+        'Featured': 'No'
+      }
+    ];
+
+    const worksheet = XLSX.utils.json_to_sheet(sampleData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Import Template');
+    XLSX.writeFile(workbook, 'WatchLab_Import_Template.xlsx');
+  };
+
+  const handleImportFile = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImporting(true);
+    setImportError(null);
+    setImportSuccess(null);
+
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data);
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonRows = XLSX.utils.sheet_to_json(firstSheet);
+
+      if (!jsonRows || jsonRows.length === 0) {
+        throw new Error('The selected Excel file contains no data rows.');
+      }
+
+      const itemsToImport = jsonRows.map(row => ({
+        name: row['Name'] || row['name'] || row['Watch Name'] || '',
+        brand: row['Brand'] || row['brand'] || '',
+        price: Number(row['Price'] || row['price'] || row['Price (PHP)'] || 0),
+        stock: Number(row['Stock'] || row['stock'] || 1),
+        condition: row['Condition'] || row['condition'] || 'Brand New',
+        gender: row['Gender'] || row['gender'] || 'Unisex',
+        description: row['Description'] || row['description'] || 'Imported via Excel.',
+        image_url: row['Image Link'] || row['Image URL'] || row['image_url'] || row['Image'] || '',
+        is_featured: (row['Featured'] || row['featured'] || '').toString().toLowerCase() === 'yes' || row['Featured'] === true
+      }));
+
+      const validItems = itemsToImport.filter(item => item.name && item.brand && !isNaN(item.price));
+
+      if (validItems.length === 0) {
+        throw new Error('No valid watch rows found. Please check column headers: Name, Brand, Price, Stock, Condition, Gender, Description, Image Link');
+      }
+
+      const res = await batchImportWatches(validItems);
+      setImportSuccess(`Successfully imported ${res.importedCount || validItems.length} watch listings!`);
+      loadData();
+    } catch (err) {
+      setImportError(err.message || 'Failed to process Excel file.');
+    } finally {
+      setImporting(false);
+      e.target.value = '';
+    }
+  };
 
   // Delete watch modal state
   const [deleteId, setDeleteId] = useState(null);
@@ -687,16 +799,42 @@ export default function AdminDashboardPage() {
                 Watch Collection Inventory ({filteredWatches.length})
               </h2>
 
-              <div style={{ position: 'relative', minWidth: '260px' }}>
-                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                <input
-                  type="text"
-                  placeholder="Search inventory..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="form-input"
-                  style={{ paddingLeft: '38px', padding: '8px 12px 8px 38px', fontSize: '0.88rem' }}
-                />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={handleExportExcel}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Export all watch inventory to Excel (.xlsx) file"
+                >
+                  <Download size={15} color="var(--maroon-primary)" /> Export Excel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImportError(null);
+                    setImportSuccess(null);
+                    setShowImportModal(true);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  title="Import watch catalog from Excel/CSV file"
+                >
+                  <FileSpreadsheet size={15} color="var(--maroon-primary)" /> Import Excel
+                </button>
+
+                <div style={{ position: 'relative', minWidth: '220px' }}>
+                  <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search inventory..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="form-input"
+                    style={{ paddingLeft: '38px', padding: '8px 12px 8px 38px', fontSize: '0.88rem' }}
+                  />
+                </div>
               </div>
             </div>
 
@@ -780,11 +918,15 @@ export default function AdminDashboardPage() {
                               <Minus size={13} />
                             </button>
 
-                            <div style={{ minWidth: '72px', textAlign: 'center' }}>
+                            <div style={{ minWidth: '76px', textAlign: 'center' }}>
                               {w.stock > 0 ? (
-                                <span className="badge badge-available" style={{ display: 'inline-block', minWidth: '65px' }}>{w.stock} Units</span>
+                                <span className="badge badge-available" style={{ display: 'inline-block', minWidth: '70px' }}>
+                                  {w.stock} {w.stock === 1 ? 'Unit' : 'Units'}
+                                </span>
                               ) : (
-                                <span className="badge badge-sold-out" style={{ display: 'inline-block', minWidth: '65px' }}>Sold Out</span>
+                                <span className="badge badge-sold-out" style={{ display: 'inline-block', minWidth: '70px' }}>
+                                  Sold Out
+                                </span>
                               )}
                             </div>
 
@@ -1459,6 +1601,165 @@ export default function AdminDashboardPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* EXCEL IMPORT MODAL */}
+      {showImportModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px'
+        }}>
+          <div className="glass-card" style={{ maxWidth: '650px', width: '100%', padding: '32px', background: '#FFFFFF', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <FileSpreadsheet size={24} color="var(--maroon-primary)" />
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 700, margin: 0, color: 'var(--text-primary)' }}>
+                  Import Watches from Excel
+                </h3>
+              </div>
+              <button onClick={() => setShowImportModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Error & Success Alerts */}
+            {importError && (
+              <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', fontSize: '0.88rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertCircle size={18} /> {importError}
+              </div>
+            )}
+            {importSuccess && (
+              <div style={{ padding: '12px 16px', borderRadius: '10px', background: 'rgba(16, 185, 129, 0.15)', color: '#10B981', fontSize: '0.88rem', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <CheckCircle2 size={18} /> {importSuccess}
+              </div>
+            )}
+
+            {/* Format Instructions Table */}
+            <div style={{ background: '#F9FAFB', border: '1px solid #E5E7EB', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Excel Import Table Format Guide:
+                </span>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="btn btn-secondary"
+                  style={{ padding: '4px 10px', fontSize: '0.78rem', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                >
+                  <Download size={13} /> Download Template
+                </button>
+              </div>
+
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '12px', lineHeight: '1.4' }}>
+                Upload an Excel file (<code>.xlsx</code> or <code>.csv</code>) with the following exact column header names:
+              </p>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', fontSize: '0.78rem', borderCollapse: 'collapse', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ background: '#EEF2F6', color: 'var(--text-primary)' }}>
+                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Column Header</th>
+                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Required?</th>
+                      <th style={{ padding: '6px 8px', border: '1px solid #CBD5E1' }}>Example</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Name</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Rolex Submariner Date 41mm</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Brand</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Rolex</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Price</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>650000</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Stock</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>1</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Condition</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Brand New or Pre-Owned</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Gender</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: 'var(--text-muted)' }}>Optional</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Unisex, Men, or Women</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Description</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Oystersteel case with black dial...</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Image Link</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: '#EF4444', fontWeight: 700 }}>Required</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>https://... (direct URL to image)</td>
+                    </tr>
+                    <tr>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', fontWeight: 700 }}>Featured</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0', color: 'var(--text-muted)' }}>Optional</td>
+                      <td style={{ padding: '6px 8px', border: '1px solid #E2E8F0' }}>Yes or No</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Upload Box */}
+            <div style={{
+              border: '2px dashed var(--border-subtle)',
+              borderRadius: '12px',
+              padding: '24px',
+              textAlign: 'center',
+              background: '#FFFFFF',
+              marginBottom: '20px'
+            }}>
+              <FileSpreadsheet size={36} color="var(--maroon-primary)" style={{ marginBottom: '8px' }} />
+              <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                Select Excel File to Upload
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '16px' }}>
+                Supports .xlsx, .xls, and .csv spreadsheet files
+              </p>
+
+              <label className="btn btn-maroon" style={{ cursor: 'pointer', padding: '10px 24px', fontSize: '0.88rem' }}>
+                <Upload size={16} /> {importing ? 'Processing File...' : 'Choose Excel File'}
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleImportFile}
+                  disabled={importing}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setShowImportModal(false)}
+                className="btn btn-secondary"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

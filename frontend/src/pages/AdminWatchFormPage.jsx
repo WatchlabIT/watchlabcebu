@@ -17,9 +17,8 @@ export default function AdminWatchFormPage() {
   const [stock, setStock] = useState('1');
   const [condition, setCondition] = useState('Brand New');
   const [description, setDescription] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
+  const [imageList, setImageList] = useState([]); // Array of { id, url, file, preview }
+  const [urlInput, setUrlInput] = useState('');
 
   const [loading, setLoading] = useState(isEditMode);
   const [submitting, setSubmitting] = useState(false);
@@ -46,8 +45,17 @@ export default function AdminWatchFormPage() {
             setStock(w.stock.toString());
             setCondition(w.condition);
             setDescription(w.description);
-            setImageUrlInput(w.image_url);
-            setImagePreview(getImageUrl(w.image_url));
+
+            const rawImgs = Array.isArray(w.images) && w.images.length > 0
+              ? w.images
+              : (w.image_url ? [w.image_url] : []);
+
+            setImageList(rawImgs.map((img, idx) => ({
+              id: Date.now() + idx + Math.random(),
+              url: img,
+              file: null,
+              preview: getImageUrl(img)
+            })));
           } else {
             setError('Watch listing not found.');
           }
@@ -86,26 +94,55 @@ export default function AdminWatchFormPage() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setImageUrlInput('');
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+  const handleFilesChange = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImageList((prev) => [
+            ...prev,
+            {
+              id: Date.now() + Math.random(),
+              url: '',
+              file,
+              preview: reader.result
+            }
+          ]);
+        };
+        reader.readAsDataURL(file);
+      });
+      e.target.value = '';
     }
   };
 
-  const handleUrlChange = (e) => {
-    const url = e.target.value;
-    setImageUrlInput(url);
-    if (url) {
-      setImageFile(null);
-      setImagePreview(getImageUrl(url));
+  const handleAddUrl = () => {
+    if (urlInput.trim()) {
+      setImageList((prev) => [
+        ...prev,
+        {
+          id: Date.now() + Math.random(),
+          url: urlInput.trim(),
+          file: null,
+          preview: getImageUrl(urlInput.trim())
+        }
+      ]);
+      setUrlInput('');
     }
+  };
+
+  const handleRemoveImage = (idToRemove) => {
+    setImageList((prev) => prev.filter((img) => img.id !== idToRemove));
+  };
+
+  const handleSetMainImage = (index) => {
+    if (index === 0) return;
+    setImageList((prev) => {
+      const copy = [...prev];
+      const selected = copy.splice(index, 1)[0];
+      copy.unshift(selected);
+      return copy;
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -120,8 +157,8 @@ export default function AdminWatchFormPage() {
       return;
     }
 
-    if (!imageFile && !imageUrlInput) {
-      setError('Watch image is required (upload a file or provide an image URL).');
+    if (imageList.length === 0) {
+      setError('At least 1 watch photo is required (upload files or provide image URLs).');
       setSubmitting(false);
       return;
     }
@@ -136,10 +173,20 @@ export default function AdminWatchFormPage() {
       formData.append('condition', condition);
       formData.append('description', description);
 
-      if (imageFile) {
-        formData.append('image', imageFile);
-      } else {
-        formData.append('image_url', getImageUrl(imageUrlInput));
+      const existingUrls = [];
+      imageList.forEach((img) => {
+        if (img.file) {
+          formData.append('images', img.file);
+        } else if (img.url) {
+          existingUrls.push(getImageUrl(img.url));
+        } else if (img.preview && img.preview.startsWith('data:')) {
+          existingUrls.push(img.preview);
+        }
+      });
+
+      if (existingUrls.length > 0) {
+        formData.append('images', JSON.stringify(existingUrls));
+        formData.append('image_url', existingUrls[0]);
       }
 
       if (isEditMode) {
@@ -328,7 +375,7 @@ export default function AdminWatchFormPage() {
             />
           </div>
 
-          {/* Watch Image Upload & Preview Section */}
+          {/* Watch Multi-Photo Upload & Preview Section */}
           <div style={{
             border: '2px dashed var(--border-subtle)',
             borderRadius: '16px',
@@ -337,15 +384,20 @@ export default function AdminWatchFormPage() {
             marginBottom: '32px',
             transition: 'all 0.3s ease'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-              <ImageIcon size={20} color="var(--maroon-primary)" />
-              <label className="form-label" style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Watch Image *
-              </label>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ImageIcon size={20} color="var(--maroon-primary)" />
+                <label className="form-label" style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                  Watch Photos ({imageList.length} Selected) *
+                </label>
+              </div>
+              <span style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 600 }}>
+                Admin can add 2 or more photos per watch
+              </span>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '20px', alignItems: 'flex-start' }}>
-              {/* File Upload Zone */}
+              {/* File Upload Zone (Multiple Files) */}
               <div style={{
                 background: '#FFFFFF',
                 border: '1px solid #E5E7EB',
@@ -355,22 +407,23 @@ export default function AdminWatchFormPage() {
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
               }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
-                  Option 1: Upload Image File
+                  Option 1: Upload Photo Files
                 </div>
                 <label
                   className="btn btn-maroon"
                   style={{ width: '100%', cursor: 'pointer', padding: '12px 18px', fontSize: '0.88rem' }}
                 >
-                  <Upload size={16} /> Choose File from Computer
+                  <Upload size={16} /> Choose Photo(s) from Device
                   <input
                     type="file"
+                    multiple
                     accept="image/png, image/jpeg, image/jpg, image/webp"
-                    onChange={handleFileChange}
+                    onChange={handleFilesChange}
                     style={{ display: 'none' }}
                   />
                 </label>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  JPG, PNG, WebP (Max 10MB)
+                  Select 1, 2, or more photos (JPG, PNG, WebP)
                 </div>
               </div>
 
@@ -383,85 +436,132 @@ export default function AdminWatchFormPage() {
                 boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
               }}>
                 <div style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '10px' }}>
-                  Option 2: Image Web URL
+                  Option 2: Add Photo Web Link
                 </div>
-                <input
-                  type="url"
-                  placeholder="Paste image link (https://...)"
-                  value={imageUrlInput}
-                  onChange={handleUrlChange}
-                  className="form-input"
-                  style={{ fontSize: '0.88rem' }}
-                />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="url"
+                    placeholder="Paste image link (https://...)"
+                    value={urlInput}
+                    onChange={(e) => setUrlInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddUrl(); } }}
+                    className="form-input"
+                    style={{ fontSize: '0.88rem' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddUrl}
+                    className="btn btn-secondary"
+                    style={{ padding: '0 14px', whiteSpace: 'nowrap', fontSize: '0.82rem' }}
+                  >
+                    Add Photo
+                  </button>
+                </div>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
-                  Paste direct link to watch photo
+                  Paste image URL link and click Add Photo
                 </div>
               </div>
             </div>
 
-            {/* Live Image Preview */}
-            {imagePreview ? (
+            {/* Gallery Grid Preview */}
+            {imageList.length > 0 ? (
               <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid var(--border-glass)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--maroon-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <CheckCircle2 size={16} /> Live Watch Photo Preview:
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setImageFile(null);
-                      setImageUrlInput('');
-                      setImagePreview('');
-                    }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: '#EF4444',
-                      fontSize: '0.8rem',
-                      fontWeight: 600,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Remove Image
-                  </button>
+                <div style={{ fontSize: '0.85rem', color: 'var(--maroon-primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '16px' }}>
+                  <CheckCircle2 size={16} /> Selected Watch Gallery Photos ({imageList.length}):
                 </div>
 
-                <div style={{
-                  maxWidth: '300px',
-                  margin: '0 auto',
-                  borderRadius: '16px',
-                  overflow: 'hidden',
-                  border: '1px solid var(--border-subtle)',
-                  background: '#000',
-                  boxShadow: 'var(--shadow-lux)',
-                  position: 'relative'
-                }}>
-                  <img
-                    src={imagePreview}
-                    alt="Watch Preview"
-                    style={{ width: '100%', height: '240px', objectFit: 'cover', display: 'block' }}
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000';
-                    }}
-                  />
-                  <div style={{
-                    position: 'absolute',
-                    bottom: '10px',
-                    right: '10px',
-                    background: 'rgba(0,0,0,0.75)',
-                    color: '#FFF',
-                    padding: '4px 10px',
-                    borderRadius: '10px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700
-                  }}>
-                    {imageFile ? `${imageFile.name.substring(0, 20)}...` : 'URL Image'}
-                  </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '16px' }}>
+                  {imageList.map((img, idx) => (
+                    <div
+                      key={img.id}
+                      style={{
+                        position: 'relative',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        border: idx === 0 ? '2px solid var(--maroon-primary)' : '1px solid var(--border-subtle)',
+                        background: '#000',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                      }}
+                    >
+                      <img
+                        src={img.preview}
+                        alt={`Watch Photo ${idx + 1}`}
+                        style={{ width: '100%', height: '120px', objectFit: 'cover', display: 'block' }}
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000';
+                        }}
+                      />
+
+                      {/* Main Tag */}
+                      {idx === 0 && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          background: 'var(--maroon-primary)',
+                          color: '#FFFFFF',
+                          fontSize: '0.65rem',
+                          fontWeight: 800,
+                          padding: '2px 6px',
+                          borderRadius: '6px',
+                          letterSpacing: '0.5px'
+                        }}>
+                          MAIN PHOTO
+                        </div>
+                      )}
+
+                      {/* Controls Overlay */}
+                      <div style={{
+                        padding: '6px',
+                        background: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: '4px'
+                      }}>
+                        {idx !== 0 ? (
+                          <button
+                            type="button"
+                            onClick={() => handleSetMainImage(idx)}
+                            style={{
+                              background: 'transparent',
+                              border: 'none',
+                              color: 'var(--maroon-primary)',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              padding: '2px'
+                            }}
+                          >
+                            Set Main
+                          </button>
+                        ) : (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Cover</span>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveImage(img.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: '#EF4444',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            padding: '2px'
+                          }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (
               <div style={{ marginTop: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
-                No watch image selected yet. Upload a local file or paste an image link above.
+                No photos selected yet. Upload 2 or more photo files or paste photo links above.
               </div>
             )}
           </div>

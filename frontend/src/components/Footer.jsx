@@ -136,7 +136,7 @@ export default function Footer() {
           color: 'var(--text-muted)'
         }}>
           <div>
-            © {new Date().getFullYear()} Watch Lab Cebu. All Rights Reserved.
+            © 2025 Watch Lab Cebu. All Rights Reserved.
           </div>
           <div style={{ display: 'flex', gap: '16px' }}>
             <span>Certified Watch Dealer</span>

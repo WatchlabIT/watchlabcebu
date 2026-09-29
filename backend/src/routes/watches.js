@@ -108,8 +108,52 @@ router.post('/upload', requireAdminAuth, upload.single('image'), (req, res) => {
 
 
 
+// POST /api/watches/batch-import - Admin batch import watches from Excel/CSV (Protected)
+router.post('/watches/batch-import', requireAdminAuth, express.json({ limit: '20mb' }), async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'No watch items provided for import.' });
+    }
+
+    const createdWatches = [];
+    for (const item of items) {
+      const name = item.name ? String(item.name).trim() : '';
+      const brand = item.brand ? String(item.brand).trim() : '';
+      const priceVal = Number(item.price);
+      const stockVal = Number(item.stock !== undefined ? item.stock : 1);
+      const condition = item.condition && ['Brand New', 'Pre-Owned'].includes(item.condition) ? item.condition : 'Brand New';
+      const gender = item.gender && ['Unisex', 'Men', 'Women'].includes(item.gender) ? item.gender : 'Unisex';
+      const description = item.description ? String(item.description).trim() : 'Watch details provided via Excel import.';
+      let image_url = item.image_url || item.image || item['Image Link'] || item['Image URL'] || '';
+      let images = Array.isArray(item.images) ? item.images : (image_url ? [image_url] : []);
+
+      if (name && brand && !isNaN(priceVal)) {
+        const w = dbOps.createWatch({
+          name,
+          brand,
+          price: priceVal,
+          stock: isNaN(stockVal) ? 1 : stockVal,
+          condition,
+          gender,
+          description,
+          image_url: images[0] || image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000',
+          images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=1000'],
+          is_featured: !!item.is_featured
+        });
+        createdWatches.push(w);
+      }
+    }
+
+    res.json({ message: `Successfully imported ${createdWatches.length} watch listings.`, importedCount: createdWatches.length });
+  } catch (err) {
+    console.error('Batch import error:', err);
+    res.status(500).json({ error: 'Failed to import watches.' });
+  }
+});
+
 // POST /api/watches - Admin create watch listing (Protected, supports JSON or multipart)
-router.post('/watches', requireAdminAuth, upload.single('image'), async (req, res) => {
+router.post('/watches', requireAdminAuth, upload.any(), async (req, res) => {
   try {
     const name = req.body.name ? String(req.body.name).trim() : '';
     const brand = req.body.brand ? String(req.body.brand).trim() : '';
@@ -117,45 +161,50 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
     const stockVal = req.body.stock !== undefined && req.body.stock !== null && req.body.stock !== '' ? Number(req.body.stock) : NaN;
     const condition = req.body.condition ? String(req.body.condition).trim() : '';
     const description = req.body.description ? String(req.body.description).trim() : '';
-
     const gender = req.body.gender ? String(req.body.gender).trim() : 'Unisex';
 
-    if (!name) {
-      return res.status(400).json({ error: 'Watch Name is required.' });
-    }
-    if (!brand) {
-      return res.status(400).json({ error: 'Watch Brand is required.' });
-    }
-    if (isNaN(priceVal) || priceVal < 0) {
-      return res.status(400).json({ error: 'Valid Price is required.' });
-    }
-    if (isNaN(stockVal) || stockVal < 0) {
-      return res.status(400).json({ error: 'Valid Stock Quantity is required.' });
-    }
-    if (!condition || !['Brand New', 'Pre-Owned'].includes(condition)) {
-      return res.status(400).json({ error: 'Condition must be either "Brand New" or "Pre-Owned".' });
-    }
-    if (!description) {
-      return res.status(400).json({ error: 'Watch Description is required.' });
+    if (!name) return res.status(400).json({ error: 'Watch Name is required.' });
+    if (!brand) return res.status(400).json({ error: 'Watch Brand is required.' });
+    if (isNaN(priceVal) || priceVal < 0) return res.status(400).json({ error: 'Valid Price is required.' });
+    if (isNaN(stockVal) || stockVal < 0) return res.status(400).json({ error: 'Valid Stock Quantity is required.' });
+    if (!condition || !['Brand New', 'Pre-Owned'].includes(condition)) return res.status(400).json({ error: 'Condition must be either "Brand New" or "Pre-Owned".' });
+    if (!description) return res.status(400).json({ error: 'Watch Description is required.' });
+
+    let images = [];
+    if (req.body.images) {
+      if (Array.isArray(req.body.images)) {
+        images = req.body.images;
+      } else if (typeof req.body.images === 'string') {
+        try {
+          const parsed = JSON.parse(req.body.images);
+          if (Array.isArray(parsed)) images = parsed;
+          else images = [req.body.images];
+        } catch (e) {
+          images = [req.body.images];
+        }
+      }
+    } else if (req.body.image_url) {
+      images.push(req.body.image_url);
     }
 
-    let image_url = req.body.image_url;
-    if (req.file) {
-      if (req.file.buffer) {
-        image_url = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-      } else if (req.file.path && fs.existsSync(req.file.path)) {
-        try {
-          const fileBuf = fs.readFileSync(req.file.path);
-          image_url = `data:${req.file.mimetype};base64,${fileBuf.toString('base64')}`;
-        } catch (e) {
-          image_url = `/uploads/${req.file.filename}`;
+    if (req.files && req.files.length > 0) {
+      for (const file of req.files) {
+        if (file.buffer) {
+          images.push(`data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
+        } else if (file.path && fs.existsSync(file.path)) {
+          try {
+            const fileBuf = fs.readFileSync(file.path);
+            images.push(`data:${file.mimetype};base64,${fileBuf.toString('base64')}`);
+          } catch (e) {
+            images.push(`/uploads/${file.filename}`);
+          }
+        } else {
+          images.push(`/uploads/${file.filename}`);
         }
-      } else {
-        image_url = `/uploads/${req.file.filename}`;
       }
     }
 
-    if (!image_url) {
+    if (images.length === 0) {
       return res.status(400).json({ error: 'Watch image is required (upload file or provide image URL).' });
     }
 
@@ -167,10 +216,9 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
       condition,
       gender: ['Unisex', 'Men', 'Women'].includes(gender) ? gender : 'Unisex',
       description,
-      image_url
+      image_url: images[0],
+      images
     });
-
-
 
     res.status(201).json({ message: 'Watch created successfully.', watch: newWatch });
   } catch (err) {
@@ -180,7 +228,7 @@ router.post('/watches', requireAdminAuth, upload.single('image'), async (req, re
 });
 
 // PUT /api/watches/:id - Admin update watch listing (Protected)
-router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req, res) => {
+router.put('/watches/:id', requireAdminAuth, upload.any(), async (req, res) => {
   try {
     const existingWatch = await dbOps.getWatchById(req.params.id);
     if (!existingWatch) {
@@ -188,20 +236,37 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
     }
 
     const { name, brand, price, stock, condition, gender, description, is_featured } = req.body;
-    let image_url = req.body.image_url;
+    let images = undefined;
 
-    if (req.file) {
-      if (req.file.buffer) {
-        image_url = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-      } else if (req.file.path && fs.existsSync(req.file.path)) {
+    if (req.body.images) {
+      if (Array.isArray(req.body.images)) {
+        images = req.body.images;
+      } else if (typeof req.body.images === 'string') {
         try {
-          const fileBuf = fs.readFileSync(req.file.path);
-          image_url = `data:${req.file.mimetype};base64,${fileBuf.toString('base64')}`;
+          const parsed = JSON.parse(req.body.images);
+          if (Array.isArray(parsed)) images = parsed;
+          else images = [req.body.images];
         } catch (e) {
-          image_url = `/uploads/${req.file.filename}`;
+          images = [req.body.images];
         }
-      } else {
-        image_url = `/uploads/${req.file.filename}`;
+      }
+    }
+
+    if (req.files && req.files.length > 0) {
+      if (!images) images = [];
+      for (const file of req.files) {
+        if (file.buffer) {
+          images.push(`data:${file.mimetype};base64,${file.buffer.toString('base64')}`);
+        } else if (file.path && fs.existsSync(file.path)) {
+          try {
+            const fileBuf = fs.readFileSync(file.path);
+            images.push(`data:${file.mimetype};base64,${fileBuf.toString('base64')}`);
+          } catch (e) {
+            images.push(`/uploads/${file.filename}`);
+          }
+        } else {
+          images.push(`/uploads/${file.filename}`);
+        }
       }
     }
 
@@ -219,11 +284,10 @@ router.put('/watches/:id', requireAdminAuth, upload.single('image'), async (req,
       condition,
       gender: gender && ['Unisex', 'Men', 'Women'].includes(String(gender).trim()) ? String(gender).trim() : undefined,
       description: description ? String(description).trim() : undefined,
-      image_url,
+      images,
+      image_url: images && images.length > 0 ? images[0] : req.body.image_url,
       is_featured: is_featured !== undefined ? isFeaturedBool : undefined
     });
-
-
 
     res.json({ message: 'Watch updated successfully.', watch: updatedWatch });
   } catch (err) {

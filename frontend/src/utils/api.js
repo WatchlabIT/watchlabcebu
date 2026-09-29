@@ -130,6 +130,19 @@ export async function deleteWatch(id) {
   return await parseJsonResponse(res, 'Failed to delete watch listing.');
 }
 
+export async function batchImportWatches(items) {
+  const headers = getAuthHeaders();
+  headers['Content-Type'] = 'application/json';
+
+  const res = await fetch(`${API_BASE}/watches/batch-import`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ items })
+  });
+
+  return await parseJsonResponse(res, 'Failed to import watches.');
+}
+
 
 
 // Transactions API Helpers
