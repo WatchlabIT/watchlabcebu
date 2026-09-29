@@ -92,9 +92,13 @@ function loadDatabase() {
 function saveDatabase(data) {
   memoryDb = data;
   try {
+    const parentDir = path.dirname(dbPath);
+    if (!fs.existsSync(parentDir)) {
+      fs.mkdirSync(parentDir, { recursive: true });
+    }
     fs.writeFileSync(dbPath, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    console.warn('Read-only filesystem detected, maintaining state in memory.');
+    console.warn('Filesystem write error, maintaining state in memory:', err.message);
   }
 }
 
