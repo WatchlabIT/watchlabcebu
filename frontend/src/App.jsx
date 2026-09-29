@@ -15,7 +15,7 @@ import AdminDashboardPage from './pages/AdminDashboardPage';
 import AdminWatchFormPage from './pages/AdminWatchFormPage';
 
 // Secret custom URL route for brand owner access only
-export const OWNER_SECRET_PATH = '/watchlab-portal-bea-cebu-access-x99';
+export const OWNER_SECRET_PATH = '/watchlab-portal-x99';
 
 // Protected Route Guard for Admin pages
 function ProtectedAdminRoute({ children }) {
@@ -24,11 +24,12 @@ function ProtectedAdminRoute({ children }) {
     return (
       <div style={{ minHeight: '65vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
         <div className="spin" style={{ width: '36px', height: '36px', border: '3px solid var(--border-subtle)', borderTopColor: 'var(--maroon-primary)', borderRadius: '50%' }} />
-        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Loading Admin Session...</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>Loading Session...</div>
       </div>
     );
   }
-  if (!isAuthenticated) return <Navigate to="/admin/login" replace />;
+  // Redirect unauthenticated attempts to Home page so admin portal URL remains private
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   return children;
 }
 
@@ -71,10 +72,14 @@ export default function App() {
             <Route path="/watch/:id" element={<WatchDetailPage />} />
             <Route path="/about" element={<AboutPage />} />
 
-            {/* Admin Login Routes */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
+            {/* Secret Admin Login Routes - ONLY accessible via secret link */}
             <Route path={OWNER_SECRET_PATH} element={<AdminLoginPage />} />
+            <Route path="/secret-admin-portal" element={<AdminLoginPage />} />
+
+            {/* Block generic /admin, /admin/login, /admin-login (redirects to Home Page) */}
+            <Route path="/admin/login" element={<Navigate to="/" replace />} />
+            <Route path="/admin" element={<Navigate to="/" replace />} />
+            <Route path="/admin-login" element={<Navigate to="/" replace />} />
 
             {/* Protected Admin Dashboard & Management Routes */}
             <Route
