@@ -11,6 +11,7 @@ export default function HomePage() {
   const [newArrivals, setNewArrivals] = useState([]);
   const [heroWatches, setHeroWatches] = useState([]);
   const [heroIndex, setHeroIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState('next');
   const [isPaused, setIsPaused] = useState(false);
   const [featuredTransactions, setFeaturedTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,10 +53,29 @@ export default function HomePage() {
     load();
   }, []);
 
+  const handleNextSlide = () => {
+    if (heroWatches.length <= 1) return;
+    setSlideDirection('next');
+    setHeroIndex(prev => (prev + 1) % heroWatches.length);
+  };
+
+  const handlePrevSlide = () => {
+    if (heroWatches.length <= 1) return;
+    setSlideDirection('prev');
+    setHeroIndex(prev => (prev - 1 + heroWatches.length) % heroWatches.length);
+  };
+
+  const handleDotClick = (idx) => {
+    if (idx === heroIndex) return;
+    setSlideDirection(idx > heroIndex ? 'next' : 'prev');
+    setHeroIndex(idx);
+  };
+
   // Auto-play timer for Hero Slideshow (cycles every 5s unless hovered)
   useEffect(() => {
     if (heroWatches.length <= 1 || isPaused) return;
     const interval = setInterval(() => {
+      setSlideDirection('next');
       setHeroIndex(prev => (prev + 1) % heroWatches.length);
     }, 5000);
     return () => clearInterval(interval);
@@ -173,9 +193,10 @@ export default function HomePage() {
                   <div style={{ position: 'relative', height: '420px', borderRadius: '16px', overflow: 'hidden' }}>
                     {currentHero ? (
                       <ProtectedImage
-                        key={currentHero.id || heroIndex}
+                        key={`hero-img-${currentHero.id || heroIndex}-${heroIndex}`}
                         src={getImageUrl(currentHero.image_url)}
                         alt={currentHero.name}
+                        className={slideDirection === 'next' ? 'hero-animate-next' : 'hero-animate-prev'}
                         style={{
                           width: '100%',
                           height: '100%',
@@ -211,7 +232,7 @@ export default function HomePage() {
                           type="button"
                           onClick={(e) => {
                             e.preventDefault();
-                            setHeroIndex(prev => (prev - 1 + heroWatches.length) % heroWatches.length);
+                            handlePrevSlide();
                           }}
                           aria-label="Previous Slide"
                           style={{
@@ -242,7 +263,7 @@ export default function HomePage() {
                           type="button"
                           onClick={(e) => {
                             e.preventDefault();
-                            setHeroIndex(prev => (prev + 1) % heroWatches.length);
+                            handleNextSlide();
                           }}
                           aria-label="Next Slide"
                           style={{
@@ -273,17 +294,21 @@ export default function HomePage() {
 
                     {/* Gradual Overlay Text & Content */}
                     {currentHero && (
-                      <div style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        padding: '20px 24px',
-                        zIndex: 8,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
+                      <div
+                        key={`hero-text-${currentHero.id || heroIndex}-${heroIndex}`}
+                        className="hero-text-animate"
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '20px 24px',
+                          zIndex: 8,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
                         {/* Top Line: Label & Condition Badge */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{
@@ -365,7 +390,7 @@ export default function HomePage() {
                               <button
                                 key={idx}
                                 type="button"
-                                onClick={() => setHeroIndex(idx)}
+                                onClick={() => handleDotClick(idx)}
                                 aria-label={`Go to slide ${idx + 1}`}
                                 style={{
                                   width: idx === heroIndex ? '22px' : '6px',
