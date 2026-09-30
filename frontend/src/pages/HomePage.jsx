@@ -263,8 +263,8 @@ export default function HomePage() {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: '60%',
-                      background: 'linear-gradient(to top, rgba(12, 14, 18, 0.95) 0%, rgba(12, 14, 18, 0.72) 55%, rgba(0, 0, 0, 0) 100%)',
+                      height: '65%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.82) 60%, rgba(255, 255, 255, 0) 100%)',
                       pointerEvents: 'none',
                       zIndex: 5
                     }} />
@@ -287,16 +287,16 @@ export default function HomePage() {
                             width: '38px',
                             height: '38px',
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.85)',
+                            background: 'rgba(255, 255, 255, 0.9)',
                             backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
                             color: 'var(--text-primary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             zIndex: 10,
-                            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
                             transition: 'all 0.2s ease'
                           }}
                         >
@@ -318,16 +318,16 @@ export default function HomePage() {
                             width: '38px',
                             height: '38px',
                             borderRadius: '50%',
-                            background: 'rgba(255, 255, 255, 0.85)',
+                            background: 'rgba(255, 255, 255, 0.9)',
                             backdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255,255,255,0.2)',
+                            border: '1px solid rgba(0, 0, 0, 0.1)',
                             color: 'var(--text-primary)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             zIndex: 10,
-                            boxShadow: '0 4px 14px rgba(0,0,0,0.25)',
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
                             transition: 'all 0.2s ease'
                           }}
                         >
@@ -357,7 +357,7 @@ export default function HomePage() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{
                             fontSize: '0.72rem',
-                            color: '#FFFFFF',
+                            color: '#111827',
                             fontWeight: 800,
                             letterSpacing: '1.2px',
                             textTransform: 'uppercase'
@@ -371,10 +371,9 @@ export default function HomePage() {
                               fontWeight: 700,
                               padding: '3px 10px',
                               borderRadius: '12px',
-                              background: currentHero.condition === 'Brand New' ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.2)',
-                              color: '#FFFFFF',
-                              backdropFilter: 'blur(6px)',
-                              border: '1px solid rgba(255, 255, 255, 0.25)',
+                              background: currentHero.condition === 'Brand New' ? 'var(--maroon-primary)' : 'rgba(17, 24, 39, 0.08)',
+                              color: currentHero.condition === 'Brand New' ? '#FFFFFF' : 'var(--maroon-primary)',
+                              border: '1px solid var(--border-subtle)',
                               letterSpacing: '0.5px'
                             }}>
                               {currentHero.condition}
@@ -390,8 +389,8 @@ export default function HomePage() {
                               className="font-serif"
                               style={{
                                 fontSize: '1.25rem',
-                                fontWeight: 700,
-                                color: '#FFFFFF',
+                                fontWeight: 800,
+                                color: '#111827',
                                 display: 'block',
                                 textDecoration: 'none',
                                 lineHeight: '1.3'
@@ -402,7 +401,7 @@ export default function HomePage() {
                             <div style={{
                               fontSize: '1.2rem',
                               fontWeight: 800,
-                              color: '#FFFFFF',
+                              color: 'var(--maroon-primary)',
                               marginTop: '2px'
                             }}>
                               {formatPrice(currentHero.price)}
@@ -411,16 +410,12 @@ export default function HomePage() {
 
                           <Link
                             to={`/watch/${currentHero.id}`}
-                            className="btn"
+                            className="btn btn-maroon"
                             style={{
                               fontSize: '0.82rem',
                               padding: '8px 16px',
                               borderRadius: '20px',
-                              background: '#FFFFFF',
-                              color: '#111827',
-                              fontWeight: 700,
-                              flexShrink: 0,
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
+                              flexShrink: 0
                             }}
                           >
                             View Details <ArrowRight size={14} />
