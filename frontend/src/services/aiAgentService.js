@@ -122,50 +122,128 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
 }
 
 /**
- * Intelligent Catalog Search Fallback response when Groq API key is not present directly in browser
+ * Smart Catalog Fallback — answers ANY question using watch inventory data.
+ * Used only when Groq API is unreachable.
  */
 function generateFallbackResponse(userMessage, watches = []) {
-  const query = userMessage.toLowerCase();
+  const query = userMessage.toLowerCase().trim();
 
-  const matches = watches.filter(w => {
-    const brandMatch = w.brand && query.includes(w.brand.toLowerCase());
-    const nameMatch = w.name && query.includes(w.name.toLowerCase());
-    const conditionMatch = w.condition && query.includes(w.condition.toLowerCase());
-    return brandMatch || nameMatch || conditionMatch;
-  });
+  // 1. Brand-specific queries
+  const brandMap = {
+    seiko: watches.filter(w => w.brand?.toLowerCase().includes('seiko')),
+    tissot: watches.filter(w => w.brand?.toLowerCase().includes('tissot')),
+    omega: watches.filter(w => w.brand?.toLowerCase().includes('omega')),
+    'tag heuer': watches.filter(w => w.brand?.toLowerCase().includes('tag')),
+    tag: watches.filter(w => w.brand?.toLowerCase().includes('tag')),
+  };
 
-  let text = '';
-
-  if (query.includes('seiko') || query.includes('tissot') || query.includes('omega') || query.includes('tag heuer') || query.includes('tag')) {
-    const brandMatches = watches.filter(w => w.brand && (
-      (query.includes('seiko') && w.brand.toLowerCase().includes('seiko')) ||
-      (query.includes('tissot') && w.brand.toLowerCase().includes('tissot')) ||
-      (query.includes('omega') && w.brand.toLowerCase().includes('omega')) ||
-      (query.includes('tag') && w.brand.toLowerCase().includes('tag'))
-    ));
-    if (brandMatches.length > 0) {
-      text = `Here are our available watches in stock matching your brand request:\n\n` +
-        brandMatches.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
-    } else {
-      text = `We currently don't have that specific brand model in stock, but you can explore our complete Collection page or contact Bea directly for custom watch sourcing!`;
+  for (const [keyword, matched] of Object.entries(brandMap)) {
+    if (query.includes(keyword)) {
+      if (matched.length > 0) {
+        return `Here are our **${matched[0].brand}** watches currently available:\n\n` +
+          matched.map(w => `• **${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) ${Number(w.stock) > 0 ? '✅ In Stock' : '❌ Sold Out'} [WATCH_ID:${w.id}]`).join('\n') +
+          `\n\nInterested? Contact **Bea** on WhatsApp or Messenger to inquire!`;
+      }
+      return `We currently don't have any ${keyword.charAt(0).toUpperCase() + keyword.slice(1)} watches in stock right now. You can reach **Bea** on WhatsApp or Messenger to request custom sourcing!`;
     }
-  } else if (query.includes('expensive') || query.includes('highest price') || query.includes('costliest') || query.includes('most expensive')) {
-    const sorted = [...watches].sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
-    if (sorted.length > 0) {
-      const topWatch = sorted[0];
-      text = `Our top timepiece currently listed is the **${topWatch.brand} ${topWatch.name}**, priced at **${formatPrice(topWatch.price)}** (${topWatch.condition || 'Pre-Owned'}). [WATCH_ID:${topWatch.id}]\n\n` +
-        `Here are our top featured watches:\n` +
-        sorted.slice(0, 3).map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
-    }
-  } else if (matches.length > 0) {
-    text = `Here are timepieces from our WatchLab Cebu inventory matching your inquiry:\n\n` +
-      matches.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
-  } else {
-    text = `Welcome to WatchLab Cebu! We currently have **${watches.length} watches** listed in our system, featuring top brands like **Seiko, Tissot, Omega, and Tag Heuer**.\n\n` +
-      `Feel free to ask me about specific brands, prices, conditions, or delivery options! You can also view our full catalog on the Collection page or contact Bea directly via WhatsApp or Messenger.`;
   }
 
-  return text;
+  // 2. Price / budget queries
+  if (query.includes('cheap') || query.includes('affordable') || query.includes('budget') || query.includes('lowest') || query.includes('cheapest')) {
+    const sorted = [...watches].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    if (sorted.length > 0) {
+      return `Here are our most affordable watches starting from ${formatPrice(sorted[0].price)}:\n\n` +
+        sorted.slice(0, 4).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+    }
+  }
+
+  if (query.includes('expensive') || query.includes('premium') || query.includes('luxury') || query.includes('highest') || query.includes('most expensive') || query.includes('top')) {
+    const sorted = [...watches].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+    if (sorted.length > 0) {
+      return `Our top timepieces by value:\n\n` +
+        sorted.slice(0, 4).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+    }
+  }
+
+  // 3. Condition queries
+  if (query.includes('brand new') || query.includes('new watch')) {
+    const brandNew = watches.filter(w => w.condition?.toLowerCase().includes('brand') || w.condition?.toLowerCase().includes('new'));
+    if (brandNew.length > 0) {
+      return `Here are our **Brand New** watches:\n\n` +
+        brandNew.map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} [WATCH_ID:${w.id}]`).join('\n');
+    }
+    return `We don't currently have Brand New watches listed, but new arrivals come in regularly! Contact **Bea** to be notified.`;
+  }
+
+  if (query.includes('pre-owned') || query.includes('pre owned') || query.includes('second hand') || query.includes('used')) {
+    const preOwned = watches.filter(w => w.condition?.toLowerCase().includes('pre'));
+    if (preOwned.length > 0) {
+      return `Here are our **Pre-Owned** watches in excellent condition:\n\n` +
+        preOwned.map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} [WATCH_ID:${w.id}]`).join('\n');
+    }
+  }
+
+  // 4. Stock / availability queries
+  if (query.includes('in stock') || query.includes('available') || query.includes('stock')) {
+    const inStock = watches.filter(w => Number(w.stock || 0) > 0);
+    if (inStock.length > 0) {
+      return `We have **${inStock.length} watches** currently in stock:\n\n` +
+        inStock.slice(0, 5).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} ✅ [WATCH_ID:${w.id}]`).join('\n') +
+        (inStock.length > 5 ? `\n\n...and ${inStock.length - 5} more! View the full Collection page.` : '');
+    }
+  }
+
+  // 5. Location / delivery / meetup queries
+  if (query.includes('location') || query.includes('where') || query.includes('cebu') || query.includes('meetup') || query.includes('meet') || query.includes('address')) {
+    return `📍 We are located at **Gorordo Avenue, Cebu City**.\n\n**Delivery Options:**\n• Meetups within Cebu City (send a message in advance to schedule)\n• Local delivery via Maxim / Angkas\n• Worldwide shipping via LBC and DHL Express\n\nContact **Bea** on WhatsApp or Messenger to schedule a meetup!`;
+  }
+
+  // 6. Contact / owner queries
+  if (query.includes('contact') || query.includes('bea') || query.includes('owner') || query.includes('message') || query.includes('whatsapp') || query.includes('messenger')) {
+    return `You can reach **Bea** (Founder of WatchLab Cebu) directly:\n\n• 💬 **Facebook Messenger** — facebook.com/p/Watch-Lab-Cebu-61571550718463\n• 📱 **WhatsApp** — available for inquiries and meetup scheduling\n\nShe's very responsive and will help you find the right watch! 😊`;
+  }
+
+  // 7. Price range / budget queries
+  if (query.includes('price') || query.includes('cost') || query.includes('how much') || query.includes('peso') || query.includes('₱')) {
+    const sorted = [...watches].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+    if (sorted.length > 0) {
+      return `Our watches range from **${formatPrice(sorted[0].price)}** to **${formatPrice(sorted[sorted.length - 1].price)}**.\n\nHere's a sample of our current listings:\n\n` +
+        sorted.slice(0, 4).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+    }
+  }
+
+  // 8. Catalog / show all queries
+  if (query.includes('show') || query.includes('all watches') || query.includes('catalog') || query.includes('list') || query.includes('what do you have') || query.includes('collection')) {
+    if (watches.length > 0) {
+      return `Here's our current WatchLab Cebu collection (${watches.length} watches):\n\n` +
+        watches.slice(0, 6).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) ${Number(w.stock) > 0 ? '✅' : '❌'} [WATCH_ID:${w.id}]`).join('\n') +
+        (watches.length > 6 ? `\n\n...and ${watches.length - 6} more! View the full catalog on the **Collection** page.` : '');
+    }
+  }
+
+  // 9. Warranty / authenticity queries
+  if (query.includes('warranty') || query.includes('authentic') || query.includes('legit') || query.includes('original') || query.includes('genuine') || query.includes('dti')) {
+    return `✅ **100% Guaranteed Authentic** — All our watches are verified genuine timepieces.\n\n• **Warranty Included** on eligible pieces\n• **DTI Registered** business\n• **300+ Watches Sold** with trusted customer satisfaction\n\nYou can shop with full confidence at WatchLab Cebu! 🎉`;
+  }
+
+  // 10. Shipping / delivery queries
+  if (query.includes('ship') || query.includes('deliver') || query.includes('lbc') || query.includes('dhl') || query.includes('nationwide') || query.includes('province')) {
+    return `📦 **We ship nationwide and worldwide!**\n\n• 🏍️ Local delivery via **Maxim / Angkas** (within Cebu City)\n• 📦 Nationwide shipping via **LBC**\n• 🌍 International shipping via **DHL Express**\n\nContact Bea on WhatsApp or Messenger to arrange shipping for your order!`;
+  }
+
+  // 11. General name/keyword match in watches
+  const matches = watches.filter(w => {
+    const searchIn = `${w.brand} ${w.name} ${w.description}`.toLowerCase();
+    const words = query.split(/\s+/).filter(word => word.length > 2);
+    return words.some(word => searchIn.includes(word));
+  });
+  if (matches.length > 0) {
+    return `Here are WatchLab Cebu watches matching your search:\n\n` +
+      matches.slice(0, 5).map(w => `• **${w.brand} ${w.name}** — ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+  }
+
+  // 12. Default general welcome response for any other question
+  return `Hi there! 👋 I'm the **WatchLab Cebu AI Concierge**.\n\nWe currently have **${watches.length} watches** in our collection from top brands: **Seiko, Tissot, Omega, and Tag Heuer**.\n\nYou can ask me about:\n• 🔍 Specific brands or models\n• 💰 Pricing and budget ranges\n• ✅ Stock availability\n• 📍 Location and delivery options\n• 📞 How to contact Bea\n\nHow can I help you find your perfect timepiece today?`;
 }
 
 /**
@@ -207,11 +285,16 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
     if (backendRes.ok && data.reply) {
       return { reply: data.reply, hasApiKey: true, provider: 'groq' };
     }
+
+    // Surface the actual error reason from backend
+    if (data.message) {
+      console.warn('Backend Groq error:', data.message);
+    }
   } catch (backendErr) {
     console.warn('Backend AI route unavailable, using local catalog search:', backendErr);
   }
 
-  // 3. Fallback catalog response generator
+  // 3. Smart catalog fallback — handles ANY question
   const reply = generateFallbackResponse(userMessage, watches);
   return { reply, hasApiKey: false };
 }
