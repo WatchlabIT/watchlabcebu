@@ -534,7 +534,7 @@ export default function CollectionPage() {
             Watch Collection
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', lineHeight: '1.6' }}>
-            Explore our complete inventory of luxury timepieces. Use the sidebar filters to refine by brand, condition, or price.
+            Browse our complete inventory of authentic timepieces, ready for inquiry.
           </p>
         </div>
 
