@@ -357,7 +357,7 @@ export default function HomePage() {
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                           <div style={{
                             fontSize: '0.72rem',
-                            color: '#FCA5A5',
+                            color: '#FFFFFF',
                             fontWeight: 800,
                             letterSpacing: '1.2px',
                             textTransform: 'uppercase'
@@ -402,7 +402,7 @@ export default function HomePage() {
                             <div style={{
                               fontSize: '1.2rem',
                               fontWeight: 800,
-                              color: '#FBBF24',
+                              color: '#FFFFFF',
                               marginTop: '2px'
                             }}>
                               {formatPrice(currentHero.price)}
