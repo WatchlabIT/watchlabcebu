@@ -366,10 +366,9 @@ export default function FloatingAiAgent() {
               <div>
                 <div style={{ fontSize: '1rem', fontWeight: 800, letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   WatchLab AI Concierge
-                  <Sparkles size={14} style={{ color: '#FCD34D' }} />
                 </div>
                 <div style={{ fontSize: '0.72rem', opacity: 0.9, fontWeight: 500 }}>
-                  {loadingWatches ? 'Loading inventory...' : `Online • Access to ${watches.length} watches in system`}
+                  Online • Luxury Watch Specialist
                 </div>
               </div>
             </div>
@@ -419,31 +418,6 @@ export default function FloatingAiAgent() {
                 <X size={18} />
               </button>
             </div>
-          </div>
-
-          {/* Vercel Environment Variable Status Badge */}
-          <div style={{
-            background: apiConfig.apiKey ? '#F0FDF4' : '#FFFBEB',
-            borderBottom: `1px solid ${apiConfig.apiKey ? '#DCFCE7' : '#FDE68A'}`,
-            padding: '6px 14px',
-            fontSize: '0.72rem',
-            color: apiConfig.apiKey ? '#166534' : '#92400E',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '8px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
-              <Key size={12} />
-              {apiConfig.apiKey ? (
-                <span>Vercel API Key Loaded ({apiConfig.provider.toUpperCase()})</span>
-              ) : (
-                <span>Vercel Env Key Ready (`VITE_GROQ_API_KEY`)</span>
-              )}
-            </div>
-            <span style={{ fontSize: '0.68rem', opacity: 0.85 }}>
-              {watches.length} Watches Synchronized
-            </span>
           </div>
 
           {/* Message Scroll Area */}
