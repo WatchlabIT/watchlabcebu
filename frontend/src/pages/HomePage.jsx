@@ -263,8 +263,8 @@ export default function HomePage() {
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: '36%',
-                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.35) 60%, rgba(255, 255, 255, 0) 100%)',
+                      height: '25%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%)',
                       pointerEvents: 'none',
                       zIndex: 5
                     }} />
@@ -346,16 +346,17 @@ export default function HomePage() {
                           bottom: '10px',
                           left: '10px',
                           right: '10px',
-                          padding: '12px 16px',
-                          background: 'rgba(255, 255, 255, 0.82)',
-                          backdropFilter: 'blur(12px)',
+                          padding: '10px 14px',
+                          background: 'rgba(255, 255, 255, 0.38)',
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
                           borderRadius: '16px',
-                          border: '1px solid rgba(255, 255, 255, 0.6)',
-                          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.08)',
+                          border: '1px solid rgba(255, 255, 255, 0.55)',
+                          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
                           zIndex: 8,
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '6px'
+                          gap: '4px'
                         }}
                       >
                         {/* Top Line: Label & Condition Badge */}
@@ -429,7 +430,7 @@ export default function HomePage() {
 
                         {/* Pagination Indicator Dots */}
                         {heroWatches.length > 1 && (
-                          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '6px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '6px', marginTop: '4px' }}>
                             {heroWatches.map((_, idx) => (
                               <button
                                 key={idx}
@@ -440,7 +441,7 @@ export default function HomePage() {
                                   width: idx === heroIndex ? '22px' : '6px',
                                   height: '6px',
                                   borderRadius: '3px',
-                                  background: idx === heroIndex ? '#FFFFFF' : 'rgba(255, 255, 255, 0.35)',
+                                  background: idx === heroIndex ? 'var(--maroon-primary)' : 'rgba(0, 0, 0, 0.25)',
                                   border: 'none',
                                   padding: 0,
                                   cursor: 'pointer',
