@@ -99,7 +99,20 @@ export default function AboutPage() {
 
               {/* Meet The Owner Context */}
               <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#FCD34D', letterSpacing: '1.8px', textTransform: 'uppercase', marginBottom: '6px' }}>
+                <div style={{
+                  display: 'inline-block',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  color: '#FFFFFF',
+                  background: 'rgba(255, 255, 255, 0.18)',
+                  border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '9999px',
+                  padding: '5px 16px',
+                  letterSpacing: '1.2px',
+                  textTransform: 'uppercase',
+                  marginBottom: '10px',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+                }}>
                   MEET THE OWNER
                 </div>
                 <p style={{ fontSize: '0.95rem', color: '#FFFFFF', lineHeight: '1.6', margin: 0 }}>
