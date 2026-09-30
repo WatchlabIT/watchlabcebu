@@ -3,11 +3,7 @@ import { formatPrice } from '../utils/format';
 
 /**
  * Checks if Vercel AI API key environment variables are set.
- * Strictly reads from Vercel environment variables:
- * - VITE_GROQ_API_KEY (Groq AI)
- * - VITE_GEMINI_API_KEY (Google Gemini)
- * - VITE_OPENAI_API_KEY (OpenAI)
- * - VITE_AI_API_KEY (Generic fallback)
+ * Reads from Vercel / Railway environment variables.
  */
 export function getAiApiKeyConfig() {
   const groqKey = import.meta.env.VITE_GROQ_API_KEY;
@@ -47,7 +43,7 @@ export function buildSystemPrompt(watches = []) {
       }).join('\n\n')
     : 'No watches currently listed in database.';
 
-  return `You are WatchLab Cebu's official Groq AI Luxury Watch Specialist and Concierge.
+  return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Concierge.
 WatchLab Cebu is a premier dealer of luxury watches in Cebu, Philippines, specializing in Rolex, Patek Philippe, Audemars Piguet, Omega, Tudor, Cartier, and other high-end timepieces.
 
 YOUR MANDATE & KNOWLEDGE:
@@ -69,7 +65,9 @@ ${watchCatalogText}`;
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
   const models = [
     'llama-3.3-70b-versatile',
-    'llama-3.1-8b-instant'
+    'llama-3.1-8b-instant',
+    'gemma2-9b-it',
+    'qwen-2.5-32b'
   ];
   const cleanKey = apiKey ? apiKey.trim().replace(/^["']|["']$/g, '') : '';
 
@@ -106,12 +104,12 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
         if (replyText) return replyText;
       }
 
-      const errMsg = data.error?.message || `Groq API HTTP ${res.status}`;
+      const errMsg = data.error?.message || `HTTP ${res.status}`;
       console.warn(`Groq model ${model} issue:`, errMsg);
       lastError = errMsg;
 
       if (res.status === 401 || res.status === 403) {
-        throw new Error(`Invalid Groq API Key (${errMsg}). Please verify your GROQ_API_KEY.`);
+        throw new Error(`Invalid Groq API Key (${errMsg})`);
       }
     } catch (err) {
       if (err.message && err.message.includes('Invalid Groq API Key')) {
@@ -121,7 +119,7 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
     }
   }
 
-  throw new Error(`Groq API (${lastError || 'All models busy'})`);
+  throw new Error(`Groq API issue: ${lastError || 'Service unavailable'}`);
 }
 
 /**
@@ -138,7 +136,7 @@ async function callGemini(apiKey, systemInstructionText, chatHistory) {
 
   for (const model of models) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -154,21 +152,18 @@ async function callGemini(apiKey, systemInstructionText, chatHistory) {
         })
       });
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Gemini API HTTP ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (replyText) return replyText;
       }
-
-      const data = await res.json();
-      const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (replyText) return replyText;
     } catch (err) {
       console.warn(`Gemini model ${model} error:`, err);
       lastErr = err;
     }
   }
 
-  throw lastErr || new Error('Failed to reach Google Gemini AI service.');
+  throw lastErr || new Error('Failed to reach Gemini AI service.');
 }
 
 /**
@@ -187,7 +182,7 @@ async function callOpenAI(apiKey, systemInstructionText, chatHistory) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Authorization': `Bearer ${apiKey.trim()}`
     },
     body: JSON.stringify({
       model: 'gpt-4o-mini',
@@ -220,7 +215,17 @@ function generateFallbackResponse(userMessage, watches = []) {
 
   let text = '';
 
-  if (query.includes('rolex')) {
+  if (query.includes('expensive') || query.includes('highest price') || query.includes('costliest') || query.includes('most expensive')) {
+    const sorted = [...watches].sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
+    if (sorted.length > 0) {
+      const topWatch = sorted[0];
+      text = `Our most expensive timepiece currently in stock is the **${topWatch.brand} ${topWatch.name}**, priced at **${formatPrice(topWatch.price)}** (${topWatch.condition || 'Pre-Owned'}). [WATCH_ID:${topWatch.id}]\n\n` +
+        `Here are our top highest-value luxury watches:\n` +
+        sorted.slice(0, 3).map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+    } else {
+      text = `We currently don't have listed prices in our database. Contact Bea directly for custom luxury watch inquiries!`;
+    }
+  } else if (query.includes('rolex')) {
     const rolexes = watches.filter(w => w.brand && w.brand.toLowerCase().includes('rolex'));
     if (rolexes.length > 0) {
       text = `We currently have **${rolexes.length} Rolex timepieces** in stock at WatchLab Cebu!\n\nHere are our available Rolex models:\n` +
@@ -275,17 +280,11 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
         return { reply, hasApiKey: true, provider };
       }
     } catch (err) {
-      console.error('AI API error, falling back to local catalog search:', err);
-      const fallbackReply = generateFallbackResponse(userMessage, watches);
-      return {
-        reply: `${fallbackReply}\n\n*(Note: AI API call encountered an error: ${err.message})*`,
-        hasApiKey: true,
-        error: err.message
-      };
+      console.warn('Frontend AI API error, checking backend or catalog fallback:', err);
     }
   }
 
-  // Try backend AI proxy if key is configured on server without VITE_ prefix (GROQ_API_KEY)
+  // Try backend AI proxy endpoint
   try {
     const envUrl = import.meta.env ? import.meta.env.VITE_API_URL : null;
     const rawApiUrl = (envUrl && envUrl.trim() !== '') ? envUrl.trim() : 'https://watchlabcebu-production.up.railway.app';
@@ -305,22 +304,11 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
     if (backendRes.ok && data.reply) {
       return { reply: data.reply, hasApiKey: true, provider: data.provider || 'groq' };
     }
-
-    if (data.details || data.message || data.error) {
-      console.warn('Backend Groq AI notice:', data);
-      const fallbackReply = generateFallbackResponse(userMessage, watches);
-      const errNote = data.details || data.message || data.error;
-      return {
-        reply: `${fallbackReply}\n\n*(Notice: ${errNote})*`,
-        hasApiKey: false,
-        error: errNote
-      };
-    }
   } catch (backendErr) {
     console.warn('Backend AI route unavailable, using local catalog search:', backendErr);
   }
 
-  // Fallback catalog search if Vercel env key is not yet set
+  // Fallback catalog search if AI service is not configured
   const reply = generateFallbackResponse(userMessage, watches);
   return { reply, hasApiKey: false };
 }
