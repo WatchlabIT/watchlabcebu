@@ -3,6 +3,28 @@ const ENV_URL = import.meta.env.VITE_API_URL;
 const RAW_API_URL = (ENV_URL && ENV_URL.trim() !== '') ? ENV_URL.trim() : DEFAULT_RAILWAY_URL;
 const API_BASE = `${RAW_API_URL.replace(/\/+$/, '')}/api`;
 
+// In-Memory API Cache & Inflight Request Deduplication for Ultra-Fast Loads
+const apiCache = {
+  watches: null,
+  watchesTime: 0,
+  brands: null,
+  brandsTime: 0,
+  transactions: null,
+  transactionsTime: 0
+};
+
+const inflightRequests = {};
+const CACHE_TTL = 15000; // 15 seconds cache TTL
+
+export function clearApiCache() {
+  apiCache.watches = null;
+  apiCache.watchesTime = 0;
+  apiCache.brands = null;
+  apiCache.brandsTime = 0;
+  apiCache.transactions = null;
+  apiCache.transactionsTime = 0;
+}
+
 function getAuthHeaders() {
   const token = sessionStorage.getItem('watchlab_token') || localStorage.getItem('watchlab_token');
   return token ? { Authorization: `Bearer ${token}` } : {};
@@ -27,29 +49,88 @@ async function parseJsonResponse(res, fallbackErrorMsg = 'Request failed.') {
   return {};
 }
 
+/**
+ * Deduplicates concurrent parallel fetch requests to avoid redundant backend calls
+ */
+async function dedupedFetch(key, fetchFn) {
+  if (inflightRequests[key]) {
+    return await inflightRequests[key];
+  }
+  const promise = (async () => {
+    try {
+      return await fetchFn();
+    } finally {
+      delete inflightRequests[key];
+    }
+  })();
+  inflightRequests[key] = promise;
+  return await promise;
+}
+
 export async function fetchWatches(params = {}) {
+  const isDefaultQuery = !params || (
+    (!params.brand || params.brand === 'All') &&
+    (!params.condition || params.condition === 'All') &&
+    !params.search
+  );
+
+  // Return cached result if fresh
+  if (isDefaultQuery && apiCache.watches && (Date.now() - apiCache.watchesTime < CACHE_TTL)) {
+    return apiCache.watches;
+  }
+
   const query = new URLSearchParams();
   if (params.brand && params.brand !== 'All') query.append('brand', params.brand);
   if (params.condition && params.condition !== 'All') query.append('condition', params.condition);
   if (params.search) query.append('search', params.search);
 
-  const res = await fetch(`${API_BASE}/watches?${query.toString()}`);
-  return await parseJsonResponse(res, 'Failed to fetch watches catalog.');
+  const cacheKey = `watches_${query.toString()}`;
+
+  const data = await dedupedFetch(cacheKey, async () => {
+    const res = await fetch(`${API_BASE}/watches?${query.toString()}`);
+    return await parseJsonResponse(res, 'Failed to fetch watches catalog.');
+  });
+
+  if (isDefaultQuery && data && Array.isArray(data.watches)) {
+    apiCache.watches = data;
+    apiCache.watchesTime = Date.now();
+  }
+
+  return data;
 }
 
 export async function fetchNewArrivals(limit = 4) {
-  const res = await fetch(`${API_BASE}/watches/new-arrivals?limit=${limit}`);
-  return await parseJsonResponse(res, 'Failed to fetch new arrivals.');
+  const cacheKey = `new_arrivals_${limit}`;
+  return await dedupedFetch(cacheKey, async () => {
+    const res = await fetch(`${API_BASE}/watches/new-arrivals?limit=${limit}`);
+    return await parseJsonResponse(res, 'Failed to fetch new arrivals.');
+  });
 }
 
 export async function fetchBrands() {
-  const res = await fetch(`${API_BASE}/watches/brands`);
-  return await parseJsonResponse(res, 'Failed to fetch watch brands.');
+  if (apiCache.brands && (Date.now() - apiCache.brandsTime < CACHE_TTL)) {
+    return apiCache.brands;
+  }
+
+  const data = await dedupedFetch('brands', async () => {
+    const res = await fetch(`${API_BASE}/watches/brands`);
+    return await parseJsonResponse(res, 'Failed to fetch watch brands.');
+  });
+
+  if (data && Array.isArray(data.brands)) {
+    apiCache.brands = data;
+    apiCache.brandsTime = Date.now();
+  }
+
+  return data;
 }
 
 export async function fetchWatchById(id) {
-  const res = await fetch(`${API_BASE}/watches/${id}`);
-  return await parseJsonResponse(res, 'Failed to fetch watch details.');
+  const cacheKey = `watch_${id}`;
+  return await dedupedFetch(cacheKey, async () => {
+    const res = await fetch(`${API_BASE}/watches/${id}`);
+    return await parseJsonResponse(res, 'Failed to fetch watch details.');
+  });
 }
 
 export async function loginAdmin(email, password) {
@@ -82,6 +163,7 @@ export async function fetchAdminStats() {
 }
 
 export async function createWatch(formData) {
+  clearApiCache();
   const headers = getAuthHeaders();
   
   let body = formData;
@@ -102,6 +184,7 @@ export async function createWatch(formData) {
 }
 
 export async function updateWatch(id, formData) {
+  clearApiCache();
   const headers = getAuthHeaders();
   
   let body = formData;
@@ -122,6 +205,7 @@ export async function updateWatch(id, formData) {
 }
 
 export async function deleteWatch(id) {
+  clearApiCache();
   const res = await fetch(`${API_BASE}/watches/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders()
@@ -131,6 +215,7 @@ export async function deleteWatch(id) {
 }
 
 export async function batchImportWatches(items) {
+  clearApiCache();
   const headers = getAuthHeaders();
   headers['Content-Type'] = 'application/json';
 
@@ -143,15 +228,27 @@ export async function batchImportWatches(items) {
   return await parseJsonResponse(res, 'Failed to import watches.');
 }
 
-
-
 // Transactions API Helpers
 export async function fetchTransactions() {
-  const res = await fetch(`${API_BASE}/transactions`);
-  return await parseJsonResponse(res, 'Failed to fetch featured transactions.');
+  if (apiCache.transactions && (Date.now() - apiCache.transactionsTime < CACHE_TTL)) {
+    return apiCache.transactions;
+  }
+
+  const data = await dedupedFetch('transactions', async () => {
+    const res = await fetch(`${API_BASE}/transactions`);
+    return await parseJsonResponse(res, 'Failed to fetch featured transactions.');
+  });
+
+  if (data && Array.isArray(data.transactions)) {
+    apiCache.transactions = data;
+    apiCache.transactionsTime = Date.now();
+  }
+
+  return data;
 }
 
 export async function createTransaction(formData) {
+  clearApiCache();
   const headers = getAuthHeaders();
   let body = formData;
   let isMultipart = formData instanceof FormData;
@@ -171,6 +268,7 @@ export async function createTransaction(formData) {
 }
 
 export async function updateTransaction(id, formData) {
+  clearApiCache();
   const headers = getAuthHeaders();
   let body = formData;
   let isMultipart = formData instanceof FormData;
@@ -190,6 +288,7 @@ export async function updateTransaction(id, formData) {
 }
 
 export async function deleteTransaction(id) {
+  clearApiCache();
   const res = await fetch(`${API_BASE}/transactions/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders()
@@ -197,4 +296,3 @@ export async function deleteTransaction(id) {
 
   return await parseJsonResponse(res, 'Failed to delete transaction.');
 }
-
