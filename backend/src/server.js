@@ -14,10 +14,29 @@ const aiRoutes = require('./routes/ai');
 const app = express();
 const PORT = process.env.PORT || 5005;
 
-// Enable CORS for frontend cross-origin access
-app.use(cors());
+// Configure CORS for frontend cross-origin access
+const corsOptions = {
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  credentials: true
+};
 
-// Middleware for parsing JSON and urlencoded request bodies (50MB limit to support image payloads)
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
+// Explicit preflight middleware to guarantee OPTIONS requests never 404 or fail CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
+// Middleware for parsing JSON and urlencoded request bodies (50MB limit for watch image payloads)
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
