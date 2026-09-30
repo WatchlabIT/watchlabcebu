@@ -9,6 +9,7 @@ dotenv.config();
 const authRoutes = require('./routes/auth');
 const watchRoutes = require('./routes/watches');
 const transactionRoutes = require('./routes/transactions');
+const aiRoutes = require('./routes/ai');
 
 const app = express();
 const PORT = process.env.PORT || 5005;
@@ -41,6 +42,9 @@ app.use('/', watchRoutes);
 
 app.use('/api', transactionRoutes);
 app.use('/', transactionRoutes);
+
+app.use('/api', aiRoutes);
+app.use('/', aiRoutes);
 
 // Catch-all 404 handler for unmatched Express routes
 app.use('*', (req, res) => {
