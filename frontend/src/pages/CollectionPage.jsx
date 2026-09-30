@@ -104,10 +104,12 @@ export default function CollectionPage() {
       }
     });
 
-    const knownBrands = ['Rolex', 'Omega', 'Seiko', 'Tissot', 'Casio', 'Audemars Piguet', 'Patek Philippe', 'Cartier', 'Tag Heuer'];
-    const allUnique = Array.from(new Set([...knownBrands, ...Object.keys(counts)])).sort();
+    const primaryBrands = ['Seiko', 'Tissot', 'Omega', 'Tag Heuer'];
+    const otherBrands = Object.keys(counts).filter(b => !primaryBrands.some(p => p.toLowerCase() === b.toLowerCase())).sort();
+    
+    const allOrdered = [...primaryBrands, ...otherBrands];
 
-    return allUnique.map(brand => ({
+    return allOrdered.map(brand => ({
       name: brand,
       count: counts[brand] || 0
     }));

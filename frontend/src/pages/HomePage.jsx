@@ -31,12 +31,13 @@ export default function HomePage() {
     async function load() {
       try {
         const [arrivalsData, allWatchesData, txData] = await Promise.all([
-          fetchNewArrivals(10),
+          fetchNewArrivals(4),
           fetchWatches(),
           fetchTransactions()
         ]);
         
-        setNewArrivals(arrivalsData.watches || []);
+        const rawArrivals = arrivalsData.watches || [];
+        setNewArrivals(rawArrivals.slice(0, 4));
 
         const watchesList = allWatchesData.watches || [];
         const featuredList = watchesList.filter(w => w && (w.is_featured === true || w.is_featured === 'true' || w.is_featured === 'TRUE' || w.is_featured === 1));
@@ -44,7 +45,8 @@ export default function HomePage() {
         setHeroWatches(finalHeroList);
 
         const txList = txData.transactions || [];
-        setFeaturedTransactions(txList.filter(t => t.is_featured !== false));
+        const filteredTx = txList.filter(t => t.is_featured !== false);
+        setFeaturedTransactions(filteredTx.slice(0, 4));
       } catch (err) {
         console.error('Error fetching home page data:', err);
       } finally {

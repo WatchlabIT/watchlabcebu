@@ -2,33 +2,21 @@ import { fetchWatches } from '../utils/api';
 import { formatPrice } from '../utils/format';
 
 /**
- * Checks if Vercel AI API key environment variables are set.
- * Reads from Vercel / Railway environment variables.
+ * Reads Groq AI API key from environment variables.
+ * Enforces Pure Groq AI usage.
  */
 export function getAiApiKeyConfig() {
-  const groqKey = import.meta.env.VITE_GROQ_API_KEY;
-  const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
-  const openAiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  const genericAiKey = import.meta.env.VITE_AI_API_KEY;
+  const groqKey = import.meta.env.VITE_GROQ_API_KEY || import.meta.env.VITE_AI_API_KEY;
 
   if (groqKey && groqKey.trim() !== '') {
     return { provider: 'groq', apiKey: groqKey.trim() };
   }
-  if (geminiKey && geminiKey.trim() !== '') {
-    return { provider: 'gemini', apiKey: geminiKey.trim() };
-  }
-  if (openAiKey && openAiKey.trim() !== '') {
-    return { provider: 'openai', apiKey: openAiKey.trim() };
-  }
-  if (genericAiKey && genericAiKey.trim() !== '') {
-    return { provider: 'groq', apiKey: genericAiKey.trim() };
-  }
 
-  return { provider: null, apiKey: null };
+  return { provider: 'groq', apiKey: null };
 }
 
 /**
- * Builds system prompt instruction embedding the full active inventory of WatchLab Cebu.
+ * Builds system prompt instruction embedding complete WatchLab Cebu system knowledge & real-time inventory.
  */
 export function buildSystemPrompt(watches = []) {
   const watchCatalogText = watches.length > 0
@@ -43,31 +31,42 @@ export function buildSystemPrompt(watches = []) {
       }).join('\n\n')
     : 'No watches currently listed in database.';
 
-  return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Concierge.
-WatchLab Cebu is a premier dealer of luxury watches in Cebu, Philippines, specializing in Rolex, Patek Philippe, Audemars Piguet, Omega, Tudor, Cartier, and other high-end timepieces.
+  return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Virtual Concierge, powered by Groq AI.
 
-YOUR MANDATE & KNOWLEDGE:
-- You have complete, real-time knowledge of all ${watches.length} watches added inside the WatchLab Cebu system listed below.
-- You must answer customer inquiries accurately based strictly on our inventory knowledge base.
-- If a customer asks about a watch brand, budget/price range, condition (Brand New vs Pre-Owned), or specific model, check our inventory list below and recommend matching watches.
-- Always include exact watch model names, prices, conditions, and stock status when recommending timepieces.
-- CRITICAL FORMATTING REQUIREMENT: Whenever you mention or recommend a specific watch from our inventory, include its exact tag format [WATCH_ID:id] (e.g. [WATCH_ID:${watches[0]?.id || 1}]) in your text so the UI can render rich interactive Watch Cards for the user!
-- If a user asks for a watch model or brand not in our system inventory, politely state that it's currently not in stock, but suggest similar available models or invite them to contact Bea / WatchLab Cebu on Messenger or WhatsApp for custom sourcing.
-- Be elegant, courteous, professional, knowledgeable, and concise. Use bullet points for recommendations.
+ABOUT WATCHLAB CEBU:
+- Location: Gorordo Avenue, Cebu City, Philippines.
+- Owner / Founder: Bea
+- Specialization: Authentic luxury and everyday timepieces (Brands: Seiko, Tissot, Omega, Tag Heuer, Rolex, Patek Philippe, Audemars Piguet, Cartier).
+- Credibility & Guarantees: DTI Registered, 300+ Watches Sold, 100% Guaranteed Authentic, Warranty Included.
+- Fulfillment & Delivery:
+  • Meetups available within Cebu City
+  • Local delivery via Maxim / Angkas
+  • Worldwide shipping via LBC and DHL Express
+- Contact & Sourcing: Customers can chat with Bea on WhatsApp or Facebook Messenger for custom sourcing or scheduling meetups.
 
-CURRENT WATCHLAB CEBU SYSTEM INVENTORY CATALOG (${watches.length} watches total):
+YOUR MANDATE & SYSTEM KNOWLEDGE:
+1. You have real-time access to all ${watches.length} active timepieces currently in our WatchLab system catalog (listed below).
+2. Answer customer inquiries accurately based on our inventory knowledge base.
+3. Recommend matching watches when customers ask about brands (especially Seiko, Tissot, Omega, Tag Heuer, Rolex, etc.), budget ranges, conditions (Brand New vs Pre-Owned), or styles.
+4. CRITICAL CARD TAGGING FORMAT: Whenever you mention or recommend a specific watch from our inventory, MUST include its exact tag format [WATCH_ID:id] (e.g. [WATCH_ID:${watches[0]?.id || 1}]) so the UI renders rich interactive Watch Cards!
+5. If a requested model or brand is not currently in stock, state it politely and suggest available alternatives or invite them to contact Bea for custom sourcing.
+6. Keep responses elegant, polite, helpful, clear, and concise.
+
+CURRENT WATCHLAB SYSTEM INVENTORY CATALOG (${watches.length} watches total):
 ${watchCatalogText}`;
 }
 
 /**
- * Calls Groq AI REST API (OpenAI compatible format)
+ * Calls Groq AI REST API (OpenAI compatible format) with automatic fallback across supported Groq models
  */
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
   const models = [
     'llama-3.3-70b-versatile',
     'llama-3.1-8b-instant',
-    'gemma2-9b-it',
-    'qwen-2.5-32b'
+    'llama3-70b-8192',
+    'llama3-8b-8192',
+    'mixtral-8x7b-32768',
+    'gemma2-9b-it'
   ];
   const cleanKey = apiKey ? apiKey.trim().replace(/^["']|["']$/g, '') : '';
 
@@ -123,85 +122,7 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
 }
 
 /**
- * Calls Gemini REST API
- */
-async function callGemini(apiKey, systemInstructionText, chatHistory) {
-  const models = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
-  let lastErr = null;
-
-  const contents = chatHistory.map(msg => ({
-    role: msg.role === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.content }]
-  }));
-
-  for (const model of models) {
-    try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`;
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: {
-            parts: [{ text: systemInstructionText }]
-          },
-          contents,
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000
-          }
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (replyText) return replyText;
-      }
-    } catch (err) {
-      console.warn(`Gemini model ${model} error:`, err);
-      lastErr = err;
-    }
-  }
-
-  throw lastErr || new Error('Failed to reach Gemini AI service.');
-}
-
-/**
- * Calls OpenAI REST API
- */
-async function callOpenAI(apiKey, systemInstructionText, chatHistory) {
-  const messages = [
-    { role: 'system', content: systemInstructionText },
-    ...chatHistory.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }))
-  ];
-
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey.trim()}`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages,
-      temperature: 0.7
-    })
-  });
-
-  if (!res.ok) {
-    const errJson = await res.json().catch(() => ({}));
-    throw new Error(errJson.error?.message || `OpenAI API HTTP ${res.status}`);
-  }
-
-  const data = await res.json();
-  return data.choices?.[0]?.message?.content || 'No response generated.';
-}
-
-/**
- * Fallback assistant response generator when Vercel env key is not yet set in Vercel.
+ * Intelligent Catalog Search Fallback response when Groq API key is not present directly in browser
  */
 function generateFallbackResponse(userMessage, watches = []) {
   const query = userMessage.toLowerCase();
@@ -215,76 +136,58 @@ function generateFallbackResponse(userMessage, watches = []) {
 
   let text = '';
 
-  if (query.includes('expensive') || query.includes('highest price') || query.includes('costliest') || query.includes('most expensive')) {
+  if (query.includes('seiko') || query.includes('tissot') || query.includes('omega') || query.includes('tag heuer') || query.includes('tag')) {
+    const brandMatches = watches.filter(w => w.brand && (
+      (query.includes('seiko') && w.brand.toLowerCase().includes('seiko')) ||
+      (query.includes('tissot') && w.brand.toLowerCase().includes('tissot')) ||
+      (query.includes('omega') && w.brand.toLowerCase().includes('omega')) ||
+      (query.includes('tag') && w.brand.toLowerCase().includes('tag'))
+    ));
+    if (brandMatches.length > 0) {
+      text = `Here are our available watches in stock matching your brand request:\n\n` +
+        brandMatches.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
+    } else {
+      text = `We currently don't have that specific brand model in stock, but you can explore our complete Collection page or contact Bea directly for custom watch sourcing!`;
+    }
+  } else if (query.includes('expensive') || query.includes('highest price') || query.includes('costliest') || query.includes('most expensive')) {
     const sorted = [...watches].sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
     if (sorted.length > 0) {
       const topWatch = sorted[0];
-      text = `Our most expensive timepiece currently in stock is the **${topWatch.brand} ${topWatch.name}**, priced at **${formatPrice(topWatch.price)}** (${topWatch.condition || 'Pre-Owned'}). [WATCH_ID:${topWatch.id}]\n\n` +
-        `Here are our top highest-value luxury watches:\n` +
+      text = `Our top timepiece currently listed is the **${topWatch.brand} ${topWatch.name}**, priced at **${formatPrice(topWatch.price)}** (${topWatch.condition || 'Pre-Owned'}). [WATCH_ID:${topWatch.id}]\n\n` +
+        `Here are our top featured watches:\n` +
         sorted.slice(0, 3).map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
-    } else {
-      text = `We currently don't have listed prices in our database. Contact Bea directly for custom luxury watch inquiries!`;
-    }
-  } else if (query.includes('rolex')) {
-    const rolexes = watches.filter(w => w.brand && w.brand.toLowerCase().includes('rolex'));
-    if (rolexes.length > 0) {
-      text = `We currently have **${rolexes.length} Rolex timepieces** in stock at WatchLab Cebu!\n\nHere are our available Rolex models:\n` +
-        rolexes.map(w => `• **${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
-    } else {
-      text = `We currently don't have any Rolex watches in our immediate online catalog. However, we frequently receive new arrivals or can source specific Rolex models for you! Contact Bea directly on WhatsApp or Messenger for custom sourcing.`;
-    }
-  } else if (query.includes('brand new') || query.includes('new')) {
-    const brandNew = watches.filter(w => w.condition === 'Brand New');
-    if (brandNew.length > 0) {
-      text = `Here are our **Brand New** luxury watches in stock:\n\n` +
-        brandNew.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} [WATCH_ID:${w.id}]`).join('\n');
-    } else {
-      text = `All our current listed watches are high-grade pre-owned pieces. Check back soon for new arrivals or ask us about upcoming inventory!`;
-    }
-  } else if (query.includes('pre-owned') || query.includes('used')) {
-    const preOwned = watches.filter(w => w.condition === 'Pre-Owned');
-    if (preOwned.length > 0) {
-      text = `Here are our top **Pre-Owned** luxury watches in stock:\n\n` +
-        preOwned.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} [WATCH_ID:${w.id}]`).join('\n');
     }
   } else if (matches.length > 0) {
-    text = `Here are the watches from our inventory matching your query:\n\n` +
+    text = `Here are timepieces from our WatchLab Cebu inventory matching your inquiry:\n\n` +
       matches.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
   } else {
-    text = `Welcome to WatchLab Cebu! We currently have **${watches.length} watches** in our system, including top luxury brands like Rolex, Patek Philippe, Audemars Piguet, and Omega.\n\n` +
-      `Feel free to ask me about specific brands, prices, or conditions! You can also view our full catalog on the Collection page or contact Bea directly via WhatsApp or Messenger.`;
+    text = `Welcome to WatchLab Cebu! We currently have **${watches.length} watches** listed in our system, including top brands like Seiko, Tissot, Omega, Tag Heuer, and Rolex.\n\n` +
+      `Feel free to ask me about specific brands, prices, conditions, or delivery options! You can also view our full catalog on the Collection page or contact Bea directly via WhatsApp or Messenger.`;
   }
 
   return text;
 }
 
 /**
- * Main AI Agent messaging handler
+ * Main Pure Groq AI Agent messaging handler
  */
 export async function sendAiAgentMessage({ userMessage, history, watches = [] }) {
-  const { provider, apiKey } = getAiApiKeyConfig();
+  const { apiKey } = getAiApiKeyConfig();
   const systemInstruction = buildSystemPrompt(watches);
 
   const updatedHistory = [...history, { role: 'user', content: userMessage }];
 
+  // 1. Direct Frontend Groq API call if VITE_GROQ_API_KEY is present
   if (apiKey) {
     try {
-      if (provider === 'groq') {
-        const reply = await callGroq(apiKey, systemInstruction, updatedHistory);
-        return { reply, hasApiKey: true, provider };
-      } else if (provider === 'gemini') {
-        const reply = await callGemini(apiKey, systemInstruction, updatedHistory);
-        return { reply, hasApiKey: true, provider };
-      } else if (provider === 'openai') {
-        const reply = await callOpenAI(apiKey, systemInstruction, updatedHistory);
-        return { reply, hasApiKey: true, provider };
-      }
+      const reply = await callGroq(apiKey, systemInstruction, updatedHistory);
+      return { reply, hasApiKey: true, provider: 'groq' };
     } catch (err) {
-      console.warn('Frontend AI API error, checking backend or catalog fallback:', err);
+      console.warn('Frontend Groq API call error, trying backend Groq proxy:', err);
     }
   }
 
-  // Try backend AI proxy endpoint
+  // 2. Backend Groq Proxy endpoint call
   try {
     const envUrl = import.meta.env ? import.meta.env.VITE_API_URL : null;
     const rawApiUrl = (envUrl && envUrl.trim() !== '') ? envUrl.trim() : 'https://watchlabcebu-production.up.railway.app';
@@ -302,13 +205,13 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
     const data = await backendRes.json().catch(() => ({}));
 
     if (backendRes.ok && data.reply) {
-      return { reply: data.reply, hasApiKey: true, provider: data.provider || 'groq' };
+      return { reply: data.reply, hasApiKey: true, provider: 'groq' };
     }
   } catch (backendErr) {
     console.warn('Backend AI route unavailable, using local catalog search:', backendErr);
   }
 
-  // Fallback catalog search if AI service is not configured
+  // 3. Fallback catalog response generator
   const reply = generateFallbackResponse(userMessage, watches);
   return { reply, hasApiKey: false };
 }
