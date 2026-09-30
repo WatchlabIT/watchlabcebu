@@ -287,11 +287,21 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
       })
     });
 
-    if (backendRes.ok) {
-      const data = await backendRes.json();
-      if (data.reply) {
-        return { reply: data.reply, hasApiKey: true, provider: data.provider || 'groq' };
-      }
+    const data = await backendRes.json().catch(() => ({}));
+
+    if (backendRes.ok && data.reply) {
+      return { reply: data.reply, hasApiKey: true, provider: data.provider || 'groq' };
+    }
+
+    if (data.details || data.message || data.error) {
+      console.warn('Backend Groq AI notice:', data);
+      const fallbackReply = generateFallbackResponse(userMessage, watches);
+      const errNote = data.details || data.message || data.error;
+      return {
+        reply: `${fallbackReply}\n\n*(Notice: ${errNote})*`,
+        hasApiKey: false,
+        error: errNote
+      };
     }
   } catch (backendErr) {
     console.warn('Backend AI route unavailable, using local catalog search:', backendErr);
