@@ -257,14 +257,14 @@ export default function HomePage() {
                       />
                     )}
 
-                    {/* Gradual Bottom Gradient Overlay for Seamless Text Readability */}
+                    {/* Gradual Bottom Glass Bar Overlay for Maximum Watch Image Visibility */}
                     <div style={{
                       position: 'absolute',
                       bottom: 0,
                       left: 0,
                       right: 0,
-                      height: '65%',
-                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.82) 60%, rgba(255, 255, 255, 0) 100%)',
+                      height: '36%',
+                      background: 'linear-gradient(to top, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.35) 60%, rgba(255, 255, 255, 0) 100%)',
                       pointerEvents: 'none',
                       zIndex: 5
                     }} />
@@ -336,21 +336,26 @@ export default function HomePage() {
                       </>
                     )}
 
-                    {/* Gradual Overlay Text & Content */}
+                    {/* Gradual Overlay Text & Content inside Glass Floating Pill Bar */}
                     {currentHero && (
                       <div
                         key={`hero-text-${currentHero.id || heroIndex}-${heroIndex}`}
                         className="hero-text-animate"
                         style={{
                           position: 'absolute',
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          padding: '20px 24px',
+                          bottom: '10px',
+                          left: '10px',
+                          right: '10px',
+                          padding: '12px 16px',
+                          background: 'rgba(255, 255, 255, 0.82)',
+                          backdropFilter: 'blur(12px)',
+                          borderRadius: '16px',
+                          border: '1px solid rgba(255, 255, 255, 0.6)',
+                          boxShadow: '0 6px 20px rgba(0, 0, 0, 0.08)',
                           zIndex: 8,
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '8px'
+                          gap: '6px'
                         }}
                       >
                         {/* Top Line: Label & Condition Badge */}
