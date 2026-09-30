@@ -75,7 +75,7 @@ export default function TransactionsPage() {
               letterSpacing: '-0.5px',
               margin: 0
             }}>
-              FEATURED TRANSACTIONS
+              RECENT TRANSACTIONS
             </h1>
 
             {/* Transaction Count Pill & Nav Buttons */}
@@ -97,7 +97,7 @@ export default function TransactionsPage() {
               </div>
             </div>
           </div>
-          
+
           <p style={{ marginTop: '16px', color: 'var(--text-secondary)', fontSize: '1rem', maxWidth: '680px' }}>
             Real client handovers, in-person meetups, and courier deliveries. Every watch listed at Watch Lab Cebu is 100% authentic and verified.
           </p>
@@ -230,8 +230,8 @@ export default function TransactionsPage() {
                 </div>
               </ScrollReveal>
             ))}
-        </div>
-      )}
+          </div>
+        )}
 
         {/* Modal Detail View */}
         {selectedTx && (

@@ -35,7 +35,7 @@ export default function HomePage() {
           fetchWatches(),
           fetchTransactions()
         ]);
-        
+
         const rawArrivals = arrivalsData.watches || [];
         setNewArrivals(rawArrivals.slice(0, 4));
 
@@ -200,7 +200,7 @@ export default function HomePage() {
 
             {/* Right Hero Image Card - Dynamic Hero Slideshow */}
             <ScrollReveal animation="right" delay={150}>
-              <div 
+              <div
                 style={{ position: 'relative' }}
                 onMouseEnter={() => setIsPaused(true)}
                 onMouseLeave={() => setIsPaused(false)}
@@ -562,7 +562,7 @@ export default function HomePage() {
                   WHY CHOOSE WATCH LAB CEBU
                 </div>
                 <h2 className="font-serif" style={{ fontSize: 'clamp(1.6rem, 4vw, 2.2rem)', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-                  Recent Client Transactions & Handovers
+                  Recent Transactions
                 </h2>
               </div>
 
