@@ -25,10 +25,7 @@ router.post('/ai/chat', async (req, res) => {
     if (groqKey) {
       const models = [
         'llama-3.3-70b-versatile',
-        'llama-3.1-8b-instant',
-        'gemma2-9b-it',
-        'qwen-2.5-32b',
-        'deepseek-r1-distill-llama-70b'
+        'llama-3.1-8b-instant'
       ];
 
       const formattedMessages = [
