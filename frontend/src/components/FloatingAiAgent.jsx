@@ -368,7 +368,7 @@ export default function FloatingAiAgent() {
                   WatchLab AI Concierge
                 </div>
                 <div style={{ fontSize: '0.72rem', opacity: 0.9, fontWeight: 500 }}>
-                  Online • Luxury Watch Specialist
+                  Online • Watch Specialist
                 </div>
               </div>
             </div>
