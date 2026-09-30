@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// POST /api/ai/chat - Backend proxy endpoint for Groq AI / Gemini / OpenAI
+// POST /api/ai/chat - Backend proxy endpoint for Groq AI
 router.post('/ai/chat', async (req, res) => {
   try {
     const { messages, systemInstruction } = req.body;
@@ -17,19 +17,15 @@ router.post('/ai/chat', async (req, res) => {
     if (!groqKey && !geminiKey && !openAiKey) {
       return res.status(400).json({ 
         error: 'No AI API Key configured on server.',
-        message: 'Please set GROQ_API_KEY in your Railway environment variables.'
+        message: 'Please add GROQ_API_KEY to your Railway Environment Variables.'
       });
     }
 
     let lastGroqError = null;
 
     if (groqKey) {
-      const models = [
-        'llama-3.3-70b-versatile',
-        'llama-3.1-8b-instant',
-        'llama-3.2-3b-preview',
-        'llama-3.1-70b-versatile'
-      ];
+      // Official Groq production free-tier models (Llama 3.3 70B & Llama 3.1 8B Instant)
+      const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
 
       const formattedMessages = [
         { role: 'system', content: systemInstruction || 'You are WatchLab Cebu AI Concierge.' },
@@ -63,11 +59,20 @@ router.post('/ai/chat', async (req, res) => {
               return res.json({ reply, provider: 'groq', model });
             }
           } else {
-            console.error(`Groq API Error (${model}):`, resData.error || resData);
-            lastGroqError = resData.error?.message || `Groq API returned HTTP ${apiRes.status}`;
+            console.error(`Groq API (${model}) HTTP ${apiRes.status}:`, resData.error || resData);
+            const msg = resData.error?.message || `HTTP ${apiRes.status}`;
+            lastGroqError = msg;
+
+            // If API key is invalid or unauthorized, stop retrying other models
+            if (apiRes.status === 401 || apiRes.status === 403) {
+              return res.status(401).json({
+                error: 'Invalid Groq API Key',
+                message: `Groq Authentication Failed (${msg}). Please verify GROQ_API_KEY in Railway.`
+              });
+            }
           }
         } catch (e) {
-          console.error(`Backend fetch to Groq model ${model} failed:`, e);
+          console.error(`Groq request error on model ${model}:`, e);
           lastGroqError = e.message;
         }
       }
@@ -102,8 +107,8 @@ router.post('/ai/chat', async (req, res) => {
     }
 
     return res.status(502).json({ 
-      error: 'Groq AI Service Request Failed',
-      details: lastGroqError || 'Failed to generate response from Groq AI.'
+      error: 'Groq AI Request Failed',
+      message: lastGroqError || 'Failed to generate response from Groq AI.'
     });
   } catch (err) {
     console.error('Backend AI Chat Error:', err);

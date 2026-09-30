@@ -67,7 +67,7 @@ ${watchCatalogText}`;
  * Calls Groq AI REST API (OpenAI compatible format)
  */
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
-  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.2-3b-preview', 'llama-3.1-70b-versatile'];
+  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
   let lastErr = null;
 
   const messages = [
@@ -84,7 +84,7 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Authorization': `Bearer ${apiKey.trim()}`
         },
         body: JSON.stringify({
           model,
@@ -96,7 +96,11 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
 
       if (!res.ok) {
         const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error?.message || `Groq API HTTP ${res.status} (${model})`);
+        const errMsg = errJson.error?.message || `Groq API HTTP ${res.status}`;
+        if (res.status === 401 || res.status === 403) {
+          throw new Error(`Invalid Groq API Key (${errMsg}). Please check your key in Vercel.`);
+        }
+        throw new Error(errMsg);
       }
 
       const data = await res.json();
@@ -105,6 +109,9 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
     } catch (err) {
       console.warn(`Groq model ${model} error:`, err);
       lastErr = err;
+      if (err.message && err.message.includes('Invalid Groq API Key')) {
+        throw err;
+      }
     }
   }
 
