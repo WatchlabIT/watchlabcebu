@@ -61,11 +61,8 @@ ${watchCatalogText}`;
  */
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
   const models = [
-    'llama-3.3-70b-versatile',
-    'llama-3.1-70b-versatile',
-    'llama-3.1-8b-instant',
-    'llama3-groq-70b-8192-tool-use-preview',
-    'llama3-groq-8b-8192-tool-use-preview'
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b'
   ];
   const cleanKey = apiKey ? apiKey.trim().replace(/^["']|["']$/g, '') : '';
 
