@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-// POST /api/ai/chat - Backend proxy endpoint for Groq AI (llama-3.3-70b-versatile)
+// POST /api/ai/chat - Backend proxy endpoint for Groq AI
 router.post('/ai/chat', async (req, res) => {
   try {
     const { messages, systemInstruction } = req.body;
@@ -23,7 +23,13 @@ router.post('/ai/chat', async (req, res) => {
     }
 
     if (groqKey) {
-      const model = 'llama-3.3-70b-versatile';
+      const models = [
+        'llama-3.3-70b-versatile',
+        'llama-3.1-8b-instant',
+        'gemma2-9b-it',
+        'qwen-2.5-32b',
+        'deepseek-r1-distill-llama-70b'
+      ];
 
       const formattedMessages = [
         { role: 'system', content: systemInstruction || 'You are WatchLab Cebu AI Concierge.' },
@@ -33,44 +39,54 @@ router.post('/ai/chat', async (req, res) => {
         })) : [])
       ];
 
-      try {
-        const apiRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${groqKey}`
-          },
-          body: JSON.stringify({
-            model,
-            messages: formattedMessages,
-            temperature: 0.7,
-            max_tokens: 1000
-          })
-        });
+      let lastGroqError = null;
 
-        const resData = await apiRes.json().catch(() => ({}));
+      for (const model of models) {
+        try {
+          const apiRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqKey}`
+            },
+            body: JSON.stringify({
+              model,
+              messages: formattedMessages,
+              temperature: 0.7,
+              max_tokens: 1000
+            })
+          });
 
-        if (apiRes.ok) {
-          const reply = resData.choices?.[0]?.message?.content;
-          if (reply) {
-            return res.json({ reply, provider: 'groq', model });
+          const resData = await apiRes.json().catch(() => ({}));
+
+          if (apiRes.ok) {
+            const reply = resData.choices?.[0]?.message?.content;
+            if (reply) {
+              return res.json({ reply, provider: 'groq', model });
+            }
           }
-        }
 
-        console.error(`Groq API Error (${model}) HTTP ${apiRes.status}:`, resData.error || resData);
-        const errMsg = resData.error?.message || `Groq API returned HTTP ${apiRes.status}`;
-        
-        return res.status(apiRes.status || 500).json({
-          error: 'Groq API Error',
-          message: `Groq (${model}): ${errMsg}`
-        });
-      } catch (e) {
-        console.error(`Groq fetch failed:`, e);
-        return res.status(500).json({
-          error: 'Groq Connection Error',
-          message: e.message || 'Failed to connect to Groq server.'
-        });
+          const errMsg = resData.error?.message || `HTTP ${apiRes.status}`;
+          console.error(`Groq API Error (${model}) HTTP ${apiRes.status}:`, resData.error || resData);
+          lastGroqError = errMsg;
+
+          // If authentication error, return immediately
+          if (apiRes.status === 401 || apiRes.status === 403) {
+            return res.status(401).json({
+              error: 'Invalid Groq API Key',
+              message: `Groq Authentication Failed (${errMsg}). Please verify GROQ_API_KEY in Railway.`
+            });
+          }
+        } catch (e) {
+          console.error(`Groq fetch failed for ${model}:`, e);
+          lastGroqError = e.message;
+        }
       }
+
+      return res.status(502).json({
+        error: 'Groq API Error',
+        message: `Groq AI Error: ${lastGroqError || 'Failed to fetch response.'}`
+      });
     }
 
     if (geminiKey) {

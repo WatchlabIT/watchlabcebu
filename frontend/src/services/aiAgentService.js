@@ -67,7 +67,13 @@ ${watchCatalogText}`;
  * Calls Groq AI REST API (OpenAI compatible format)
  */
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
-  const model = 'llama-3.3-70b-versatile';
+  const models = [
+    'llama-3.3-70b-versatile',
+    'llama-3.1-8b-instant',
+    'gemma2-9b-it',
+    'qwen-2.5-32b',
+    'deepseek-r1-distill-llama-70b'
+  ];
   const cleanKey = apiKey ? apiKey.trim().replace(/^["']|["']$/g, '') : '';
 
   const messages = [
@@ -78,31 +84,47 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
     }))
   ];
 
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${cleanKey}`
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature: 0.7,
-      max_tokens: 1000
-    })
-  });
+  let lastError = null;
 
-  const data = await res.json().catch(() => ({}));
+  for (const model of models) {
+    try {
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${cleanKey}`
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          temperature: 0.7,
+          max_tokens: 1000
+        })
+      });
 
-  if (!res.ok) {
-    const errMsg = data.error?.message || `Groq API HTTP ${res.status}`;
-    throw new Error(`Groq (${model}): ${errMsg}`);
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok) {
+        const replyText = data.choices?.[0]?.message?.content;
+        if (replyText) return replyText;
+      }
+
+      const errMsg = data.error?.message || `Groq API HTTP ${res.status}`;
+      console.warn(`Groq model ${model} issue:`, errMsg);
+      lastError = errMsg;
+
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Invalid Groq API Key (${errMsg}). Please verify your GROQ_API_KEY.`);
+      }
+    } catch (err) {
+      if (err.message && err.message.includes('Invalid Groq API Key')) {
+        throw err;
+      }
+      lastError = err.message;
+    }
   }
 
-  const replyText = data.choices?.[0]?.message?.content;
-  if (replyText) return replyText;
-
-  throw new Error('Groq returned empty content response.');
+  throw new Error(`Groq API (${lastError || 'All models busy'})`);
 }
 
 /**
