@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, ChevronDown, Image as ImageIcon, AlertCircle, Download, FileSpreadsheet } from 'lucide-react';
+import { Plus, Minus, Edit, Trash2, Package, CheckCircle2, AlertOctagon, DollarSign, Search, ExternalLink, RefreshCw, Sparkles, Upload, X, ShieldCheck, MapPin, ShoppingBag, Star, ChevronDown, Image as ImageIcon, AlertCircle, Download, FileSpreadsheet, LogOut } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { fetchWatches, fetchAdminStats, deleteWatch as apiDeleteWatch, createWatch, updateWatch, batchImportWatches, fetchTransactions, createTransaction, updateTransaction, deleteTransaction as apiDeleteTransaction } from '../utils/api';
 import { formatPrice, getImageUrl } from '../utils/format';
 import { compressImageFile } from '../utils/imageCompressor';
 import ConfirmModal from '../components/ConfirmModal';
 import ProtectedImage from '../components/ProtectedImage';
+import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const [stats, setStats] = useState({
     totalWatches: 0,
@@ -29,7 +32,7 @@ export default function AdminDashboardPage() {
   const [showWatchModal, setShowWatchModal] = useState(false);
   const [editingWatch, setEditingWatch] = useState(null);
   const [watchName, setWatchName] = useState('');
-  const [watchBrand, setWatchBrand] = useState('Rolex');
+  const [watchBrand, setWatchBrand] = useState('Seiko');
   const [watchCustomBrand, setWatchCustomBrand] = useState('');
   const [watchGender, setWatchGender] = useState('Unisex');
   const [watchPrice, setWatchPrice] = useState('');
@@ -42,7 +45,13 @@ export default function AdminDashboardPage() {
   const [savingWatch, setSavingWatch] = useState(false);
   const [watchError, setWatchError] = useState(null);
 
-  const brandOptions = ['Rolex', 'Omega', 'Seiko', 'Tissot', 'Casio', 'Audemars Piguet', 'Patek Philippe', 'Cartier', 'Tag Heuer', 'Other'];
+  const brandOptions = ['Seiko', 'Tissot', 'Omega', 'Tag Heuer', 'Other'];
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
+    navigate('/admin/login');
+  };
 
   // Excel Import & Export States
   const [showImportModal, setShowImportModal] = useState(false);
@@ -760,6 +769,41 @@ export default function AdminDashboardPage() {
               </>
             )}
           </div>
+
+          {/* Logout Button */}
+          <button
+            type="button"
+            onClick={() => setShowLogoutConfirm(true)}
+            className="btn btn-secondary"
+            style={{
+              padding: '12px 20px',
+              fontSize: '0.92rem',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              borderRadius: '30px',
+              border: '1px solid #FECACA',
+              background: '#FEF2F2',
+              color: '#DC2626',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#DC2626';
+              e.currentTarget.style.color = '#FFFFFF';
+              e.currentTarget.style.borderColor = '#DC2626';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = '#FEF2F2';
+              e.currentTarget.style.color = '#DC2626';
+              e.currentTarget.style.borderColor = '#FECACA';
+            }}
+            title="Log out of Admin Dashboard"
+          >
+            <LogOut size={17} />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
 
@@ -1271,6 +1315,16 @@ export default function AdminDashboardPage() {
         onConfirm={handleConfirmDeleteTx}
         onCancel={() => setDeleteTxId(null)}
         loading={deletingTx}
+      />
+
+      {/* Logout Confirmation Modal */}
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        title="Log Out of Admin Portal?"
+        message="Are you sure you want to log out of WatchLab Admin? You will need to log in again with your credentials."
+        confirmText="Log Out"
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
       />
 
       {/* Watch Add / Edit Modal Overlay */}

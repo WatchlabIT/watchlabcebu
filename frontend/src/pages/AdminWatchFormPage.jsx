@@ -10,7 +10,7 @@ export default function AdminWatchFormPage() {
   const isEditMode = !!id;
 
   const [name, setName] = useState('');
-  const [brand, setBrand] = useState('Rolex');
+  const [brand, setBrand] = useState('Seiko');
   const [customBrand, setCustomBrand] = useState('');
   const [gender, setGender] = useState('Unisex');
   const [price, setPrice] = useState('');
@@ -24,7 +24,7 @@ export default function AdminWatchFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-  const brandOptions = ['Rolex', 'Omega', 'Seiko', 'Tissot', 'Casio', 'Audemars Piguet', 'Patek Philippe', 'Cartier', 'Tag Heuer', 'Other'];
+  const brandOptions = ['Seiko', 'Tissot', 'Omega', 'Tag Heuer', 'Other'];
 
   useEffect(() => {
     if (isEditMode) {
