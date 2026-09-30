@@ -21,14 +21,14 @@ export function getAiApiKeyConfig() {
 export function buildSystemPrompt(watches = []) {
   const watchCatalogText = watches.length > 0
     ? watches.map((w, i) => {
-        return `${i + 1}. [WATCH_ID:${w.id}] ${w.brand} - ${w.name}
+      return `${i + 1}. [WATCH_ID:${w.id}] ${w.brand} - ${w.name}
    • Price: ${formatPrice(w.price)}
    • Condition: ${w.condition || 'Pre-Owned'}
    • Target/Gender: ${w.gender || 'Unisex'}
    • Stock Availability: ${w.stock > 0 ? `IN STOCK (${w.stock} available)` : 'SOLD OUT'}
    • Description: ${w.description ? w.description.slice(0, 200).replace(/\n/g, ' ') : 'Luxury timepiece'}
    • Direct Link: /watch/${w.id}`;
-      }).join('\n\n')
+    }).join('\n\n')
     : 'No watches currently listed in database.';
 
   return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Virtual Concierge, powered by Groq AI.
@@ -36,7 +36,7 @@ export function buildSystemPrompt(watches = []) {
 ABOUT WATCHLAB CEBU:
 - Location: Gorordo Avenue, Cebu City, Philippines.
 - Owner / Founder: Bea
-- Specialization: Authentic luxury and everyday timepieces (Brands: Seiko, Tissot, Omega, Tag Heuer, Rolex, Patek Philippe, Audemars Piguet, Cartier).
+- Specialization: Authentic timepieces — Exclusive Brands: Seiko, Tissot, Omega, Tag Heuer.
 - Credibility & Guarantees: DTI Registered, 300+ Watches Sold, 100% Guaranteed Authentic, Warranty Included.
 - Fulfillment & Delivery:
   • Meetups available within Cebu City
@@ -47,7 +47,7 @@ ABOUT WATCHLAB CEBU:
 YOUR MANDATE & SYSTEM KNOWLEDGE:
 1. You have real-time access to all ${watches.length} active timepieces currently in our WatchLab system catalog (listed below).
 2. Answer customer inquiries accurately based on our inventory knowledge base.
-3. Recommend matching watches when customers ask about brands (especially Seiko, Tissot, Omega, Tag Heuer, Rolex, etc.), budget ranges, conditions (Brand New vs Pre-Owned), or styles.
+3. Recommend matching watches when customers ask about brands (Seiko, Tissot, Omega, Tag Heuer), budget ranges, conditions (Brand New vs Pre-Owned), or styles.
 4. CRITICAL CARD TAGGING FORMAT: Whenever you mention or recommend a specific watch from our inventory, MUST include its exact tag format [WATCH_ID:id] (e.g. [WATCH_ID:${watches[0]?.id || 1}]) so the UI renders rich interactive Watch Cards!
 5. If a requested model or brand is not currently in stock, state it politely and suggest available alternatives or invite them to contact Bea for custom sourcing.
 6. Keep responses elegant, polite, helpful, clear, and concise.
@@ -126,7 +126,7 @@ async function callGroq(apiKey, systemInstructionText, chatHistory) {
  */
 function generateFallbackResponse(userMessage, watches = []) {
   const query = userMessage.toLowerCase();
-  
+
   const matches = watches.filter(w => {
     const brandMatch = w.brand && query.includes(w.brand.toLowerCase());
     const nameMatch = w.name && query.includes(w.name.toLowerCase());
@@ -161,7 +161,7 @@ function generateFallbackResponse(userMessage, watches = []) {
     text = `Here are timepieces from our WatchLab Cebu inventory matching your inquiry:\n\n` +
       matches.map(w => `• **${w.brand} ${w.name}** - ${formatPrice(w.price)} (${w.condition || 'Pre-Owned'}) [WATCH_ID:${w.id}]`).join('\n');
   } else {
-    text = `Welcome to WatchLab Cebu! We currently have **${watches.length} watches** listed in our system, including top brands like Seiko, Tissot, Omega, Tag Heuer, and Rolex.\n\n` +
+    text = `Welcome to WatchLab Cebu! We currently have **${watches.length} watches** listed in our system, featuring top brands like **Seiko, Tissot, Omega, and Tag Heuer**.\n\n` +
       `Feel free to ask me about specific brands, prices, conditions, or delivery options! You can also view our full catalog on the Collection page or contact Bea directly via WhatsApp or Messenger.`;
   }
 

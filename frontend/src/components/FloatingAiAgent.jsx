@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  MessageSquare, X, Bot, Sparkles, Send, Trash2, 
+import {
+  MessageSquare, X, Bot, Sparkles, Send, Trash2,
   ExternalLink, Key, RefreshCw, ChevronRight, CheckCircle2, MessageCircle
 } from 'lucide-react';
 import { fetchWatches } from '../utils/api';
 import { formatPrice, getImageUrl, getMessengerUrl, getWhatsAppUrl } from '../utils/format';
-import { 
-  sendAiAgentMessage, 
-  getAiApiKeyConfig, 
-  extractWatchCardsFromText 
+import {
+  sendAiAgentMessage,
+  getAiApiKeyConfig,
+  extractWatchCardsFromText
 } from '../services/aiAgentService';
 
 export default function FloatingAiAgent() {
@@ -17,14 +17,14 @@ export default function FloatingAiAgent() {
   const [isOpen, setIsOpen] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const [isTooltipClosing, setIsTooltipClosing] = useState(false);
-  
+
   const [watches, setWatches] = useState([]);
   const [loadingWatches, setLoadingWatches] = useState(false);
-  
+
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
-  
+
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -76,7 +76,7 @@ export default function FloatingAiAgent() {
         {
           id: 'welcome-1',
           role: 'assistant',
-          content: `Hello! 👋 Welcome to WatchLab Cebu.\n\nI am your **AI Watch Specialist**. I have real-time access to **${watchCountText} luxury watches** in our system database.\n\nAsk me anything about our Rolex, Patek Philippe, Audemars Piguet, Omega models, pricing, or conditions!`,
+          content: `Hello! 👋 Welcome to WatchLab Cebu.\n\nI am your **AI Watch Specialist**. I have real-time access to **${watchCountText} watches** in our system database.\n\nAsk me anything about our Seiko, Tissot, Omega, or Tag Heuer timepieces — pricing, stock, or conditions!`,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
@@ -183,16 +183,16 @@ export default function FloatingAiAgent() {
   };
 
   const suggestionChips = [
-    { label: '⌚ Rolex Models', query: 'Show all Rolex watches in stock' },
-    { label: '✨ Brand New', query: 'List all Brand New watches available' },
-    { label: '🏷️ Under ₱500,000', query: 'Which watches are priced under ₱500,000?' },
-    { label: '💎 Pre-Owned Deals', query: 'What pre-owned luxury watches do you have?' }
+    { label: '⌚ Seiko Watches', query: 'Show all Seiko watches in stock' },
+    { label: '🕐 Tissot Models', query: 'Show all Tissot watches available' },
+    { label: '🔵 Omega Collection', query: 'What Omega watches do you have?' },
+    { label: '🏷️ Tag Heuer', query: 'Show me Tag Heuer watches in stock' }
   ];
 
   // Render text content formatted with bold syntax and removes tags
   const renderFormattedText = (text) => {
     if (!text) return null;
-    
+
     // Remove [WATCH_ID:xxx] tags from the visible text since watch cards handle them visually
     const cleanText = text.replace(/\[WATCH_ID:\d+\]/g, '').trim();
 

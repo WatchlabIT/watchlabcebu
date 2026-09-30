@@ -106,7 +106,7 @@ export default function CollectionPage() {
 
     const primaryBrands = ['Seiko', 'Tissot', 'Omega', 'Tag Heuer'];
     const otherBrands = Object.keys(counts).filter(b => !primaryBrands.some(p => p.toLowerCase() === b.toLowerCase())).sort();
-    
+
     const allOrdered = [...primaryBrands, ...otherBrands];
 
     return allOrdered.map(brand => ({
@@ -451,10 +451,10 @@ export default function CollectionPage() {
         {/* Price Presets */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '10px' }}>
           {[
-            { label: 'Under ₱50,000', min: '', max: '50000' },
-            { label: '₱50,000 - ₱150,000', min: '50000', max: '150000' },
-            { label: '₱150,000 - ₱500,000', min: '150000', max: '500000' },
-            { label: 'Above ₱500,000', min: '500000', max: '' }
+            { label: 'Under ₱5,000', min: '', max: '5000' },
+            { label: '₱5,000 - ₱20,000', min: '5000', max: '20000' },
+            { label: '₱20,000 - ₱50,000', min: '20000', max: '50000' },
+            { label: 'Above ₱50,000', min: '50000', max: '' }
           ].map(p => {
             const isSelected = minPriceParam === p.min && maxPriceParam === p.max;
             return (

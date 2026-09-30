@@ -830,428 +830,428 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-        {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '28px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '16px', flexWrap: 'wrap' }}>
-          <button
-            onClick={() => setActiveTab('inventory')}
-            className="btn"
-            style={{
-              padding: '12px 24px',
-              fontSize: '0.95rem',
-              borderRadius: '25px',
-              background: activeTab === 'inventory' ? 'var(--maroon-gradient)' : '#FFFFFF',
-              color: activeTab === 'inventory' ? '#FFFFFF' : 'var(--text-primary)',
-              border: activeTab === 'inventory' ? 'none' : '1px solid #D1D5DB',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Package size={18} /> Watch Collection Inventory ({watches.length})
-          </button>
+      {/* Navigation Tabs */}
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '28px', borderBottom: '1px solid var(--border-glass)', paddingBottom: '16px', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className="btn"
+          style={{
+            padding: '12px 24px',
+            fontSize: '0.95rem',
+            borderRadius: '25px',
+            background: activeTab === 'inventory' ? 'var(--maroon-gradient)' : '#FFFFFF',
+            color: activeTab === 'inventory' ? '#FFFFFF' : 'var(--text-primary)',
+            border: activeTab === 'inventory' ? 'none' : '1px solid #D1D5DB',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Package size={18} /> Watch Collection Inventory ({watches.length})
+        </button>
 
-          <button
-            onClick={() => setActiveTab('transactions')}
-            className="btn"
-            style={{
-              padding: '12px 24px',
-              fontSize: '0.95rem',
-              borderRadius: '25px',
-              background: activeTab === 'transactions' ? 'var(--maroon-gradient)' : '#FFFFFF',
-              color: activeTab === 'transactions' ? '#FFFFFF' : 'var(--text-primary)',
-              border: activeTab === 'transactions' ? 'none' : '1px solid #D1D5DB',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px'
-            }}
-          >
-            <Sparkles size={18} /> Featured Transactions ({transactions.length})
-          </button>
-        </div>
+        <button
+          onClick={() => setActiveTab('transactions')}
+          className="btn"
+          style={{
+            padding: '12px 24px',
+            fontSize: '0.95rem',
+            borderRadius: '25px',
+            background: activeTab === 'transactions' ? 'var(--maroon-gradient)' : '#FFFFFF',
+            color: activeTab === 'transactions' ? '#FFFFFF' : 'var(--text-primary)',
+            border: activeTab === 'transactions' ? 'none' : '1px solid #D1D5DB',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
+          }}
+        >
+          <Sparkles size={18} /> Featured Transactions ({transactions.length})
+        </button>
+      </div>
 
-        {/* TAB 1: WATCH INVENTORY */}
-        {activeTab === 'inventory' && (
-          <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              marginBottom: '20px'
-            }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                Watch Collection Inventory ({filteredWatches.length})
-              </h2>
+      {/* TAB 1: WATCH INVENTORY */}
+      {activeTab === 'inventory' && (
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            marginBottom: '20px'
+          }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+              Watch Collection Inventory ({filteredWatches.length})
+            </h2>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                <button
-                  type="button"
-                  onClick={handleExportExcel}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  title="Export all watch inventory to Excel (.xlsx) file"
-                >
-                  <Download size={15} color="var(--maroon-primary)" /> Export Excel
-                </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                title="Export all watch inventory to Excel (.xlsx) file"
+              >
+                <Download size={15} color="var(--maroon-primary)" /> Export Excel
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setImportError(null);
-                    setImportSuccess(null);
-                    setShowImportModal(true);
-                  }}
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                  title="Import watch catalog from Excel/CSV file"
-                >
-                  <FileSpreadsheet size={15} color="var(--maroon-primary)" /> Import Excel
-                </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImportError(null);
+                  setImportSuccess(null);
+                  setShowImportModal(true);
+                }}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                title="Import watch catalog from Excel/CSV file"
+              >
+                <FileSpreadsheet size={15} color="var(--maroon-primary)" /> Import Excel
+              </button>
 
-                <div style={{ position: 'relative', minWidth: '220px' }}>
-                  <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
-                  <input
-                    type="text"
-                    placeholder="Search inventory..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="form-input"
-                    style={{ paddingLeft: '38px', padding: '8px 12px 8px 38px', fontSize: '0.88rem' }}
-                  />
-                </div>
+              <div style={{ position: 'relative', minWidth: '220px' }}>
+                <Search size={16} color="var(--text-muted)" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="text"
+                  placeholder="Search inventory..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="form-input"
+                  style={{ paddingLeft: '38px', padding: '8px 12px 8px 38px', fontSize: '0.88rem' }}
+                />
               </div>
             </div>
+          </div>
 
-            {/* Table */}
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
-                Loading inventory data...
-              </div>
-            ) : filteredWatches.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
-                No watch listings match search.
-              </div>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
-                      <th style={{ padding: '12px' }}>Watch</th>
-                      <th style={{ padding: '12px' }}>Brand</th>
-                      <th style={{ padding: '12px' }}>Gender</th>
-                      <th style={{ padding: '12px' }}>Price</th>
-                      <th style={{ padding: '12px' }}>Stock</th>
-                      <th style={{ padding: '12px' }}>Condition</th>
-                      <th style={{ padding: '12px' }}>Hero Feature</th>
-                      <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredWatches.map((w) => (
-                      <tr key={w.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
-                        <td style={{ padding: '12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <ProtectedImage
-                              src={getImageUrl(w.image_url)}
-                              alt={w.name}
-                              style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', background: '#000' }}
-                            />
-                            <div>
-                              <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.name}</div>
-                              <Link to={`/watch/${w.id}`} target="_blank" style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
-                                View Listing <ExternalLink size={10} />
-                              </Link>
-                            </div>
+          {/* Table */}
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+              Loading inventory data...
+            </div>
+          ) : filteredWatches.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted)' }}>
+              No watch listings match search.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-glass)', color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase' }}>
+                    <th style={{ padding: '12px' }}>Watch</th>
+                    <th style={{ padding: '12px' }}>Brand</th>
+                    <th style={{ padding: '12px' }}>Gender</th>
+                    <th style={{ padding: '12px' }}>Price</th>
+                    <th style={{ padding: '12px' }}>Stock</th>
+                    <th style={{ padding: '12px' }}>Condition</th>
+                    <th style={{ padding: '12px' }}>Hero Feature</th>
+                    <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredWatches.map((w) => (
+                    <tr key={w.id} style={{ borderBottom: '1px solid var(--border-glass)', transition: 'background 0.2s' }}>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <ProtectedImage
+                            src={getImageUrl(w.image_url)}
+                            alt={w.name}
+                            style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', background: '#000' }}
+                          />
+                          <div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{w.name}</div>
+                            <Link to={`/watch/${w.id}`} target="_blank" style={{ fontSize: '0.75rem', color: 'var(--gold-primary)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                              View Listing <ExternalLink size={10} />
+                            </Link>
                           </div>
-                        </td>
+                        </div>
+                      </td>
 
-                        <td style={{ padding: '12px', fontWeight: 600, color: 'var(--gold-light)' }}>
-                          {w.brand}
-                        </td>
+                      <td style={{ padding: '12px', fontWeight: 600, color: 'var(--gold-light)' }}>
+                        {w.brand}
+                      </td>
 
-                        <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
-                          {w.gender || 'Unisex'}
-                        </td>
+                      <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        {w.gender || 'Unisex'}
+                      </td>
 
-                        <td style={{ padding: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-                          {formatPrice(w.price)}
-                        </td>
+                      <td style={{ padding: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
+                        {formatPrice(w.price)}
+                      </td>
 
-                        <td style={{ padding: '12px' }}>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleStockChange(w, -1)}
-                              disabled={w.stock <= 0 || updatingStockId === w.id}
-                              title={w.stock > 0 ? "Mark 1 Sold (-1 Stock)" : "Out of Stock"}
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderRadius: '6px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: w.stock > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
-                                color: w.stock > 0 ? '#EF4444' : 'var(--text-muted)',
-                                border: '1px solid ' + (w.stock > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.1)'),
-                                cursor: w.stock > 0 ? 'pointer' : 'not-allowed',
-                                opacity: w.stock > 0 ? 1 : 0.4,
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <Minus size={13} />
-                            </button>
-
-                            <div style={{ minWidth: '76px', textAlign: 'center' }}>
-                              {w.stock > 0 ? (
-                                <span className="badge badge-available" style={{ display: 'inline-block', minWidth: '70px' }}>
-                                  {w.stock} {w.stock === 1 ? 'Unit' : 'Units'}
-                                </span>
-                              ) : (
-                                <span className="badge badge-sold-out" style={{ display: 'inline-block', minWidth: '70px' }}>
-                                  Sold Out
-                                </span>
-                              )}
-                            </div>
-
-                            <button
-                              type="button"
-                              onClick={() => handleStockChange(w, 1)}
-                              disabled={updatingStockId === w.id}
-                              title="Add Stock (+1)"
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderRadius: '6px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                background: 'rgba(16, 185, 129, 0.15)',
-                                color: '#10B981',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease'
-                              }}
-                            >
-                              <Plus size={13} />
-                            </button>
-                          </div>
-                        </td>
-
-                        <td style={{ padding: '12px' }}>
-                          {w.condition === 'Brand New' ? (
-                            <span className="badge badge-brand-new">Brand New</span>
-                          ) : (
-                            <span className="badge badge-pre-owned">Pre-Owned</span>
-                          )}
-                        </td>
-
-                        <td style={{ padding: '12px' }}>
+                      <td style={{ padding: '12px' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                           <button
                             type="button"
-                            onClick={() => handleToggleFeaturedWatch(w)}
-                            className={`btn ${w.is_featured ? 'btn-primary' : 'btn-secondary'}`}
+                            onClick={() => handleStockChange(w, -1)}
+                            disabled={w.stock <= 0 || updatingStockId === w.id}
+                            title={w.stock > 0 ? "Mark 1 Sold (-1 Stock)" : "Out of Stock"}
                             style={{
-                              padding: '5px 12px',
-                              fontSize: '0.78rem',
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '6px',
                               display: 'inline-flex',
                               alignItems: 'center',
-                              gap: '6px',
-                              borderRadius: '16px',
-                              background: w.is_featured ? 'linear-gradient(135deg, #800020 0%, #4A0012 100%)' : '#F3F4F6',
-                              color: w.is_featured ? '#FFFFFF' : 'var(--text-secondary)',
-                              border: w.is_featured ? 'none' : '1px solid var(--border-glass)',
-                              fontWeight: w.is_featured ? 700 : 600,
+                              justifyContent: 'center',
+                              background: w.stock > 0 ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                              color: w.stock > 0 ? '#EF4444' : 'var(--text-muted)',
+                              border: '1px solid ' + (w.stock > 0 ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.1)'),
+                              cursor: w.stock > 0 ? 'pointer' : 'not-allowed',
+                              opacity: w.stock > 0 ? 1 : 0.4,
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            <Minus size={13} />
+                          </button>
+
+                          <div style={{ minWidth: '76px', textAlign: 'center' }}>
+                            {w.stock > 0 ? (
+                              <span className="badge badge-available" style={{ display: 'inline-block', minWidth: '70px' }}>
+                                {w.stock} {w.stock === 1 ? 'Unit' : 'Units'}
+                              </span>
+                            ) : (
+                              <span className="badge badge-sold-out" style={{ display: 'inline-block', minWidth: '70px' }}>
+                                Sold Out
+                              </span>
+                            )}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => handleStockChange(w, 1)}
+                            disabled={updatingStockId === w.id}
+                            title="Add Stock (+1)"
+                            style={{
+                              width: '26px',
+                              height: '26px',
+                              borderRadius: '6px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              background: 'rgba(16, 185, 129, 0.15)',
+                              color: '#10B981',
+                              border: '1px solid rgba(16, 185, 129, 0.3)',
                               cursor: 'pointer',
                               transition: 'all 0.2s ease'
                             }}
-                            title={w.is_featured ? "Click to remove from Hero Slideshow" : "Click to include in Hero Slideshow"}
                           >
-                            <Star size={13} fill={w.is_featured ? "#FFFFFF" : "none"} stroke={w.is_featured ? "#FFFFFF" : "currentColor"} />
-                            {w.is_featured ? 'Hero Featured' : 'Set as Hero'}
+                            <Plus size={13} />
                           </button>
-                        </td>
+                        </div>
+                      </td>
 
-                        <td style={{ padding: '12px', textAlign: 'right' }}>
-                          <div style={{ display: 'inline-flex', gap: '8px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenEditWatch(w)}
-                              className="btn btn-secondary"
-                              style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-                            >
-                              <Edit size={14} /> Edit
-                            </button>
+                      <td style={{ padding: '12px' }}>
+                        {w.condition === 'Brand New' ? (
+                          <span className="badge badge-brand-new">Brand New</span>
+                        ) : (
+                          <span className="badge badge-pre-owned">Pre-Owned</span>
+                        )}
+                      </td>
 
-                            <button
-                              onClick={() => handleDeleteClick(w)}
-                              className="btn"
-                              style={{
-                                padding: '6px 12px',
-                                fontSize: '0.8rem',
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                color: '#F87171',
-                                border: '1px solid rgba(239, 68, 68, 0.3)'
-                              }}
-                            >
-                              <Trash2 size={14} /> Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
+                      <td style={{ padding: '12px' }}>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFeaturedWatch(w)}
+                          className={`btn ${w.is_featured ? 'btn-primary' : 'btn-secondary'}`}
+                          style={{
+                            padding: '5px 12px',
+                            fontSize: '0.78rem',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            borderRadius: '16px',
+                            background: w.is_featured ? 'linear-gradient(135deg, #800020 0%, #4A0012 100%)' : '#F3F4F6',
+                            color: w.is_featured ? '#FFFFFF' : 'var(--text-secondary)',
+                            border: w.is_featured ? 'none' : '1px solid var(--border-glass)',
+                            fontWeight: w.is_featured ? 700 : 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
+                          }}
+                          title={w.is_featured ? "Click to remove from Hero Slideshow" : "Click to include in Hero Slideshow"}
+                        >
+                          <Star size={13} fill={w.is_featured ? "#FFFFFF" : "none"} stroke={w.is_featured ? "#FFFFFF" : "currentColor"} />
+                          {w.is_featured ? 'Hero Featured' : 'Set as Hero'}
+                        </button>
+                      </td>
 
-        {/* TAB 2: FEATURED TRANSACTIONS */}
-        {activeTab === 'transactions' && (
-          <div className="glass-card" style={{ padding: '24px' }}>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              marginBottom: '24px'
-            }}>
-              <div>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  Featured Client Transactions & Handover Showcase ({transactions.length})
-                </h2>
-                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                  Manage proof of transaction photos, client notes, and feature status on Home Page.
-                </p>
-              </div>
+                      <td style={{ padding: '12px', textAlign: 'right' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditWatch(w)}
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                          >
+                            <Edit size={14} /> Edit
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteClick(w)}
+                            className="btn"
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '0.8rem',
+                              background: 'rgba(239, 68, 68, 0.15)',
+                              color: '#F87171',
+                              border: '1px solid rgba(239, 68, 68, 0.3)'
+                            }}
+                          >
+                            <Trash2 size={14} /> Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
+        </div>
+      )}
 
-            {transactions.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-                No featured transactions added yet. Click "+ Add" at the top right to post your first handover story!
-              </div>
-            ) : (
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-                gap: '20px'
-              }}>
-                {transactions.map((tx) => (
-                  <div
-                    key={tx.id}
-                    style={{
-                      border: '1px solid var(--border-glass)',
-                      borderRadius: '16px',
-                      overflow: 'hidden',
-                      background: '#FFFFFF',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <div style={{ position: 'relative', width: '100%', height: '220px', background: '#000' }}>
-                      <ProtectedImage
-                        src={getImageUrl(tx.image_url || tx.image)}
-                        alt={tx.title}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                      />
-                      <div style={{
+      {/* TAB 2: FEATURED TRANSACTIONS */}
+      {activeTab === 'transactions' && (
+        <div className="glass-card" style={{ padding: '24px' }}>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '16px',
+            marginBottom: '24px'
+          }}>
+            <div>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                Featured Client Transactions & Handover Showcase ({transactions.length})
+              </h2>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                Manage proof of transaction photos, client notes, and feature status on Home Page.
+              </p>
+            </div>
+          </div>
+
+          {transactions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
+              No featured transactions added yet. Click "+ Add" at the top right to post your first handover story!
+            </div>
+          ) : (
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '20px'
+            }}>
+              {transactions.map((tx) => (
+                <div
+                  key={tx.id}
+                  style={{
+                    border: '1px solid var(--border-glass)',
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    background: '#FFFFFF',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div style={{ position: 'relative', width: '100%', height: '220px', background: '#000' }}>
+                    <ProtectedImage
+                      src={getImageUrl(tx.image_url || tx.image)}
+                      alt={tx.title}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      background: 'rgba(0,0,0,0.75)',
+                      color: '#FFF',
+                      padding: '4px 10px',
+                      borderRadius: '10px',
+                      fontSize: '0.75rem',
+                      fontWeight: 700
+                    }}>
+                      {tx.badge || tx.category}
+                    </div>
+
+                    {/* Feature badge overlay */}
+                    <button
+                      onClick={() => handleToggleFeaturedTx(tx)}
+                      style={{
                         position: 'absolute',
                         top: '10px',
-                        right: '10px',
-                        background: 'rgba(0,0,0,0.75)',
-                        color: '#FFF',
+                        left: '10px',
+                        background: (tx.is_featured ?? true) ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0,0,0,0.6)',
+                        color: '#FFFFFF',
+                        border: 'none',
                         padding: '4px 10px',
                         borderRadius: '10px',
                         fontSize: '0.75rem',
-                        fontWeight: 700
-                      }}>
-                        {tx.badge || tx.category}
-                      </div>
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
+                    >
+                      <Star size={12} fill={(tx.is_featured ?? true) ? '#FFFFFF' : 'none'} />
+                      {(tx.is_featured ?? true) ? 'Featured on Home' : 'Not Featured'}
+                    </button>
+                  </div>
 
-                      {/* Feature badge overlay */}
+                  <div style={{ padding: '16px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <MapPin size={12} /> {tx.location} • {tx.category}
+                    </div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
+                      {tx.title}
+                    </h3>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--maroon-primary)', marginBottom: '8px' }}>
+                      {tx.subtitle}
+                    </div>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {tx.note}
+                    </p>
+                  </div>
+
+                  <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: '#F9FAFB' }}>
+                    <button
+                      onClick={() => handleToggleFeaturedTx(tx)}
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 10px', fontSize: '0.78rem' }}
+                    >
+                      {(tx.is_featured ?? true) ? 'Unfeature' : 'Feature'}
+                    </button>
+
+                    <div style={{ display: 'flex', gap: '6px' }}>
                       <button
-                        onClick={() => handleToggleFeaturedTx(tx)}
+                        onClick={() => handleOpenEditTx(tx)}
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '0.8rem' }}
+                      >
+                        <Edit size={14} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTxClick(tx)}
+                        className="btn"
                         style={{
-                          position: 'absolute',
-                          top: '10px',
-                          left: '10px',
-                          background: (tx.is_featured ?? true) ? 'rgba(220, 38, 38, 0.9)' : 'rgba(0,0,0,0.6)',
-                          color: '#FFFFFF',
-                          border: 'none',
-                          padding: '4px 10px',
-                          borderRadius: '10px',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
+                          padding: '6px 12px',
+                          fontSize: '0.8rem',
+                          background: 'rgba(239, 68, 68, 0.15)',
+                          color: '#F87171',
+                          border: '1px solid rgba(239, 68, 68, 0.3)'
                         }}
                       >
-                        <Star size={12} fill={(tx.is_featured ?? true) ? '#FFFFFF' : 'none'} />
-                        {(tx.is_featured ?? true) ? 'Featured on Home' : 'Not Featured'}
+                        <Trash2 size={14} /> Delete
                       </button>
-                    </div>
-
-                    <div style={{ padding: '16px' }}>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--maroon-primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <MapPin size={12} /> {tx.location} • {tx.category}
-                      </div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '4px' }}>
-                        {tx.title}
-                      </h3>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--maroon-primary)', marginBottom: '8px' }}>
-                        {tx.subtitle}
-                      </div>
-                      <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                        {tx.note}
-                      </p>
-                    </div>
-
-                    <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border-glass)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', background: '#F9FAFB' }}>
-                      <button
-                        onClick={() => handleToggleFeaturedTx(tx)}
-                        className="btn btn-secondary"
-                        style={{ padding: '6px 10px', fontSize: '0.78rem' }}
-                      >
-                        {(tx.is_featured ?? true) ? 'Unfeature' : 'Feature'}
-                      </button>
-
-                      <div style={{ display: 'flex', gap: '6px' }}>
-                        <button
-                          onClick={() => handleOpenEditTx(tx)}
-                          className="btn btn-secondary"
-                          style={{ padding: '6px 12px', fontSize: '0.8rem' }}
-                        >
-                          <Edit size={14} /> Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteTxClick(tx)}
-                          className="btn"
-                          style={{
-                            padding: '6px 12px',
-                            fontSize: '0.8rem',
-                            background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#F87171',
-                            border: '1px solid rgba(239, 68, 68, 0.3)'
-                          }}
-                        >
-                          <Trash2 size={14} /> Delete
-                        </button>
-                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Watch Delete Confirmation Modal */}
       <ConfirmModal
@@ -1449,7 +1449,7 @@ export default function AdminDashboardPage() {
                 <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>
                   Watch Image (Upload file or paste URL) *
                 </label>
-                
+
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '10px 16px', fontSize: '0.85rem' }}>
                     <Upload size={16} /> Upload Image File
@@ -1633,7 +1633,7 @@ export default function AdminDashboardPage() {
                 <label className="form-label" style={{ marginBottom: '8px', display: 'block' }}>
                   Handover Photo (Upload file or paste URL) *
                 </label>
-                
+
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                   <label className="btn btn-secondary" style={{ cursor: 'pointer', padding: '10px 16px', fontSize: '0.85rem' }}>
                     <Upload size={16} /> Upload Image File
