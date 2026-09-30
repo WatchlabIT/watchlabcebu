@@ -67,7 +67,7 @@ ${watchCatalogText}`;
  * Calls Groq AI REST API (OpenAI compatible format)
  */
 async function callGroq(apiKey, systemInstructionText, chatHistory) {
-  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama3-70b-8192', 'mixtral-8x7b-32768'];
+  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'llama-3.2-3b-preview', 'llama-3.1-70b-versatile'];
   let lastErr = null;
 
   const messages = [
