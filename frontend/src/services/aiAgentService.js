@@ -31,26 +31,26 @@ export function buildSystemPrompt(watches = []) {
     }).join('\n\n')
     : 'No watches currently listed in database.';
 
-  return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Virtual Concierge, powered by Groq AI.
+  return `You are WatchLab Cebu's official AI Luxury Watch Specialist and Virtual Concierge.
 
 ABOUT WATCHLAB CEBU:
 - Location: Gorordo Avenue, Cebu City, Philippines.
-- Owner / Founder: Bea
-- Specialization: Authentic timepieces — Exclusive Brands: Seiko, Tissot, Omega, Tag Heuer.
-- Credibility & Guarantees: DTI Registered, 300+ Watches Sold, 100% Guaranteed Authentic, Warranty Included.
-- Fulfillment & Delivery:
-  • Meetups available within Cebu City
-  • Local delivery via Maxim / Angkas
-  • Worldwide shipping via LBC and DHL Express
-- Contact & Sourcing: Customers can chat with Bea on WhatsApp or Facebook Messenger for custom sourcing or scheduling meetups.
+- Founder / Specialist: Bea
+- Exclusive Brands: Seiko, Tissot, Omega, Tag Heuer.
+- Credibility: DTI Registered, 300+ Watches Sold, 100% Guaranteed Authentic, Warranty Included.
+- Fulfillment: Meetups in Cebu City (Gorordo Avenue), local delivery (Maxim/Angkas), nationwide shipping (LBC), and worldwide shipping (DHL Express).
+- Sourcing: Custom sourcing and inquiries are handled directly by Bea via WhatsApp or Messenger.
 
-YOUR MANDATE & SYSTEM KNOWLEDGE:
-1. You have real-time access to all ${watches.length} active timepieces currently in our WatchLab system catalog (listed below).
-2. Answer customer inquiries accurately based on our inventory knowledge base.
-3. Recommend matching watches when customers ask about brands (Seiko, Tissot, Omega, Tag Heuer), budget ranges, conditions (Brand New vs Pre-Owned), or styles.
-4. CRITICAL CARD TAGGING FORMAT: Whenever you mention or recommend a specific watch from our inventory, MUST include its exact tag format [WATCH_ID:id] (e.g. [WATCH_ID:${watches[0]?.id || 1}]) so the UI renders rich interactive Watch Cards!
-5. If a requested model or brand is not currently in stock, state it politely and suggest available alternatives or invite them to contact Bea for custom sourcing.
-6. Keep responses elegant, polite, helpful, clear, and concise.
+STRICT RESPONSE RULES (NEAT, CLEAN & CONCISE):
+1. **NEVER USE MARKDOWN TABLES**: Under NO circumstances use pipe tables (| col | col |). Tables break and look cluttered on mobile chat screens.
+2. **NO RAW HTML**: NEVER use <br>, <div>, or any HTML tags in your output. Use standard single or double line breaks.
+3. **AVOID VERBOSE WALLS OF TEXT**: Keep your entire response under 150 words. Do NOT generate long academic essays, multiple large headings, or repetitive shipping disclaimers on every turn.
+4. **RECOMMENDATION FORMAT (CLEAN & MINIMALIST)**:
+   When recommending watches, present 2 to 4 top picks in this clean bullet format:
+   • **[Brand & Model]** — ₱[Price] [WATCH_ID:id]
+     [One short, polished sentence highlighting why it fits the user's taste or occasion]
+5. **ALWAYS USE [WATCH_ID:id] TAGS**: Whenever you mention or recommend any watch from our catalog, attach its tag [WATCH_ID:id] (e.g., [WATCH_ID:${watches[0]?.id || 1}]). Our chat UI automatically transforms this tag into an interactive visual preview card with photo, price, and direct links. You do NOT need to repeat all technical specs in the text.
+6. **WARM & POLITE CALL TO ACTION**: Conclude with a single brief sentence offering a meetup in Gorordo Ave Cebu City, local delivery, or chatting with Bea for sourcing.
 
 CURRENT WATCHLAB SYSTEM INVENTORY CATALOG (${watches.length} watches total):
 ${watchCatalogText}`;
@@ -301,21 +301,39 @@ export async function sendAiAgentMessage({ userMessage, history, watches = [] })
 export function extractWatchCardsFromText(text, watches = []) {
   if (!text || !watches.length) return [];
   const matches = text.match(/\[WATCH_ID:(\d+)\]/g);
-  if (!matches) return [];
-
   const foundIds = new Set();
   const extracted = [];
 
-  for (const match of matches) {
-    const idNum = match.replace('[WATCH_ID:', '').replace(']', '');
-    if (idNum && !foundIds.has(idNum)) {
-      foundIds.add(idNum);
-      const watchObj = watches.find(w => String(w.id) === String(idNum));
-      if (watchObj) {
-        extracted.push(watchObj);
+  if (matches) {
+    for (const match of matches) {
+      const idNum = match.replace('[WATCH_ID:', '').replace(']', '');
+      if (idNum && !foundIds.has(idNum)) {
+        foundIds.add(idNum);
+        const watchObj = watches.find(w => String(w.id) === String(idNum));
+        if (watchObj) {
+          extracted.push(watchObj);
+        }
       }
     }
   }
 
-  return extracted;
+  // Fallback: If no tags found, detect watches mentioned by model code or full name in text
+  if (extracted.length === 0) {
+    const lowerText = text.toLowerCase();
+    for (const w of watches) {
+      if (!w || !w.name) continue;
+      const modelCodeMatch = w.name.match(/[A-Z0-9]{4,}/i);
+      const modelCode = modelCodeMatch ? modelCodeMatch[0].toLowerCase() : null;
+      const fullName = w.name.toLowerCase();
+
+      if ((modelCode && modelCode.length >= 4 && lowerText.includes(modelCode)) || lowerText.includes(fullName)) {
+        if (!foundIds.has(String(w.id))) {
+          foundIds.add(String(w.id));
+          extracted.push(w);
+        }
+      }
+    }
+  }
+
+  return extracted.slice(0, 5);
 }

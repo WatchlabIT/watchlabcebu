@@ -189,34 +189,148 @@ export default function FloatingAiAgent() {
     { label: '🏷️ Tag Heuer', query: 'Show me Tag Heuer watches in stock' }
   ];
 
-  // Render text content formatted with bold syntax and removes tags
+  // Render text content formatted with bold syntax, headings, clean bullets, and safe table sanitization
   const renderFormattedText = (text) => {
     if (!text) return null;
 
-    // Remove [WATCH_ID:xxx] tags from the visible text since watch cards handle them visually
-    const cleanText = text.replace(/\[WATCH_ID:\d+\]/g, '').trim();
+    // 1. Sanitize raw HTML linebreaks, non-breaking spaces, and strip [WATCH_ID:xxx] tags
+    const cleanText = text
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/\u202f/g, ' ')
+      .replace(/\[WATCH_ID:\d+\]/g, '')
+      .trim();
 
-    const paragraphs = cleanText.split('\n\n');
-    return paragraphs.map((para, idx) => {
+    // 2. Normalize and cleanly convert Markdown tables if any ever occur in text
+    const rawLines = cleanText.split('\n');
+    const processedLines = [];
+
+    for (let i = 0; i < rawLines.length; i++) {
+      const line = rawLines[i].trim();
+
+      // If table separator line (|---|---|), skip it
+      if (/^\|[\s\-:|]+\|$/.test(line)) {
+        continue;
+      }
+
+      // If table header line (e.g. | Model | Price | ... |), skip it
+      if (/^\|\s*(Model|Watch|Item|Name)\s*\|/i.test(line)) {
+        continue;
+      }
+
+      // If table content row (| Model | Price | Condition | Features |)
+      if (line.startsWith('|') && line.endsWith('|')) {
+        const cells = line
+          .split('|')
+          .slice(1, -1)
+          .map(c => c.trim())
+          .filter(Boolean);
+
+        if (cells.length > 0) {
+          const model = cells[0];
+          const price = cells[1] ? ` — ${cells[1]}` : '';
+          const condition = cells[2] ? ` (${cells[2]})` : '';
+          const features = cells[3] ? `\n  ${cells[3]}` : '';
+          processedLines.push(`• **${model}**${price}${condition}${features}`);
+          continue;
+        }
+      }
+
+      processedLines.push(line);
+    }
+
+    const normalizedText = processedLines.join('\n');
+    const paragraphs = normalizedText.split(/\n{2,}/);
+
+    const renderInline = (str) => {
+      const parts = str.split(/(\*\*.*?\*\*)/g);
+      return parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return (
+            <strong key={partIdx} style={{ fontWeight: 700, color: 'var(--maroon-primary)' }}>
+              {part.slice(2, -2)}
+            </strong>
+          );
+        }
+        return part;
+      });
+    };
+
+    return paragraphs.map((para, paraIdx) => {
       const lines = para.split('\n');
       return (
-        <p key={idx} style={{ marginBottom: idx === paragraphs.length - 1 ? 0 : '8px', lineHeight: '1.5' }}>
-          {lines.map((line, lineIdx) => {
-            // Convert **text** to bold
-            const parts = line.split(/(\*\*.*?\*\*)/g);
+        <div key={paraIdx} style={{ marginBottom: paraIdx === paragraphs.length - 1 ? 0 : '10px', lineHeight: '1.55' }}>
+          {lines.map((rawLine, lineIdx) => {
+            const line = rawLine.trim();
+            if (!line) return null;
+
+            // Headings: ### Header or ## Header
+            if (/^#{1,4}\s+/.test(line)) {
+              const headerText = line.replace(/^#{1,4}\s+/, '');
+              return (
+                <div
+                  key={lineIdx}
+                  style={{
+                    fontSize: '0.86rem',
+                    fontWeight: 800,
+                    color: 'var(--maroon-primary)',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.4px',
+                    marginTop: lineIdx > 0 ? '10px' : '2px',
+                    marginBottom: '4px'
+                  }}
+                >
+                  {headerText}
+                </div>
+              );
+            }
+
+            // Bullet points: • item, - item, * item, or 1. item
+            if (/^([•\-\*]|\d+\.)\s+/.test(line)) {
+              const bulletText = line.replace(/^([•\-\*]|\d+\.)\s+/, '');
+              return (
+                <div
+                  key={lineIdx}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '6px',
+                    marginTop: '3px',
+                    marginBottom: '3px',
+                    paddingLeft: '2px'
+                  }}
+                >
+                  <span style={{ color: 'var(--maroon-primary)', fontWeight: 700, lineHeight: '1.4' }}>•</span>
+                  <div style={{ flex: 1 }}>{renderInline(bulletText)}</div>
+                </div>
+              );
+            }
+
+            // Indented sub-detail line
+            if (rawLine.startsWith('  ') || rawLine.startsWith('\t')) {
+              return (
+                <div
+                  key={lineIdx}
+                  style={{
+                    paddingLeft: '14px',
+                    fontSize: '0.82rem',
+                    opacity: 0.88,
+                    marginBottom: '4px'
+                  }}
+                >
+                  {renderInline(line)}
+                </div>
+              );
+            }
+
+            // Standard line
             return (
               <React.Fragment key={lineIdx}>
-                {parts.map((part, partIdx) => {
-                  if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={partIdx} style={{ fontWeight: 700, color: 'var(--maroon-primary)' }}>{part.slice(2, -2)}</strong>;
-                  }
-                  return part;
-                })}
+                {renderInline(rawLine)}
                 {lineIdx < lines.length - 1 && <br />}
               </React.Fragment>
             );
           })}
-        </p>
+        </div>
       );
     });
   };
