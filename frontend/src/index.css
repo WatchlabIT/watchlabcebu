@@ -626,6 +626,92 @@ img, .protected-image {
   }
 }
 
+/* ==========================================================================
+   Featured Timepiece & Maroon Loading Animations
+   ========================================================================== */
 
+@keyframes maroonShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
 
+@keyframes dialSpinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
+@keyframes dialSpinFast {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dialSpinReverse {
+  0% {
+    transform: rotate(360deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes maroonHandTick {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes maroonPulseSoft {
+  0%, 100% {
+    opacity: 0.75;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes maroonBeacon {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(127, 29, 29, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(127, 29, 29, 0);
+  }
+}
+
+.maroon-skeleton {
+  background: linear-gradient(90deg, rgba(127, 29, 29, 0.07) 25%, rgba(127, 29, 29, 0.2) 50%, rgba(127, 29, 29, 0.07) 75%);
+  background-size: 200% 100%;
+  animation: maroonShimmer 1.8s infinite ease-in-out;
+  border-radius: 6px;
+}
+
+.hero-loading-container {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 38%, rgba(127, 29, 29, 0.1) 0%, rgba(127, 29, 29, 0.03) 48%, #FFFFFF 85%);
+  border: 1px solid rgba(127, 29, 29, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
