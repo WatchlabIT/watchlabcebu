@@ -150,7 +150,7 @@ export default function HomePage() {
                   fontWeight: 700,
                   marginBottom: '24px'
                 }}>
-                  <Sparkles size={16} /> Trusted Watch Dealer • Cebu based
+                  Trusted Watch Dealer • Cebu based
                 </div>
 
                 <h1 className="font-serif gradient-text" style={{
