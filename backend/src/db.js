@@ -303,7 +303,9 @@ const dbOps = {
   // Transactions CRUD Operations
   getAllTransactions: async () => {
     const db = loadDatabase();
-    return (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    const list = (db && Array.isArray(db.transactions)) ? db.transactions : [];
+    // Only return valid transactions with non-empty title and photo
+    return list.filter(t => t && t.title && (t.image_url || t.image));
   },
 
   getTransactionById: async (id) => {
@@ -348,11 +350,20 @@ const dbOps = {
     if (index === -1) return null;
 
     const existing = db.transactions[index];
+    const cleanedUpdates = {};
+    for (const [key, val] of Object.entries(updates)) {
+      if (val !== undefined) {
+        cleanedUpdates[key] = val;
+      }
+    }
+
     const updated = {
       ...existing,
-      ...updates,
+      ...cleanedUpdates,
       id: existing.id,
-      is_featured: updates.is_featured !== undefined ? !!updates.is_featured : (existing.is_featured !== undefined ? existing.is_featured : true),
+      is_featured: cleanedUpdates.is_featured !== undefined 
+        ? !!cleanedUpdates.is_featured 
+        : (existing.is_featured !== undefined ? existing.is_featured : true),
       updated_at: new Date().toISOString()
     };
 

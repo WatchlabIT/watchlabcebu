@@ -17,7 +17,10 @@ export default function TransactionsPage() {
       setLoading(true);
       try {
         const res = await fetchTransactions();
-        setTransactions((res && res.transactions) ? res.transactions : []);
+        const validList = (res && Array.isArray(res.transactions))
+          ? res.transactions.filter(tx => tx && tx.title && (tx.image_url || tx.image))
+          : [];
+        setTransactions(validList);
       } catch (err) {
         console.error('Error fetching transactions:', err);
         setTransactions([]);
@@ -29,6 +32,7 @@ export default function TransactionsPage() {
   }, []);
 
   const filteredTransactions = transactions.filter(tx => {
+    if (!tx || !tx.title || (!tx.image_url && !tx.image)) return false;
     if (activeFilter === 'All') return true;
     if (activeFilter === 'Deliveries') {
       return tx.category === 'Deliveries' || tx.category === 'Express Deliveries';

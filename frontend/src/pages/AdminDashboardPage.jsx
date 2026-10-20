@@ -289,8 +289,9 @@ export default function AdminDashboardPage() {
       ]);
       if (statsRes && statsRes.stats) setStats(statsRes.stats);
       if (watchesRes && watchesRes.watches) setWatches(watchesRes.watches);
-      if (txRes && txRes.transactions) setTransactions(txRes.transactions);
-    } catch (err) {
+      if (txRes && txRes.transactions) {
+        setTransactions(txRes.transactions.filter(t => t && (t.title || t.image_url || t.image)));
+      }
       console.error('Error loading dashboard data:', err);
     } finally {
       setLoading(false);

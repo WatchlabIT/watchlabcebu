@@ -45,7 +45,7 @@ export default function HomePage() {
         setHeroWatches(finalHeroList);
 
         const txList = txData.transactions || [];
-        const filteredTx = txList.filter(t => t.is_featured !== false);
+        const filteredTx = txList.filter(t => t && t.is_featured !== false && (t.image_url || t.image) && t.title);
         setFeaturedTransactions(filteredTx.slice(0, 4));
       } catch (err) {
         console.error('Error fetching home page data:', err);

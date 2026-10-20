@@ -131,18 +131,19 @@ router.put('/transactions/:id', requireAdminAuth, upload.single('image'), async 
       }
     }
 
-    const isFeaturedBool = is_featured !== undefined ? (is_featured === true || is_featured === 'true' || is_featured === 1) : undefined;
+    const updates = {};
+    if (title !== undefined && String(title).trim()) updates.title = String(title).trim();
+    if (subtitle !== undefined && String(subtitle).trim()) updates.subtitle = String(subtitle).trim();
+    if (location !== undefined && String(location).trim()) updates.location = String(location).trim();
+    if (category !== undefined && String(category).trim()) updates.category = String(category).trim();
+    if (badge !== undefined && String(badge).trim()) updates.badge = String(badge).trim();
+    if (note !== undefined) updates.note = String(note).trim();
+    if (image_url !== undefined && image_url) updates.image_url = image_url;
+    if (is_featured !== undefined) {
+      updates.is_featured = (is_featured === true || is_featured === 'true' || is_featured === 1);
+    }
 
-    const updatedTx = dbOps.updateTransaction(req.params.id, {
-      title: title ? String(title).trim() : undefined,
-      subtitle: subtitle ? String(subtitle).trim() : undefined,
-      location: location ? String(location).trim() : undefined,
-      category: category ? String(category).trim() : undefined,
-      badge: badge ? String(badge).trim() : undefined,
-      note: note ? String(note).trim() : undefined,
-      image_url,
-      is_featured: isFeaturedBool
-    });
+    const updatedTx = dbOps.updateTransaction(req.params.id, updates);
 
 
 
