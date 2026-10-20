@@ -634,28 +634,51 @@ export default function CollectionPage() {
 
             {/* Toolbar: Counter, Sort Dropdown & View Mode Switcher */}
             <div className="glass-card" style={{
-              padding: '14px 20px',
+              padding: '12px 20px',
               marginBottom: '24px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
-              gap: '14px'
+              gap: '14px',
+              borderRadius: '16px'
             }}>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 Showing <strong style={{ color: 'var(--maroon-primary)' }}>{filteredWatches.length}</strong> watch{filteredWatches.length === 1 ? '' : 'es'} in inventory
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 {/* Sort Dropdown Selector */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <ArrowUpDown size={15} color="var(--maroon-primary)" />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)' }}>Sort By:</span>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: '#FFFFFF',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '20px',
+                  padding: '4px 12px 4px 14px',
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                  flexShrink: 0
+                }}>
+                  <ArrowUpDown size={14} color="var(--maroon-primary)" style={{ flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                    Sort By:
+                  </span>
                   <select
                     value={selectedSort}
                     onChange={(e) => setFilter('sort', e.target.value)}
-                    className="form-input"
-                    style={{ padding: '6px 12px', fontSize: '0.82rem', borderRadius: '8px', cursor: 'pointer' }}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      padding: '4px 6px',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      outline: 'none',
+                      fontFamily: 'inherit',
+                      width: 'auto'
+                    }}
                   >
                     <option value="newest">Latest / Newest First (Default)</option>
                     <option value="price_asc">Price: Low to High</option>
@@ -666,13 +689,14 @@ export default function CollectionPage() {
 
                 {/* View Mode Toggle: Grid vs List */}
                 <div style={{
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
                   background: '#FFFFFF',
                   border: '1px solid #E5E7EB',
                   borderRadius: '20px',
                   padding: '3px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
+                  boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                  flexShrink: 0
                 }}>
                   <button
                     type="button"
@@ -681,7 +705,7 @@ export default function CollectionPage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '6px 12px',
+                      padding: '6px 14px',
                       borderRadius: '16px',
                       fontSize: '0.8rem',
                       fontWeight: 700,
@@ -689,7 +713,8 @@ export default function CollectionPage() {
                       background: viewMode === 'grid' ? 'var(--maroon-gradient)' : 'transparent',
                       color: viewMode === 'grid' ? '#FFFFFF' : 'var(--text-secondary)',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     <LayoutGrid size={15} /> Grid
@@ -702,7 +727,7 @@ export default function CollectionPage() {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '6px',
-                      padding: '6px 12px',
+                      padding: '6px 14px',
                       borderRadius: '16px',
                       fontSize: '0.8rem',
                       fontWeight: 700,
@@ -710,7 +735,8 @@ export default function CollectionPage() {
                       background: viewMode === 'list' ? 'var(--maroon-gradient)' : 'transparent',
                       color: viewMode === 'list' ? '#FFFFFF' : 'var(--text-secondary)',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
                     }}
                   >
                     <List size={15} /> List
