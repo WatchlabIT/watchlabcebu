@@ -663,7 +663,9 @@ export default function CollectionPage() {
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: '14px',
-              borderRadius: '16px'
+              borderRadius: '16px',
+              position: 'relative',
+              zIndex: sortOpen ? 80 : 10
             }}>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 Showing <strong style={{ color: 'var(--maroon-primary)' }}>{filteredWatches.length}</strong> watch{filteredWatches.length === 1 ? '' : 'es'} in inventory
@@ -671,7 +673,7 @@ export default function CollectionPage() {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
                 {/* Custom Uniform Luxury Sort Dropdown */}
-                <div ref={sortRef} style={{ position: 'relative', display: 'inline-block' }}>
+                <div ref={sortRef} style={{ position: 'relative', display: 'inline-block', zIndex: sortOpen ? 90 : 1 }}>
                   <button
                     type="button"
                     onClick={() => setSortOpen(!sortOpen)}
@@ -725,7 +727,7 @@ export default function CollectionPage() {
                         border: '1px solid rgba(120, 16, 16, 0.12)',
                         boxShadow: '0 16px 36px -6px rgba(40, 5, 5, 0.16), 0 6px 14px -3px rgba(0, 0, 0, 0.08)',
                         padding: '6px',
-                        zIndex: 100,
+                        zIndex: 999,
                         animation: 'fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                         backdropFilter: 'blur(20px)'
                       }}
@@ -872,7 +874,9 @@ export default function CollectionPage() {
                 style={{
                   display: 'grid',
                   gridTemplateColumns: viewMode === 'list' ? '1fr' : 'repeat(auto-fill, minmax(240px, 1fr))',
-                  gap: viewMode === 'list' ? '14px' : '24px'
+                  gap: viewMode === 'list' ? '14px' : '24px',
+                  position: 'relative',
+                  zIndex: 1
                 }}
               >
                 {filteredWatches.map((watch, idx) => (
