@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Search, Filter, RefreshCw, X, SlidersHorizontal, LayoutGrid, List,
@@ -29,6 +29,28 @@ export default function CollectionPage() {
   // Local price inputs
   const [localMinPrice, setLocalMinPrice] = useState(minPriceParam);
   const [localMaxPrice, setLocalMaxPrice] = useState(maxPriceParam);
+
+  const sortOptions = [
+    { value: 'newest', label: 'Latest / Newest First (Default)' },
+    { value: 'price_asc', label: 'Price: Low to High' },
+    { value: 'price_desc', label: 'Price: High to Low' },
+    { value: 'name_asc', label: 'Name: A to Z' }
+  ];
+
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (sortRef.current && !sortRef.current.contains(event.target)) {
+        setSortOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const currentSortOption = sortOptions.find(opt => opt.value === selectedSort) || sortOptions[0];
 
   useEffect(() => {
     setLocalMinPrice(minPriceParam);
@@ -648,43 +670,125 @@ export default function CollectionPage() {
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-                {/* Sort Dropdown Selector */}
-                <div style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '20px',
-                  padding: '4px 12px 4px 14px',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-                  flexShrink: 0
-                }}>
-                  <ArrowUpDown size={14} color="var(--maroon-primary)" style={{ flexShrink: 0 }} />
-                  <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
-                    Sort By:
-                  </span>
-                  <select
-                    value={selectedSort}
-                    onChange={(e) => setFilter('sort', e.target.value)}
+                {/* Custom Uniform Luxury Sort Dropdown */}
+                <div ref={sortRef} style={{ position: 'relative', display: 'inline-block' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSortOpen(!sortOpen)}
+                    aria-expanded={sortOpen}
+                    aria-haspopup="listbox"
                     style={{
-                      border: 'none',
-                      background: 'transparent',
-                      padding: '4px 6px',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      color: 'var(--text-primary)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      background: '#FFFFFF',
+                      border: sortOpen ? '1px solid var(--maroon-primary)' : '1px solid #E5E7EB',
+                      borderRadius: '20px',
+                      padding: '5px 14px',
+                      boxShadow: sortOpen ? '0 0 0 3px rgba(127, 29, 29, 0.12)' : '0 2px 6px rgba(0,0,0,0.03)',
                       cursor: 'pointer',
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
                       outline: 'none',
-                      fontFamily: 'inherit',
-                      width: 'auto'
+                      userSelect: 'none'
                     }}
                   >
-                    <option value="newest">Latest / Newest First (Default)</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="name_asc">Name: A to Z</option>
-                  </select>
+                    <ArrowUpDown size={14} color="var(--maroon-primary)" style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-secondary)', whiteSpace: 'nowrap' }}>
+                      Sort By:
+                    </span>
+                    <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
+                      {currentSortOption.label}
+                    </span>
+                    <ChevronDown
+                      size={14}
+                      color="var(--text-secondary)"
+                      style={{
+                        marginLeft: '2px',
+                        flexShrink: 0,
+                        transition: 'transform 0.2s ease',
+                        transform: sortOpen ? 'rotate(180deg)' : 'rotate(0deg)'
+                      }}
+                    />
+                  </button>
+
+                  {/* Custom Dropdown Menu Popover */}
+                  {sortOpen && (
+                    <div
+                      role="listbox"
+                      style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        right: 0,
+                        minWidth: '250px',
+                        background: '#FFFFFF',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(120, 16, 16, 0.12)',
+                        boxShadow: '0 16px 36px -6px rgba(40, 5, 5, 0.16), 0 6px 14px -3px rgba(0, 0, 0, 0.08)',
+                        padding: '6px',
+                        zIndex: 100,
+                        animation: 'fadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
+                        backdropFilter: 'blur(20px)'
+                      }}
+                    >
+                      <div style={{
+                        padding: '6px 10px 8px',
+                        fontSize: '0.7rem',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        letterSpacing: '1px',
+                        color: 'var(--text-muted)',
+                        borderBottom: '1px solid #F1F5F9',
+                        marginBottom: '4px'
+                      }}>
+                        Order Catalog By
+                      </div>
+                      {sortOptions.map((option) => {
+                        const isSelected = selectedSort === option.value;
+                        return (
+                          <div
+                            key={option.value}
+                            role="option"
+                            aria-selected={isSelected}
+                            onClick={() => {
+                              setFilter('sort', option.value);
+                              setSortOpen(false);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: '10px',
+                              padding: '9px 12px',
+                              borderRadius: '10px',
+                              fontSize: '0.84rem',
+                              fontWeight: isSelected ? 700 : 500,
+                              color: isSelected ? 'var(--maroon-primary)' : 'var(--text-primary)',
+                              background: isSelected ? 'rgba(127, 29, 29, 0.08)' : 'transparent',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = '#F8FAFC';
+                                e.currentTarget.style.color = 'var(--maroon-primary)';
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!isSelected) {
+                                e.currentTarget.style.background = 'transparent';
+                                e.currentTarget.style.color = 'var(--text-primary)';
+                              }
+                            }}
+                          >
+                            <span>{option.label}</span>
+                            {isSelected && (
+                              <Check size={15} color="var(--maroon-primary)" style={{ flexShrink: 0 }} />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* View Mode Toggle: Grid vs List */}
